@@ -336,3 +336,7 @@ tags
 .renku.lock
 .renku/tmp
 .renku/cache
+
+
+# conda env
+conda-env/*
