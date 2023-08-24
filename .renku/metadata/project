@@ -1,0 +1,38 @@
+{
+  "@renku_data_type": "renku.domain_model.project.Project",
+  "@renku_oid": "project",
+  "agent_version": "2.6.1",
+  "annotations": [],
+  "creator": {
+    "@renku_data_type": "renku.domain_model.provenance.agent.Person",
+    "@renku_data_value": {
+      "affiliation": null,
+      "alternate_name": null,
+      "email": "gasserli@ethz.ch",
+      "id": "mailto:gasserli@ethz.ch",
+      "name": "Lili Gasser"
+    }
+  },
+  "date_created": {
+    "@renku_data_type": "datetime.datetime",
+    "@renku_data_value": "2023-08-24T13:23:03.573483+00:00"
+  },
+  "description": "",
+  "id": "/projects/mltox/mltox-model",
+  "keywords": [],
+  "minimum_renku_version": "2.4.0",
+  "name": "mltox-model",
+  "template_metadata": {
+    "@renku_data_type": "renku.domain_model.project.ProjectTemplateMetadata",
+    "@renku_data_value": {
+      "immutable_template_files": [],
+      "metadata": "{\"__template_source__\": \"https://github.com/SwissDataScienceCenter/renku-project-template\", \"__template_ref__\": \"0.7.0\", \"__template_id__\": \"python-minimal\", \"__namespace__\": \"mltox\", \"__repository__\": \"https://gitlab.limited.renku.ch\", \"__sanitized_project_name__\": \"mltox-model\", \"__project_slug__\": \"mltox/mltox-model\", \"__project_description__\": \"\", \"__renku_version__\": \"2.6.1\", \"name\": \"mltox-model\", \"__name__\": \"mltox-model\", \"__template_version__\": \"75b281eefe3b1b34c064363db2c46ecfa70d2ea4\", \"__automated_update__\": true}",
+      "ssh_supported": true,
+      "template_id": "python-minimal",
+      "template_ref": "0.7.0",
+      "template_source": "https://github.com/SwissDataScienceCenter/renku-project-template",
+      "template_version": "75b281eefe3b1b34c064363db2c46ecfa70d2ea4"
+    }
+  },
+  "version": 10
+}
