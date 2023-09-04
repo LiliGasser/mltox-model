@@ -15,3 +15,4 @@ data/processed/s-C2C_mortality.csv filter=lfs diff=lfs merge=lfs -text
 data/processed/s-F2F-2_mortality.csv filter=lfs diff=lfs merge=lfs -text
 data/processed/s-F2F-3_mortality.csv filter=lfs diff=lfs merge=lfs -text
 data/processed/s-F2F-1_mortality.csv filter=lfs diff=lfs merge=lfs -text
+data/taxonomy/FCA_pdm_species.csv filter=lfs diff=lfs merge=lfs -text
