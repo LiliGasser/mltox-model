@@ -12,3 +12,6 @@ data/processed/t-A2A_mortality.csv filter=lfs diff=lfs merge=lfs -text
 data/processed/before_aggregation/ecotox_results.csv filter=lfs diff=lfs merge=lfs -text
 data/processed/before_aggregation/ecotox_tests.csv filter=lfs diff=lfs merge=lfs -text
 data/processed/s-C2C_mortality.csv filter=lfs diff=lfs merge=lfs -text
+data/processed/s-F2F-2_mortality.csv filter=lfs diff=lfs merge=lfs -text
+data/processed/s-F2F-3_mortality.csv filter=lfs diff=lfs merge=lfs -text
+data/processed/s-F2F-1_mortality.csv filter=lfs diff=lfs merge=lfs -text
