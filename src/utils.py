@@ -21,42 +21,6 @@ from gpflow.monitor import (
 )
 
 # -------------------------------------
-
-def merge_with_chemical_properties(df_eco, path_data):
-
-    # load chemical properties
-    df_properties = pd.read_csv(path_data + 'processed/before_aggregation/ecotox_properties.csv')
-    print("loading chemical properties:", df_properties.shape)
-
-    # merge ECOTOX FCA with chemical properties
-    df_eco = pd.merge(df_eco,
-                      df_properties,
-                      left_on=['test_cas'],
-                      right_on=['test_cas'],
-                      how='left')
-
-    return df_eco
-
-def generate_pdm_from_phylogenetic_tree(path_tree, path_pdm):
-
-    import dendropy as dp
-
-    # create tree
-    tr_species = dp.Tree.get(path=path_tree, 
-                             schema='newick',
-                             preserve_underscores=True)
-
-    #tr_species.print_plot()
-
-    # generate and store matrix (columns and rows are sorted differently in each run)
-    pdm = tr_species.phylogenetic_distance_matrix()
-    pdm.as_data_table().write_csv(path_pdm)
-    
-    # sort columns and rows
-    df_pdm = load_phylogenetic_tree(path_pdm)
-    df_pdm_sorted = df_pdm.sort_index(axis=0).sort_index(axis=1)
-    df_pdm_sorted.to_csv(path_pdm)
-
 def load_phylogenetic_tree(path_pdm):
     '''
     load phylogenetic tree and return pairwise distance matrix pdm.
@@ -67,75 +31,6 @@ def load_phylogenetic_tree(path_pdm):
     df_pdm = pd.read_csv(path_pdm).set_index('Unnamed: 0')
     
     return df_pdm
-
-def add_column_for_replaced_species(df_eco, path_file):
-    '''
-    when creating the phylogenetic tree, the program also outputs a list of replaced species
-    here, this list is used to create a new column with the replaced genus_species
-    
-    '''
-
-    # load file with replacements and unify column names and entries
-    df_sp_sim = pd.read_csv(path_file)
-    df_sp_sim['tax_gs'] = df_sp_sim['original_species'].str.replace(' ', '_')
-    df_sp_sim['tax_gs_replaced'] = df_sp_sim['replacement_species'].str.replace(' ', '_')
-
-    # add column to df_eco
-    df_eco = pd.merge(df_eco,
-                      df_sp_sim[['tax_gs', 'tax_gs_replaced']],
-                      left_on=['tax_gs'],
-                      right_on=['tax_gs'],
-                      how='left')
-
-    # for no replacements, add original tax_gs
-    df_eco.loc[df_eco['tax_gs_replaced'].isnull(), 'tax_gs_replaced'] = df_eco[df_eco['tax_gs_replaced'].isnull()]['tax_gs']
-
-    return df_eco
-
-def load_amp_file(path_tax_amp):
-    '''
-    load Add my Pet file
-    
-    '''
-
-    # load file
-    df = pd.read_csv(path_tax_amp)
-
-    # rename column
-    df = df.rename(columns={'latin_name': 'tax_gs'})
-    df['tax_gs'] = df['tax_gs'].str.replace(' ', '_')
-
-    # remove duplicate entries
-    if 'ecology' in path_tax_amp:
-        list_cols = ['tax_gs', 'climate', 'ecozone', 'food', 'migrate5', 'migrate2']
-        df = df.drop_duplicates(subset=list_cols, keep='first')
-
-    return df
-
-def _add_unique_tax_name(df_eco, col_tax='tax_all'):
-    '''
-    helper function to add unique tax name
-    the column 'tax_all' contains a unique but very long name
-    this functions takes the name of the species and adds a number if it appears more than once
-    
-    '''
-    # get data frame with only combined tax column tax_all and tax_name
-    df_fish = df_eco[[col_tax, "tax_name"]].drop_duplicates().sort_values([col_tax]).reset_index(drop=True)
-    # count occurence for each species
-    df_fish["n_name"] = df_fish.groupby(["tax_name"])[col_tax].transform(lambda x: len(set(x)))
-    # cumulative count for each species
-    df_fish["cumcount"] = df_fish.groupby(["tax_name"]).cumcount() + 1
-    # extend tax_name by cumcount number
-    df_fish["tax_name_ext"] = df_fish["tax_name"]
-    df_fish.loc[df_fish["n_name"] > 1, "tax_name_ext"] = df_fish[df_fish["n_name"] > 1]["tax_name"] + " " + df_fish[df_fish["n_name"] > 1]["cumcount"].astype("str")
-    # add to initial data frame
-    df_eco = pd.merge(df_eco,
-                      df_fish[[col_tax, "tax_name_ext"]],
-                      left_on=[col_tax],
-                      right_on=[col_tax],
-                      how="left")
-
-    return df_eco
 
 # -------------------------------
 def get_necessary_bits(df, 
@@ -233,28 +128,6 @@ def get_duplicated_bits(df_fp,
 
     return list_dupl
 
-# TODO delete --> check scripts (13, 33, foba) first!
-def get_fingerprints(df_eco):
-    '''
-    get molecular represenations as a dictionary
-    
-    '''
-
-    # get fingerprints dataframes: remove unnecessary bits
-    dict_chem_fp = {}
-    for name_fp in ['pcp', 'MACCS', 'Morgan']:
-        df_fp = get_fingerprint(df_eco, name_fp)
-        dict_chem_fp[name_fp] = df_fp
-    
-        print(name_fp, df_fp.shape)
-
-    # get mol2vec dataframe
-    df_mol2vec = get_mol2vec(df_eco)
-    dict_chem_fp['mol2vec'] = df_mol2vec
-    print('mol2vec', dict_chem_fp['mol2vec'].shape)
-
-    return dict_chem_fp
-
 def get_fingerprint(df, chem_fp, trainvalid_idx, test_idx):
 
     col_fp = 'chem_' + chem_fp + '_fp'
@@ -262,9 +135,6 @@ def get_fingerprint(df, chem_fp, trainvalid_idx, test_idx):
                                   col_fp, 
                                   chem_fp,
                                   std_threshold=0.1)
-
-    #print(df_fp_tv.shape)
-    #print(list(df_fp_tv.columns))
     
     if len(test_idx) > 0:
         df_fp_test = get_fingerprint_as_dataframe(df.iloc[test_idx], 
@@ -273,7 +143,6 @@ def get_fingerprint(df, chem_fp, trainvalid_idx, test_idx):
                                                   do_drop_duplicates=False)
         print(df_fp_test.shape)
         df_fp_test = df_fp_test[list(df_fp_tv.columns)].copy()
-        #print(df_fp_test.shape)
 
     df_output = pd.DataFrame(index=df.index, columns=df_fp_tv.columns, dtype='float64')
     df_output.iloc[trainvalid_idx] = df_fp_tv.to_numpy()
@@ -509,7 +378,7 @@ def get_df_chem_fp(chem_fp,
                    trainvalid_idx, 
                    test_idx):
 
-    if chem_fp in ['pcp', 'MACCS', 'Morgan']:
+    if chem_fp in ['pcp', 'MACCS', 'ToxPrint', 'Morgan']:
         df_chem_fp = get_fingerprint(df_eco, chem_fp, trainvalid_idx, test_idx) 
         lengthscales_fp = lengthscales
 
@@ -1032,51 +901,6 @@ def read_result_files(path, file_type='errors'):
     df = df.reset_index(drop=True)
 
     return df
-
-# ------------------------------------------------
-
-def _extract_added_features(path_file):
-    '''
-    helper function to extract added features of 
-    GP forward run from errors file
-    
-    '''
-
-    # open file
-    df_errors = pd.read_csv(path_file)
-
-    # get mean validation errors
-    df_e = df_errors[(df_errors['set'] == 'valid') & 
-                     (df_errors['fold'] == 'mean')].reset_index(drop=True)
-
-    # get best rmse
-    metric = 'rmse'
-    df_e_best = df_e.loc[df_e[metric].idxmin()]
-
-    # extract added features
-    #fit_vars2 = get_added_features(df_e_best)
-    if df_e_best['col_add'] != '':
-        fit_vars = df_e_best['fit_vars']
-        fit_vars2 = ', '.join(fit_vars.split('__'))
-        print(fit_vars2)
-    else:
-        fit_vars2 = None
-        print('no feature added')
-
-    return fit_vars2
-
-def get_added_features(df):
-
-    if df['col_add'].iloc[0] != '':
-        fit_vars = df['fit_vars'].iloc[0]
-        fit_vars2 = ', '.join(fit_vars.split('__'))
-        #print(fit_vars2)
-    else:
-        fit_vars2 = None
-        #print('no feature added')
-
-    return fit_vars2
-
 
 # ------------------------------
 

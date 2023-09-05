@@ -340,3 +340,8 @@ tags
 
 # conda env
 conda-env/*
+
+
+# vm output
+vm_output*/*
+
