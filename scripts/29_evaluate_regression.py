@@ -298,7 +298,7 @@ elif metric == 'rmse':
     g = g + labs(y="RMSE")
 elif metric == 'mae':
     g = g + labs(y="MAE")
-#g.save(path_figures + '29_all_' + metric + '-vs-models.jpg', facecolor='white')
+#g.save(path_figures + '29_all_' + metric + '-vs-models.png', facecolor='white')
 g
 # %%
 
@@ -544,7 +544,7 @@ for errortype in list_sets:
 
 fig.update_layout(template='plotly_white')
 
-fig.write_image(path_figures + '29_all_' + metric + '-vs-models.jpg')
+fig.write_image(path_figures + '29_all_' + metric + '-vs-models.png')
 fig.show()
 
 # %%
@@ -776,7 +776,7 @@ fig.update_layout(legend_orientation='h', legend_xanchor='center', legend_x=0.5)
 
 fig.update_layout(template='plotly_white')
 
-fig.write_image(path_figures + '29_all_' + metric + '-vs-models_validation.jpg')
+fig.write_image(path_figures + '29_all_' + metric + '-vs-models_validation.png')
 fig.show()
 
 # %% 
@@ -919,7 +919,7 @@ for errortype in ['valid']:
 
 fig.update_layout(template='plotly_white')
 
-fig.write_image(path_figures + '29_all_rmse-r2-vs-models_test.jpg')
+fig.write_image(path_figures + '29_all_rmse-r2-vs-models_test.png')
 fig.show()
 
 # %%
@@ -958,7 +958,7 @@ for groupsplit in ['totallyrandom', 'occurrence']:
         + theme(axis_ticks_major_x=element_blank())
         + labs(y=str_metric)
     )
-    g.save(path_figures + '29_' + groupsplit + '_' + metric + '-vs-models.jpg', facecolor='white')
+    g.save(path_figures + '29_' + groupsplit + '_' + metric + '-vs-models.png', facecolor='white')
     print(g)
 
 # %%
@@ -991,7 +991,7 @@ for chem_fp in ['MACCS', 'pcp', 'Morgan', 'mol2vec']:
         + theme(axis_ticks_major_x=element_blank())
         + labs(y=str_metric)
     )
-    g.save(path_figures + '29_' + chem_fp + '_' + metric + '-vs-models.jpg', facecolor='white')
+    g.save(path_figures + '29_' + chem_fp + '_' + metric + '-vs-models.png', facecolor='white')
     print(g)
 
 # %%
@@ -1013,7 +1013,7 @@ g = (ggplot(data=df_p, mapping=aes(x='model', y='chem_fp', fill=metric, label=me
     + theme(axis_ticks_major=element_blank())
     + theme(figure_size=(7, 12))
 )
-g.save(path_figures + '29_all_heatmap_' + metric + '.jpg', facecolor='white')
+g.save(path_figures + '29_all_heatmap_' + metric + '.png', facecolor='white')
 print(g)
 
 # %%
