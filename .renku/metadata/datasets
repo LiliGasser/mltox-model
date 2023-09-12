@@ -12,6 +12,12 @@
               {
                 "@renku_data_type": "builtins.tuple",
                 "@renku_data_value": [
+                  "chemicals",
+                  {
+                    "@renku_data_type": "renku.domain_model.dataset.Dataset",
+                    "@renku_oid": "c6403a7b867629c1b277ae874e4603a1e21eefa24fffeef8dab1205a8c4388ac",
+                    "@renku_reference": true
+                  },
                   "processed",
                   {
                     "@renku_data_type": "renku.domain_model.dataset.Dataset",
