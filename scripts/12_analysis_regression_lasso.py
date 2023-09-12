@@ -19,6 +19,7 @@ from sklearn.linear_model import Lasso, Ridge, LinearRegression
 from plotnine import *
 
 import utils
+import modeling as mod
 
 #%reload_ext autoreload
 #%autoreload 2
@@ -107,13 +108,13 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     df_chem_prop_all = df_eco[list_cols_chem_prop].reset_index(drop=True)
 
     # encode experimental variables
-    df_exp_all = utils.get_encoding_for_experimental_features(df_eco, exp)
+    df_exp_all = mod.get_encoding_for_experimental_features(df_eco, exp)
 
     # encode taxonomic pairwise distances
-    df_eco, df_pdm, df_enc = utils.get_encoding_for_taxonomic_pdm(df_eco, df_pdm, col_tax='tax_gs')
+    df_eco, df_pdm, df_enc = mod.get_encoding_for_taxonomic_pdm(df_eco, df_pdm, col_tax='tax_gs')
 
     # encode taxonomic Add my Pet features 
-    df_tax_prop_all = utils.get_encoding_for_taxonomic_addmypet(df_eco)
+    df_tax_prop_all = mod.get_encoding_for_taxonomic_addmypet(df_eco)
 
     # print summary
     print("# entries:", df_eco.shape[0])
@@ -130,30 +131,30 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     test_idx = df_eco[df_eco['split'] == 'test'].index
     
     # get experimental features
-    df_exp, len_exp = utils.get_df_exp(df_exp_all)
+    df_exp, len_exp = mod.get_df_exp(df_exp_all)
 
     # get chemical fingerprints
-    df_chem_fp, len_chem_fp, lengthscales_fp = utils.get_df_chem_fp(chem_fp, 
-                                                                    df_eco, 
-                                                                    lengthscales, 
-                                                                    trainvalid_idx, 
-                                                                    test_idx)
+    df_chem_fp, len_chem_fp, lengthscales_fp = mod.get_df_chem_fp(chem_fp, 
+                                                                  df_eco, 
+                                                                  lengthscales, 
+                                                                  trainvalid_idx, 
+                                                                  test_idx)
 
     # get chemical properties
-    df_chem_prop, len_chem_prop, lengthscales_prop = utils.get_df_chem_prop(chem_prop, 
-                                                                            df_chem_prop_all, 
-                                                                            lengthscales, 
-                                                                            trainvalid_idx, 
-                                                                            test_idx)
+    df_chem_prop, len_chem_prop, lengthscales_prop = mod.get_df_chem_prop(chem_prop, 
+                                                                          df_chem_prop_all, 
+                                                                          lengthscales, 
+                                                                          trainvalid_idx, 
+                                                                          test_idx)
 
     # get taxonomic pairwise distances
-    df_tax_pdm, len_tax_pdm, squared = utils.get_df_tax_pdm(tax_pdm, df_eco, col_tax_pdm)
+    df_tax_pdm, len_tax_pdm, squared = mod.get_df_tax_pdm(tax_pdm, df_eco, col_tax_pdm)
 
     # get taxonomic properties
-    df_tax_prop, len_tax_prop = utils.get_df_tax_prop(tax_prop, 
-                                                      df_tax_prop_all,
-                                                      trainvalid_idx, 
-                                                      test_idx)
+    df_tax_prop, len_tax_prop = mod.get_df_tax_prop(tax_prop, 
+                                                    df_tax_prop_all,
+                                                    trainvalid_idx, 
+                                                    test_idx)
 
     # concatenate features
     df_features = pd.concat((df_exp, df_chem_fp, df_chem_prop, df_tax_pdm, df_tax_prop), axis=1)
@@ -179,7 +180,7 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     ## crossvalidation
     # get splits
     if not 'loo' in groupsplit:
-        dict_splits = utils.get_precalculated_cv_splits(df_eco_trainvalid)
+        dict_splits = mod.get_precalculated_cv_splits(df_eco_trainvalid)
         n_splits_cv = df_eco_trainvalid['split'].astype('int').max() + 1
     else:
         dict_splits = {}
@@ -248,21 +249,21 @@ for i, param in enumerate(ParameterGrid(param_grid)):
             # generate output
             df_pred_train = df_eco_train.copy()
             df_pred_train['conc_pred'] = y_train_pred
-            df_pred_train = utils._add_params_fold_to_df(df_pred_train, 
-                                                         hyperparam, 
-                                                         fold)
+            df_pred_train = mod._add_params_fold_to_df(df_pred_train, 
+                                                       hyperparam, 
+                                                       fold)
             list_df_pred_t_grid.append(df_pred_train)
             df_pred_valid = df_eco_valid.copy()
             df_pred_valid['conc_pred'] = y_valid_pred
-            df_pred_valid = utils._add_params_fold_to_df(df_pred_valid, 
-                                                         hyperparam, 
-                                                         fold)
+            df_pred_valid = mod._add_params_fold_to_df(df_pred_valid, 
+                                                       hyperparam, 
+                                                       fold)
             list_df_pred_v_grid.append(df_pred_valid)
         
             # parameters
             list_features = list([col for (col, value) in zip(df_features.columns, model.coef_) if value != 0])
-            df_param_grid = utils.get_model_weights(model_rerun, list_cols=list_features)
-            df_param_grid = utils._add_params_fold_to_df(df_param_grid, hyperparam, fold)
+            df_param_grid = mod.get_model_weights(model_rerun, list_cols=list_features)
+            df_param_grid = mod._add_params_fold_to_df(df_param_grid, hyperparam, fold)
             list_df_param_grid.append(df_param_grid)
 
         if len(list_df_pred_v_grid) > 0:
@@ -274,12 +275,12 @@ for i, param in enumerate(ParameterGrid(param_grid)):
             df_preds_v_grid = pd.concat(list_df_pred_v_grid)
             df_preds_v_grid['idx_hp'] = idx_hp
             list_df_preds_v_grid.append(df_preds_v_grid)
-            df_error_grid = utils.calculate_evaluation_metrics(df_preds_t_grid, 
-                                                               df_preds_v_grid,
-                                                               col_true, 
-                                                               col_pred, 
-                                                               n_splits_cv)
-            df_error_grid = utils._add_params_fold_to_df(df_error_grid, hyperparam)
+            df_error_grid = mod.calculate_evaluation_metrics(df_preds_t_grid, 
+                                                             df_preds_v_grid,
+                                                             col_true, 
+                                                             col_pred, 
+                                                             n_splits_cv)
+            df_error_grid = mod._add_params_fold_to_df(df_error_grid, hyperparam)
             df_error_grid['idx_hp'] = idx_hp
             list_df_error_grid.append(df_error_grid)
 
@@ -297,7 +298,7 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     df_errors_grid.loc[df_errors_grid['idx_hp'] == idx_hp_best, 'best_hp'] = True
 
     # append / store
-    df_errors_grid = utils._add_params_fold_to_df(df_errors_grid, param_sorted)
+    df_errors_grid = mod._add_params_fold_to_df(df_errors_grid, param_sorted)
     str_file = '_'.join([str(i) for i in param_sorted.values()])
     df_errors_grid.round(5).to_csv(path_vmoutput + 'errors_' + str_file + '.csv', index=False)
 
@@ -305,13 +306,13 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     df_preds_v_best = df_preds_v[df_preds_v['idx_hp'] == idx_hp_best].copy()
     list_cols_conc = ['fold', col_conc, 'conc_pred']
     df_store = df_preds_v_best[list_cols_preds + list_cols_conc].copy()
-    df_store = utils._add_params_fold_to_df(df_store, param_sorted)
-    df_store = utils._add_params_fold_to_df(df_store, hyperparam)
+    df_store = mod._add_params_fold_to_df(df_store, param_sorted)
+    df_store = mod._add_params_fold_to_df(df_store, hyperparam)
     df_store.round(5).to_csv(path_vmoutput + 'preds_' + str_file + '.csv', index=False)
 
     # concatenate and store parameters
     df_params_grid = pd.concat(list_df_param_grid).reset_index(drop=True)
-    df_params_grid = utils._add_params_fold_to_df(df_params_grid, param_sorted)
+    df_params_grid = mod._add_params_fold_to_df(df_params_grid, param_sorted)
     df_params_grid.round(5).to_csv(path_vmoutput + 'params_' + str_file + '.csv', index=False)
 
     print()

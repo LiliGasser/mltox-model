@@ -31,6 +31,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 import utils
+import modeling as mod
 
 #%reload_ext autoreload
 #%autoreload 2
@@ -150,13 +151,13 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     df_chem_prop_all = df_eco[list_cols_chem_prop].reset_index(drop=True)
 
     # encode experimental variables
-    df_exp_all = utils.get_encoding_for_experimental_features(df_eco, exp)
+    df_exp_all = mod.get_encoding_for_experimental_features(df_eco, exp)
 
     # encode taxonomic pairwise distances
-    df_eco, df_pdm, df_enc = utils.get_encoding_for_taxonomic_pdm(df_eco, df_pdm, col_tax='tax_gs')
+    df_eco, df_pdm, df_enc = mod.get_encoding_for_taxonomic_pdm(df_eco, df_pdm, col_tax='tax_gs')
 
     # encode taxonomic Add my Pet features 
-    df_tax_prop_all = utils.get_encoding_for_taxonomic_addmypet(df_eco)
+    df_tax_prop_all = mod.get_encoding_for_taxonomic_addmypet(df_eco)
 
     # print summary
     print("# entries:", df_eco.shape[0])
@@ -176,35 +177,35 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     lol_cols_ARD = []
 
     # get experimental features
-    df_exp, len_exp = utils.get_df_exp(df_exp_all)
-    lol_cols_ARD = utils._update_lol_cols_ARD(lol_cols_ARD, exp, do_ARD_other, df_exp)
+    df_exp, len_exp = mod.get_df_exp(df_exp_all)
+    lol_cols_ARD = mod._update_lol_cols_ARD(lol_cols_ARD, exp, do_ARD_other, df_exp)
 
     # get chemical fingerprints
-    df_chem_fp, len_chem_fp, lengthscales_fp = utils.get_df_chem_fp(chem_fp, 
-                                                                    df_eco, 
-                                                                    lengthscales, 
-                                                                    trainvalid_idx, 
-                                                                    test_idx)
-    lol_cols_ARD = utils._update_lol_cols_ARD(lol_cols_ARD, chem_fp, do_ARD_fp, df_chem_fp)
+    df_chem_fp, len_chem_fp, lengthscales_fp = mod.get_df_chem_fp(chem_fp, 
+                                                                  df_eco, 
+                                                                  lengthscales, 
+                                                                  trainvalid_idx, 
+                                                                  test_idx)
+    lol_cols_ARD = mod._update_lol_cols_ARD(lol_cols_ARD, chem_fp, do_ARD_fp, df_chem_fp)
 
     # get chemical properties
-    df_chem_prop, len_chem_prop, lengthscales_prop = utils.get_df_chem_prop(chem_prop, 
-                                                                            df_chem_prop_all, 
-                                                                            lengthscales, 
-                                                                            trainvalid_idx, 
-                                                                            test_idx)
-    lol_cols_ARD = utils._update_lol_cols_ARD(lol_cols_ARD, chem_prop, do_ARD_other, df_chem_prop)
+    df_chem_prop, len_chem_prop, lengthscales_prop = mod.get_df_chem_prop(chem_prop, 
+                                                                          df_chem_prop_all, 
+                                                                          lengthscales, 
+                                                                          trainvalid_idx, 
+                                                                          test_idx)
+    lol_cols_ARD = mod._update_lol_cols_ARD(lol_cols_ARD, chem_prop, do_ARD_other, df_chem_prop)
 
     # get taxonomic pairwise distances
-    df_tax_pdm, len_tax_pdm, squared = utils.get_df_tax_pdm(tax_pdm, df_eco, col_tax_pdm)
+    df_tax_pdm, len_tax_pdm, squared = mod.get_df_tax_pdm(tax_pdm, df_eco, col_tax_pdm)
     if tax_pdm != 'none':
         lol_cols_ARD.append([])
 
     # get taxonomic properties
-    df_tax_prop, len_tax_prop = utils.get_df_tax_prop(tax_prop, 
-                                                      df_tax_prop_all,
-                                                      trainvalid_idx, 
-                                                      test_idx)
+    df_tax_prop, len_tax_prop = mod.get_df_tax_prop(tax_prop, 
+                                                    df_tax_prop_all,
+                                                    trainvalid_idx, 
+                                                    test_idx)
     lol_cols_ARD = utils._update_lol_cols_ARD(lol_cols_ARD, tax_prop, do_ARD_other, df_tax_prop)
 
     # concatenate features
@@ -229,12 +230,12 @@ for i, param in enumerate(ParameterGrid(param_grid)):
         mean_function = gpflow.mean_functions.Constant(0)
         #mean_function = None
             
-        kernel, len_tot =  utils.get_complete_kernel(len_exp, len_chem_fp, len_chem_prop, len_tax_pdm, len_tax_prop,
-                                                     which_kernel_fp, which_kernel_other, 
-                                                     variance, 
-                                                     lengthscales, lengthscales_fp, lengthscales_prop, lengthscales_tax_pdm,
-                                                     do_ARD_fp, do_ARD_other,
-                                                     df_pdm, squared)
+        kernel, len_tot =  mod.get_complete_kernel(len_exp, len_chem_fp, len_chem_prop, len_tax_pdm, len_tax_prop,
+                                                   which_kernel_fp, which_kernel_other, 
+                                                   variance, 
+                                                   lengthscales, lengthscales_fp, lengthscales_prop, lengthscales_tax_pdm,
+                                                   do_ARD_fp, do_ARD_other,
+                                                   df_pdm, squared)
 
         if show_heatmaps:
             # heatmap for kernel before training
@@ -247,20 +248,20 @@ for i, param in enumerate(ParameterGrid(param_grid)):
         time_start = time.time()
 
         # run sparse GP
-        opt_logs, model = utils.run_GP(X_trainvalid, 
-                                       y_trainvalid, 
-                                       kernel, mean_function, 
-                                       noise_variance,
-                                       maxiter,
-                                       GP_type, 
-                                       ind_type, 
-                                       n_inducing,
-                                       do_monitor)
+        opt_logs, model = mod.run_GP(X_trainvalid, 
+                                     y_trainvalid, 
+                                     kernel, mean_function, 
+                                     noise_variance,
+                                     maxiter,
+                                     GP_type, 
+                                     ind_type, 
+                                     n_inducing,
+                                     do_monitor)
 
         time_end = time.time()
         print("execution time:", (time_end-time_start)/60)
-        #df_opt = utils.get_df_opt(opt_logs)
-        #df_opt = utils._add_params_fold_to_df(df_opt, hyperparam, fold)
+        #df_opt = mod.get_df_opt(opt_logs)
+        #df_opt = mod._add_params_fold_to_df(df_opt, hyperparam, fold)
         #list_df_opt_grid.append(df_opt)
 
         if opt_logs['message'] == 'ABNORMAL_TERMINATION_IN_LNSRCH':
@@ -296,15 +297,15 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     df_pred_tv = df_eco_trainvalid.copy()
     df_pred_tv['conc_pred'] = y_tv_pred
     df_pred_tv['conc_pred_var'] = var_tv_pred
-    df_pred_tv = utils._add_params_fold_to_df(df_pred_tv, 
-                                              hyperparam, 
-                                              'trainvalid')
+    df_pred_tv = mod._add_params_fold_to_df(df_pred_tv, 
+                                            hyperparam, 
+                                            'trainvalid')
     df_pred_test = df_eco_test.copy()
     df_pred_test['conc_pred'] = y_test_pred
     df_pred_test['conc_pred_var'] = var_test_pred
-    df_pred_test = utils._add_params_fold_to_df(df_pred_test, 
-                                                hyperparam, 
-                                                'test')
+    df_pred_test = mod._add_params_fold_to_df(df_pred_test, 
+                                              hyperparam, 
+                                              'test')
 
     # get parameters values from model
     list_rows_ind = None
@@ -312,25 +313,25 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     if GP_type == 'sparse':
         list_rows_ind = ['inducing_point_' + str(i) for i in range(n_inducing)]
         list_cols_ind = list(df_features.columns)
-    df_param, df_ind = utils.get_paramvalues_from_module(model, 
-                                                         lol_cols_ARD=lol_cols_ARD,
-                                                         list_rows_ind=list_rows_ind,
-                                                         list_cols_ind=list_cols_ind)
+    df_param, df_ind = mod.get_paramvalues_from_module(model, 
+                                                       lol_cols_ARD=lol_cols_ARD,
+                                                       list_rows_ind=list_rows_ind,
+                                                       list_cols_ind=list_cols_ind)
     df_param = df_param.reset_index().rename(columns={'index': 'feature'})
     df_param['set'] = 'trainvalid'
     df_param['chem_prop'] = chem_prop
     df_param['tax_prop'] = tax_prop
     df_param['exp'] = exp 
-    df_param = utils._add_params_fold_to_df(df_param, param)
-    df_param = utils._add_params_fold_to_df(df_param, 
-                                            hyperparam, 
-                                            'trainvalid')
+    df_param = mod._add_params_fold_to_df(df_param, param)
+    df_param = mod._add_params_fold_to_df(df_param, 
+                                          hyperparam, 
+                                          'trainvalid')
     list_df_params.append(df_param)
 
     # evaluate
     col_true = col_conc
     col_pred = 'conc_pred'
-    df_error = utils.calculate_evaluation_metrics(df_pred_tv, 
+    df_error = mod.calculate_evaluation_metrics(df_pred_tv, 
                                                   df_pred_test,
                                                   col_true, 
                                                   col_pred, 
@@ -339,16 +340,16 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     df_error['chem_prop'] = chem_prop
     df_error['tax_prop'] = tax_prop
     df_error['exp'] = exp 
-    df_error = utils._add_params_fold_to_df(df_error, param)
-    df_error = utils._add_params_fold_to_df(df_error, hyperparam)
+    df_error = mod._add_params_fold_to_df(df_error, param)
+    df_error = mod._add_params_fold_to_df(df_error, hyperparam)
     list_df_errors.append(df_error)
 
     # store predictions
     df_pred = pd.concat([df_pred_tv, df_pred_test])
     list_cols_conc = ['fold', col_conc, 'conc_pred', 'conc_pred_var']
     df_pred = df_pred[list_cols_preds + list_cols_conc].copy()
-    df_pred = utils._add_params_fold_to_df(df_pred, param_sorted)
-    df_pred = utils._add_params_fold_to_df(df_pred, hyperparam)
+    df_pred = mod._add_params_fold_to_df(df_pred, param_sorted)
+    df_pred = mod._add_params_fold_to_df(df_pred, hyperparam)
     list_df_preds.append(df_pred)
 
 # concatenate and store
