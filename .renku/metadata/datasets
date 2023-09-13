@@ -21,7 +21,7 @@
                   "processed",
                   {
                     "@renku_data_type": "renku.domain_model.dataset.Dataset",
-                    "@renku_oid": "c2929813247940005d59cef9363f2408c65b1429c8b7345a6a96983a3b6d29e7",
+                    "@renku_oid": "30fba1d94739761be2b795515de73b0b7a82d71e1336ffe4b8d53c91fcd9eefc",
                     "@renku_reference": true
                   },
                   "taxonomy",
