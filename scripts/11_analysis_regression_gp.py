@@ -46,14 +46,12 @@ path_vmoutput = path_root + 'vm_output_gp/tmp/'
 
 # parameter grids
 
-# TODO select all
 param_grid = [
     {
      # features
-     'chem_fp': ['ToxPrint'],
-#     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'mol2vec'], 
+     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'Toxprint', 'mol2vec'], 
      'chem_prop': ['chemprop'],                  #['none', 'chemprop'],
-     'tax_pdm': ['pdm'],                         #['none', 'pdm', 'pdm-squared'],
+     'tax_pdm': ['none'],                         #['none', 'pdm', 'pdm-squared'],
      'tax_prop': ['taxprop-migrate2'],           #['none', 'taxprop-migrate2', 'taxprop-migrate5'],
      'exp': ['exp-dropfirst'],                   #['none', 'exp-dropnone', 'exp-dropfirst'],     # use dropfirst
      # splits
@@ -73,7 +71,7 @@ hyperparam_grid = [
 ]
 
 show_heatmaps = False
-maxiter = 10    # TODO set to 10000
+maxiter = 10000    # TODO set to 10000
 
 # fix some parameters
 GP_type = 'sparse'                    # 'full'
