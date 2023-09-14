@@ -55,8 +55,8 @@ path_pi = path_output + 'permimp/'
 # %%
 
 # set
-modeltype = 'xgboost'
-chem_fp = 'mol2vec'
+modeltype = 'rf'
+chem_fp = 'MACCS'
 groupsplit = 'occurrence'
 conctype = 'molar'
 
@@ -132,7 +132,7 @@ df_plot = df_pi_long[df_pi_long['set'] == 'test'].copy()
 # load explainer and SHAP values
 filename_ending = '_'.join((modeltype, 'explainer', chem_fp, groupsplit, conctype)) + '.sav'
 filename_expl = path_shap + filename_ending
-explainer = pickle.load(open(filename_expl, 'rb'))
+#explainer = pickle.load(open(filename_expl, 'rb'))
 #print(explainer)
 
 filename_ending = '_'.join((modeltype, 'shapvalues', chem_fp, groupsplit, conctype)) + '.sav'
@@ -200,9 +200,30 @@ shap.summary_plot(shap_values,
 shap.plots.bar(shap_values[100])
 shap.plots.waterfall(shap_values[100])
 
+# a subset
+shap.plots.waterfall(shap_values[:25])
+
 # %%
 
 # do not run
 #shap.plots.embedding(0, shap_values)
 #shap.plots.force(shap_values)
+# %%
+
+#chem_name = 'Malathion'
+#chem_name = 'Endosulfan'
+chem_name = 'Chlorpyrifos'
+list_idx = list(df_features[df_features['chem_name'] == chem_name].index)
+shap_values[list_idx]
+
+# bar chart
+shap.plots.bar(shap_values[list_idx],
+               max_display=11)
+
+# beeswarm
+shap.summary_plot(shap_values[list_idx], 
+                  max_display=10,
+                  cmap='cividis', 
+                  alpha=0.4,
+                  )
 # %%

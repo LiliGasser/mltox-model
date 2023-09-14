@@ -36,6 +36,7 @@ path_output = path_root + 'output/regression/'
 path_figures = path_output + 'figures/'
 path_shap = path_output + 'shap/'
 path_pi = path_output + 'permimp/'
+path_features = path_output + 'features/'
 
 # %%
 
@@ -54,7 +55,7 @@ param_grid = [
     {
      # features
      #'chem_fp': ['MACCS'],
-     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'mol2vec'], 
+     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
      # splits
      #'groupsplit': ['occurrence'],
      'groupsplit': ['totallyrandom', 'occurrence'],
@@ -292,7 +293,8 @@ for i, param in enumerate(ParameterGrid(param_grid)):
 
         # store features data frame
         filename_ending = '_'.join((modeltype, 'data', chem_fp, groupsplit, conctype)) + '.csv'
-        filename_data = path_output + filename_ending
+        filename_data = path_features + filename_ending
+        df_features = pd.concat((df_eco[list_cols_preds], df_features))
         df_features.to_csv(filename_data, index=False)
 
 # concatenate and store

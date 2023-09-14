@@ -35,7 +35,8 @@ def compile_errors(modeltype):
 
     # load error files
     df_cv = pd.read_csv(path_output + modeltype + '_CV-errors.csv')
-    df_test = pd.read_csv(path_output + modeltype + '_test-errors.csv')
+    df_test = pd.DataFrame()
+#    df_test = pd.read_csv(path_output + modeltype + '_test-errors.csv')
     df = pd.concat((df_cv, df_test)).reset_index(drop=True)
 
     # add modeltype
@@ -90,67 +91,7 @@ df_gp = df_gp[df_gp['tax_pdm'] == 'none'].copy()
 
 # %%
 
-# load GP forward
-# !! so far only on mass concentration
-#df_gpforward_cv = pd.read_csv(path_output + 'gpforward_CV-errors.csv')
-#df_gpforward_test = pd.read_csv(path_output + 'gpforward_test-errors.csv')
-#df_gpforward = pd.concat((df_gpforward_cv, df_gpforward_test)).reset_index(drop=True)
-#df_gpforward['model'] = 'GPforward'
-#df_gpforward
-
-# %%
-
-### Intermezzo: GP forward for different runs and iterations
-
-#df_plot = df_gpforward.copy()
-##df_plot = df_gpforward[df_gpforward['groupsplit'] == 'totallyrandom']
-#df_plot['set_run'] = df_plot['set'] + df_plot['run'].astype('str')
-
-#(ggplot(data=df_plot, 
-        #mapping=aes(x='iteration', 
-                    #y='rmse',
-                    #group='set_run',
-                    #fill='set',
-                    #color='set'))
-    #+ geom_point() 
-    #+ geom_line()
-    #+ facet_grid("chem_fp ~ groupsplit")
-#)
-
-# %%
-
-# GP forward: get best test error for each fp and groupsplit
-#list_df_new = []
-
-#metric = 'rmse'
-#for chem_fp in ['MACCS', 'pcp', 'Morgan', 'mol2vec']:
-    #for groupsplit in ['totallyrandom', 'occurrence', 'scaffold-murcko', 'scaffold-generic']:
-        #print(chem_fp, groupsplit)
-        #df_t = df_gpforward[(df_gpforward['chem_fp'] == chem_fp)
-                            #& (df_gpforward['groupsplit'] == groupsplit)
-                            #& (df_gpforward['set'] == 'test')]
-        #df_t_min = df_t.loc[df_t[metric].idxmin(), ]
-        #run = df_t_min['run']
-        #iteration = df_t_min['iteration']
-
-        #df_new = df_gpforward[(df_gpforward['chem_fp'] == chem_fp)
-                              #& (df_gpforward['groupsplit'] == groupsplit)
-                              #& (df_gpforward['run'] == run)
-                              #& (df_gpforward['iteration'] == iteration)]
-        #list_df_new.append(df_new)
-
-        #print(run, iteration)
-        #print(df_new.shape)
-
-#df_gpf = pd.concat(list_df_new)
-#df_gpf
-
-
-# %%
-
 # concatenate all error files
-# for GP forward, use only those with best test errors
-#df_errors = pd.concat([df_lasso, df_rf, df_xgboost, df_gp, df_gpf], axis=0)
 df_errors = pd.concat([df_lasso, df_rf, df_xgboost, df_gp], axis=0)
 df_errors
 
@@ -162,7 +103,7 @@ df_errors = df_errors[df_errors['groupsplit'].isin(list_cols)].copy()
 
 # categorical variables
 df_errors = utils._transform_to_categorical(df_errors, 'groupsplit', ['totallyrandom', 'occurrence'])
-df_errors = utils._transform_to_categorical(df_errors, 'chem_fp', ['MACCS', 'pcp', 'Morgan', 'mol2vec'])
+df_errors = utils._transform_to_categorical(df_errors, 'chem_fp', ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'])
 df_errors = utils._transform_to_categorical(df_errors, 'model', ['LASSO', 'RF', 'XGBoost', 'GP'])
 df_errors = utils._transform_to_categorical(df_errors, 'set', ['train', 'valid', 'trainvalid', 'test'])
 df_errors = utils._transform_to_categorical(df_errors, 'conctype', ['molar', 'mass'])
@@ -232,13 +173,13 @@ print(df_l.to_latex(index=False))
 # color specifications
 
 # for chem_fp: colors from CH2018 report
-list_colors = ['#75aab9', '#998478', '#80a58b', '#fbba76']
+list_colors = ['#75aab9', '#998478', '#80a58b', '#fbba76', 'black']
 
 # for errors
 list_colors_points = ['#ccc', '#444', '#999', 'black']
 
 # assign colors
-list_chem_fps = ['MACCS', 'pcp', 'Morgan', 'mol2vec']
+list_chem_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec']
 dict_colors_fps = dict(zip(list_chem_fps, list_colors))
 list_sets = ['train', 'valid', 'trainvalid', 'test']
 dict_colors_points = dict(zip(list_sets, list_colors_points))
@@ -544,7 +485,7 @@ for errortype in list_sets:
 
 fig.update_layout(template='plotly_white')
 
-fig.write_image(path_figures + '29_all_' + metric + '-vs-models.png')
+#fig.write_image(path_figures + '29_all_' + metric + '-vs-models.png')
 fig.show()
 
 # %%
@@ -776,7 +717,7 @@ fig.update_layout(legend_orientation='h', legend_xanchor='center', legend_x=0.5)
 
 fig.update_layout(template='plotly_white')
 
-fig.write_image(path_figures + '29_all_' + metric + '-vs-models_validation.png')
+#fig.write_image(path_figures + '29_all_' + metric + '-vs-models_validation.png')
 fig.show()
 
 # %% 
@@ -919,7 +860,7 @@ for errortype in ['valid']:
 
 fig.update_layout(template='plotly_white')
 
-fig.write_image(path_figures + '29_all_rmse-r2-vs-models_test.png')
+#fig.write_image(path_figures + '29_all_rmse-r2-vs-models_test.png')
 fig.show()
 
 # %%
@@ -958,7 +899,7 @@ for groupsplit in ['totallyrandom', 'occurrence']:
         + theme(axis_ticks_major_x=element_blank())
         + labs(y=str_metric)
     )
-    g.save(path_figures + '29_' + groupsplit + '_' + metric + '-vs-models.png', facecolor='white')
+    #g.save(path_figures + '29_' + groupsplit + '_' + metric + '-vs-models.png', facecolor='white')
     print(g)
 
 # %%
@@ -991,7 +932,7 @@ for chem_fp in ['MACCS', 'pcp', 'Morgan', 'mol2vec']:
         + theme(axis_ticks_major_x=element_blank())
         + labs(y=str_metric)
     )
-    g.save(path_figures + '29_' + chem_fp + '_' + metric + '-vs-models.png', facecolor='white')
+    #g.save(path_figures + '29_' + chem_fp + '_' + metric + '-vs-models.png', facecolor='white')
     print(g)
 
 # %%
@@ -1013,7 +954,7 @@ g = (ggplot(data=df_p, mapping=aes(x='model', y='chem_fp', fill=metric, label=me
     + theme(axis_ticks_major=element_blank())
     + theme(figure_size=(7, 12))
 )
-g.save(path_figures + '29_all_heatmap_' + metric + '.png', facecolor='white')
+#g.save(path_figures + '29_all_heatmap_' + metric + '.png', facecolor='white')
 print(g)
 
 # %%

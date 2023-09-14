@@ -28,7 +28,7 @@ path_figures = path_output + 'figures/'
 
 # %%
 
-# sparse GP: Fish data, both concentrationc, 2023-08-11
+# sparse GP: Fish data, both concentrations, 2023-08-11
 
 # completely new data pre-processing from ECOTOX 2022-09-15
 # for the four fingerprints
@@ -39,7 +39,7 @@ path_figures = path_output + 'figures/'
 #param_grid = [
     #{
      ## features
-     #'chem_fp': ['MACCS', 'mol2vec', 'pcp', 'Morgan'],
+     #'chem_fp': ['MACCS', 'mol2vec', 'pcp', 'Morgan', 'ToxPrint'],
      #'chem_prop': ['chemprop'],                  #['none', 'chemprop'],
      #'tax_pdm': ['none', 'pdm'],                 #['none', 'pdm', 'pdm-squared'],
      #'tax_prop': ['taxprop-migrate2'],           #['none', 'taxprop-migrate2', 'taxprop-migrate5'],
@@ -59,18 +59,14 @@ path_figures = path_output + 'figures/'
 #]
 
 path_output_dir = path_vmoutput + '2023-08-11_bothconcentrations/'
-df_errors = utils.read_result_files(path_output_dir, file_type='error')   #!! only cv error
+df_errors = utils.read_result_files(path_output_dir, file_type='error')
 df_params = utils.read_result_files(path_output_dir, file_type='param')
-df_params_test = pd.read_csv(path_output + 'gp_trainvalid-coefficients.csv')
-
-# concatenate params
-df_params = pd.concat((df_params, df_params_test))
 
 # %%
 
 # categorical variables for fingerprints
 col = 'chem_fp'
-list_categories = ['MACCS', 'pcp', 'Morgan', 'mol2vec']
+list_categories = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec']
 df_errors = utils._transform_to_categorical(df_errors, col, list_categories)
 df_params = utils._transform_to_categorical(df_params, col, list_categories)
                                           
@@ -80,7 +76,7 @@ list_categories = ['mean', '0', '1', '2', '3', '4']
 df_errors[col] = df_errors[col].astype('str')
 df_params[col] = df_params[col].astype('str')
 df_errors = utils._transform_to_categorical(df_errors, col, list_categories)
-df_params = utils._transform_to_categorical(df_params, col, list_categories[1:] + ['trainvalid'])
+df_params = utils._transform_to_categorical(df_params, col, list_categories[1:])
 
 # categorical variable for groupsplit
 col = 'groupsplit'
@@ -181,7 +177,6 @@ df_e_tv = df_errors[(df_errors['fold'] == 'mean')
                     & (df_errors['tax_pdm'] == 'none')
                     ]
 
-
 # plot metric vs hyperparameter
 col_x = 'n_inducing'
 df_plot = df_e_tv.copy()
@@ -190,7 +185,7 @@ df_plot_oi = df_e_oi.copy()
 df_plot['group'] = df_plot['set'] + '_' + df_plot['tax_pdm']
 df_plot['conctype_groupsplit'] = df_plot['conctype'].astype('str') + ' ' + df_plot['groupsplit'].astype('str')
 df_plot_oi['conctype_groupsplit'] = df_plot_oi['conctype'].astype('str') + ' ' + df_plot['groupsplit'].astype('str')
-
+# %%
 g = (ggplot(data=df_plot, mapping=aes(x=col_x, 
                                       y='rmse', 
                                       group='group', 
@@ -210,8 +205,10 @@ g = (ggplot(data=df_plot, mapping=aes(x=col_x,
     + theme(axis_text_x=element_text(angle=90))
     + theme(strip_text_y=element_text(angle=0))
 )
-g.save(path_output_dir + '_GP_RMSE-vs-' + col_x + '.png', facecolor='white')
+#g.save(path_output_dir + '_GP_RMSE-vs-' + col_x + '.png', facecolor='white')
 g
+
+# TODO fix bug in plot!
 
 # %%
 
@@ -304,6 +301,7 @@ col_feature = 'feature'
 df_p_oi_l['feature_short'] = df_p_oi_l[col_feature].apply(lambda x: x.split('.')[-1] if len(x.split('.')) > 4 else x)
 
 # sort by 'trainvalid'
+# TODO sort by mean of 5 folds
 df_oi = df_p_oi_l[df_p_oi_l['fold'] == 'trainvalid']
 df_oi = df_oi.sort_values(['1/value'], ascending=False)
 list_features_sorted = list(df_oi['feature_short'])

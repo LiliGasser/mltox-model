@@ -46,7 +46,7 @@ df_fc_orig = pd.read_csv(path_output_add + 'featurecounts.csv')
 
     #{
      ## features
-     #'chem_fp': ['MACCS', 'pcp', 'Morgan', 'mol2vec'], 
+     #'chem_fp': ['MACCS', 'pcp', 'Morgan', 'mol2vec', 'ToxPrint'], 
      #'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
      #'tax_pdm': ['none'],                       #['none', 'pdm', 'pdm-squared'],
      #'tax_prop': ['taxprop-migrate2'],          #['none', 'taxprop-migrate2', 'taxprop-migrate5'],
@@ -66,19 +66,15 @@ df_fc_orig = pd.read_csv(path_output_add + 'featurecounts.csv')
 #]
 
 path_output_dir = path_vmoutput + '2023-08-09_bothconcentrations/'
-df_errors = utils.read_result_files(path_output_dir, file_type='error')    # !!! only cv errors
+df_errors = utils.read_result_files(path_output_dir, file_type='error')
 df_params = utils.read_result_files(path_output_dir, file_type='param')
-df_params_test = pd.read_csv(path_output + 'lasso_trainvalid-coefficients.csv')
 df_preds = utils.read_result_files(path_output_dir, file_type='preds')
-
-# concatenate params
-df_params = pd.concat((df_params, df_params_test))
 
 # %%
 
 # categorical variables for fingerprints
 col = 'chem_fp'
-list_categories = ['MACCS', 'pcp', 'Morgan', 'mol2vec']
+list_categories = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec']
 df_errors = utils._transform_to_categorical(df_errors, col, list_categories)
 df_params = utils._transform_to_categorical(df_params, col, list_categories)
 df_preds = utils._transform_to_categorical(df_preds, col, list_categories)
@@ -90,7 +86,7 @@ df_errors[col] = df_errors[col].astype('str')
 df_params[col] = df_params[col].astype('str')
 df_preds[col] = df_preds[col].astype('str')
 df_errors = utils._transform_to_categorical(df_errors, col, list_categories)
-df_params = utils._transform_to_categorical(df_params, col, list_categories[1:] + ['trainvalid'])
+df_params = utils._transform_to_categorical(df_params, col, list_categories[1:])
 df_preds = utils._transform_to_categorical(df_preds, col, list_categories[1:])
 
 # categorical variable for groupsplit
@@ -155,7 +151,7 @@ metric = 'rmse'
 
 # calculate the number of selected features
  
-# for training (cross-validation) and test set
+# for training (cross-validation)
 list_cols = ['chem_fp', 'groupsplit', 'conctype', 'fold', 'alpha']
 df_fc = df_params[df_params['feature'] != 'intercept'].groupby(list_cols)['feature'].count().reset_index()
 df_fc = df_fc.rename(columns={'feature': 'count'})
@@ -220,42 +216,41 @@ df_e_oi = pd.merge(df_e_oi,
 
 # calculate percentage
 df_e_oi['perc'] = df_e_oi['count'] / df_e_oi['n_all']
-df_e_oi['perc_tv'] = df_e_oi['count_tv'] / df_e_oi['n_all']
 df_e_oi
 
 # %%
 
-# number of features for best alpha (count on test dat)
+# number of features for best alpha
 df_plot = df_e_oi.copy()
 df_plot['chem_fp'] = pd.Categorical(df_plot['chem_fp'],
-                                    categories=['MACCS', 'pcp', 'Morgan', 'mol2vec'],
+                                    categories=['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'],
                                     ordered=True)
 df_plot['groupsplit'] = pd.Categorical(df_plot['groupsplit'],
                                        categories=['totallyrandom', 'occurrence'],
                                        ordered=True)
 
-g = (ggplot(data=df_plot, mapping=aes(x='conctype', y='count_tv'))
+g = (ggplot(data=df_plot, mapping=aes(x='conctype', y='count'))
     + geom_col()
     + facet_grid('groupsplit ~ chem_fp')
     + theme_minimal()
     + theme(axis_text_x=element_text(angle=90))
     + labs(y='number of features')
 )
-g.save(path_figures + '22_LASSO_featurecounts.png', facecolor='white')
+#g.save(path_figures + '22_LASSO_featurecounts.png', facecolor='white')
 g
 
 # %%
 
-# percentage of features for best alpha (percentage of test data)
+# percentage of features for best alpha
 
-g = (ggplot(data=df_plot, mapping=aes(x='conctype', y='perc_tv'))
+g = (ggplot(data=df_plot, mapping=aes(x='conctype', y='perc'))
     + geom_col()
     + facet_grid('groupsplit ~ chem_fp')
     + theme_minimal()
     + theme(axis_text_x=element_text(angle=90))
     + labs(y='percentage of features')
 )
-g.save(path_figures + '22_LASSO_featurepercentages.png', facecolor='white')
+#g.save(path_figures + '22_LASSO_featurepercentages.png', facecolor='white')
 g
 
 # %%
@@ -306,7 +301,7 @@ if metric == 'r2':
     g = g + labs(y="R$^2$")
 elif metric == 'rmse':
     g = g + labs(y="RMSE")
-g.save(path_figures + '22_LASSO_' + metric + '-vs-' + col_x + '.png', facecolor='white')
+#g.save(path_figures + '22_LASSO_' + metric + '-vs-' + col_x + '.png', facecolor='white')
 g
 
 
@@ -340,14 +335,14 @@ if metric == 'r2':
     g = g + labs(y="R$^2$")
 elif metric == 'rmse':
     g = g + labs(y="RMSE")
-g.save(path_figures + '22_LASSO_' + metric + '-vs-fold.png', facecolor='white')
+#g.save(path_figures + '22_LASSO_' + metric + '-vs-fold.png', facecolor='white')
 g
 
 # %%
 
 # feature importance plots
 
-# only cv folds and trainvalidation
+# only cv folds
 
 # only look at validation folds
 df_e_oi = df_errors[(df_errors['best_hp'] == True)
@@ -362,9 +357,6 @@ df_p_oi = pd.merge(df_e_oi,
                    right_on=list_cols,
                    how='left')
 
-# only trainvalidation params
-df_params_tv = df_params[df_params['fold'] == 'trainvalid'].copy()
-
 # %%
 
 conctype = 'molar'
@@ -376,9 +368,9 @@ for chem_fp in ['MACCS', 'pcp', 'Morgan', 'mol2vec']:
         df_p = df_p_oi[(df_p_oi['chem_fp'] == chem_fp) &
                        (df_p_oi['groupsplit'] == groupsplit) &
                        (df_p_oi['conctype'] == conctype)].copy()
-        df_p_tv = df_params_tv[(df_params_tv['chem_fp'] == chem_fp) &
-                               (df_params_tv['groupsplit'] == groupsplit) & 
-                               (df_params_tv['conctype'] == conctype)].copy()
+        #df_p_tv = df_params_tv[(df_params_tv['chem_fp'] == chem_fp) &
+                               #(df_params_tv['groupsplit'] == groupsplit) & 
+                               #(df_params_tv['conctype'] == conctype)].copy()
 
         # calculate number of feature and mean across cv folds
         df_p['feature_count'] = df_p.groupby(['feature'])['feature'].transform('count')
@@ -390,12 +382,11 @@ for chem_fp in ['MACCS', 'pcp', 'Morgan', 'mol2vec']:
         #df_p = df_p[df_p['feature_count'] >= 3]
 
         # sort by feature count and mean
-        # TODO sort by trainvalidation  mean?
         df_p = df_p.sort_values(['feature_count', 'feature_mean_abs'], ascending=False)
         list_features = list(df_p['feature'].unique())#[::-1]
 
         # concatenate
-        df_p = pd.concat((df_p, df_p_tv))
+        #df_p = pd.concat((df_p, df_p_tv))
 
         # from long to wide
         df_p_wide = df_p.pivot(index=['feature'], columns=['fold'], values=['value'])
@@ -421,7 +412,7 @@ for chem_fp in ['MACCS', 'pcp', 'Morgan', 'mol2vec']:
         n_wraps = df_p_wide['wrap'].max() + 1
         n_missing = n_per_row - df_p_wide['wrap'].value_counts().tail(1).iloc[0]
         arr_tmp0 = np.full(n_missing, '').reshape(-1,1)
-        arr_tmp1 = np.full((n_missing, 7), np.nan)    # set to 7 if test set included
+        arr_tmp1 = np.full((n_missing, 6), np.nan)    # set to 7 if test set included
         arr_tmp2 = np.full(n_missing, n_wraps - 1).reshape(-1,1)
         arr_tmp = np.concatenate((arr_tmp0, arr_tmp1, arr_tmp2), axis=1)
         df_tmp = pd.DataFrame(arr_tmp, columns=df_p_wide.columns)
@@ -430,7 +421,7 @@ for chem_fp in ['MACCS', 'pcp', 'Morgan', 'mol2vec']:
         df_tmp['2'] = df_tmp['2'].astype('float')
         df_tmp['3'] = df_tmp['3'].astype('float')
         df_tmp['4'] = df_tmp['4'].astype('float')
-        df_tmp['trainvalid'] = df_tmp['trainvalid'].astype('float')
+        #df_tmp['trainvalid'] = df_tmp['trainvalid'].astype('float')
         df_tmp['range'] = df_tmp['range'].astype('float')
         df_tmp['wrap'] = df_tmp['wrap'].astype('int')
 
@@ -441,7 +432,7 @@ for chem_fp in ['MACCS', 'pcp', 'Morgan', 'mol2vec']:
         fig, axes = plt.subplots(nrows=1, ncols=n_wraps, figsize=(n_wraps*3.5, 10))
         fig.tight_layout(w_pad=7)
 
-        list_folds = ['0', '1', '2', '3', '4', 'trainvalid']
+        list_folds = ['0', '1', '2', '3', '4']  #, 'trainvalid']
         vmin = df_p_wide[list_folds].min().min()
         vmax = df_p_wide[list_folds].max().max()
 
@@ -474,13 +465,13 @@ for chem_fp in ['MACCS', 'pcp', 'Morgan', 'mol2vec']:
         fig.suptitle(chem_fp + '  ' + groupsplit, fontsize=18)
         fig.tight_layout()
         filepath = path_figures + '22_LASSO_featureimportance_' + chem_fp + '_' + groupsplit + '_' + conctype + '.png'
-        fig.savefig(filepath, facecolor='white')
+        #fig.savefig(filepath, facecolor='white')
         plt.show()
 
 
 # %%
 
-    # TODO look at what? (pragmatism needed!) look at GP, RF, XGBoost first
+# TODO look at what? (pragmatism needed!)
 #      - only for occurrence molar?
 #      - only fold trainvalid aka test data? 
 #      - only features from trainvalid?

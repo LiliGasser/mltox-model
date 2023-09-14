@@ -38,7 +38,7 @@ path_figures = path_output + 'figures/'
 #param_grid = [
     #{
      ## features
-     #'chem_fp': ['MACCS', 'pcp', 'Morgan', 'mol2vec'], 
+     #'chem_fp': ['MACCS', 'pcp', 'Morgan', 'mol2vec', 'ToxPrint'], 
      #'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
      #'tax_pdm': ['none'],                       #['none', 'pdm', 'pdm-squared'],
      #'tax_prop': ['taxprop-migrate2'],          #['none', 'taxprop-migrate2', 'taxprop-migrate5'],
@@ -68,7 +68,7 @@ df_errors = utils.read_result_files(path_output_dir, file_type='error')
 
 # categorical variables for fingerprints
 col = 'chem_fp'
-list_categories = ['MACCS', 'pcp', 'Morgan', 'mol2vec']
+list_categories = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec']
 df_errors = utils._transform_to_categorical(df_errors, col, list_categories)
 
 # categorical variable for folds
