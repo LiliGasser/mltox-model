@@ -23,8 +23,8 @@ import utils
 # %%
 
 path_vmoutput = path_root + 'vm_output_lasso/'
-path_output = path_root + 'output/regression/'
 path_output_add = path_root + 'output/additional/'
+path_output = path_root + 'output/regression/'
 path_figures = path_output + 'figures/'
 
 # %%
@@ -34,12 +34,10 @@ df_fc_orig = pd.read_csv(path_output_add + 'featurecounts.csv')
 
 # %%
 
-# LASSO: Fish data, mass and molar concentrations, 2023-08-09
+# LASSO: Fish data, updated ADORE, 2023-09-15
 
 # data pre-processing from ECOTOX 2022-09-15
-# for the four fingerprints
-# including chemical properties (mw, mp, ws, clogp)
-# groupsplit: totallyrandom, occurrence (no scaffolds)
+# groupsplit: totallyrandom, occurrence
 # alpha from 1 to 1e-5
 
 #param_grid = [
@@ -65,7 +63,7 @@ df_fc_orig = pd.read_csv(path_output_add + 'featurecounts.csv')
     #}
 #]
 
-path_output_dir = path_vmoutput + '2023-08-09_bothconcentrations/'
+path_output_dir = path_vmoutput + '2023-09-15_from-updated-adore/'
 df_errors = utils.read_result_files(path_output_dir, file_type='error')
 df_params = utils.read_result_files(path_output_dir, file_type='param')
 df_preds = utils.read_result_files(path_output_dir, file_type='preds')
@@ -120,9 +118,7 @@ else:
 df_oi = df_errors[df_errors['best_hp'] == True].copy()
 
 # mean errors (train and valid of 5-fold CV)
-df_e_v = df_oi[(df_oi['fold'] == 'mean')
-#               & (df_oi['set'] == 'valid')
-               ]
+df_e_v = df_oi[(df_oi['fold'] == 'mean')]
 
 list_cols = ['chem_fp', 'groupsplit', 'conctype', 'set', 'fold']
 list_cols += ['chem_prop', 'tax_pdm', 'tax_prop', 'exp']
@@ -180,6 +176,7 @@ list_cols = ['chem_fp', 'groupsplit', 'conctype', 'alpha']
 df_fc_mean = df_fc[df_fc['fold'] != 'trainvalid'].groupby(list_cols)['count'].mean().reset_index()
 
 # feature counts of trainvalidation run
+# TODO move to 42 script
 df_fc_tv = df_fc[df_fc['fold'] == 'trainvalid'].copy()
 df_fc_tv = df_fc_tv.rename(columns={'count': 'count_tv'})
 
@@ -190,9 +187,6 @@ df_e_mean = pd.merge(df_e_tv,
                      left_on=list_cols,
                      right_on=list_cols,
                      how='left')
-df_e_mean                  
-
-# %%
 
 # get data frame with best hyperparmeters only
 df_e_oi = df_e_mean[(df_e_mean['best_hp'] == True) &
@@ -360,7 +354,7 @@ df_p_oi = pd.merge(df_e_oi,
 # %%
 
 conctype = 'molar'
-for chem_fp in ['MACCS', 'pcp', 'Morgan', 'mol2vec']:
+for chem_fp in ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec']:
     for groupsplit in ['totallyrandom', 'occurrence']:
         print(chem_fp, groupsplit)
 
