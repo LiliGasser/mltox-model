@@ -52,28 +52,28 @@ param_grid = [
 ]
 
 # TODO back to proper grid
-#hyperparam_grid = [
-    #{
-    ## model hyperparameters     
-    #'n_estimators': [75],
-    #'max_depth': [200], 
-    #'min_samples_split': [2],
-    #'min_samples_leaf': [1],
-    #'max_samples': [1.0],  
-    #'max_features': ['sqrt'],
-    #}
-#]
 hyperparam_grid = [
     {
     # model hyperparameters     
-    'n_estimators': [50, 100, 150, 300],
-    'max_depth': [50, 100, 200], 
-    'min_samples_split': [2, 5, 10],
+    'n_estimators': [25, 75],
+    'max_depth': [200], 
+    'min_samples_split': [2],
     'min_samples_leaf': [1],
-    'max_samples': [0.25, 0.5, 1.0],  
-    'max_features': ['sqrt', 1],
+    'max_samples': [1.0],  
+    'max_features': ['sqrt'],
     }
 ]
+#hyperparam_grid = [
+    #{
+    ## model hyperparameters     
+    #'n_estimators': [50, 100, 150, 300],
+    #'max_depth': [50, 100, 200], 
+    #'min_samples_split': [2, 5, 10],
+    #'min_samples_leaf': [1],
+    #'max_samples': [0.25, 0.5, 1.0],  
+    #'max_features': ['sqrt', 1],
+    #}
+#]
 
 lengthscales = -1  # initialize for some functions but it is not actually needed
 
@@ -82,6 +82,9 @@ col_tax_pdm = 'tax_pdm_enc'
 
 # which cols in predicted df to save
 list_cols_preds = ['test_id', 'result_id', 'test_cas', 'chem_name', 'tax_name', 'tax_gs']
+
+# evaluation metric (minimize RMSE)
+metric = 'rmse'
 
 # %%
 
@@ -191,7 +194,8 @@ for i, param in enumerate(ParameterGrid(param_grid)):
 
     # initialize
     list_df_error_grid = []
-    #list_df_preds_v_grid = []
+    metric_value = 100
+    df_preds_v = pd.DataFrame()
     
     ## crossvalidation
     # get splits
@@ -240,7 +244,6 @@ for i, param in enumerate(ParameterGrid(param_grid)):
             # predict for validation data
             y_train_pred = model.predict(X_train)
             y_valid_pred = model.predict(X_valid)
-            #print("validation:", y_valid_pred.shape)
         
             # generate output
             df_pred_train = df_eco_train.copy()
@@ -262,7 +265,6 @@ for i, param in enumerate(ParameterGrid(param_grid)):
         df_preds_t_grid = pd.concat(list_df_pred_t_grid)
         df_preds_v_grid = pd.concat(list_df_pred_v_grid)
         df_preds_v_grid['idx_hp'] = idx_hp
-        #list_df_preds_v_grid.append(df_preds_v_grid)
         df_error_grid = mod.calculate_evaluation_metrics(df_preds_t_grid, 
                                                          df_preds_v_grid,
                                                          col_true, 
@@ -272,31 +274,35 @@ for i, param in enumerate(ParameterGrid(param_grid)):
         df_error_grid['idx_hp'] = idx_hp
         list_df_error_grid.append(df_error_grid)
 
+        # determine whether error improved (based on validation error)
+        metric_grid = df_error_grid[(df_error_grid['fold'] == 'mean')
+                                    & (df_error_grid['set'] == 'valid')][metric].iloc[0]
+        if metric_grid < metric_value:
+            df_preds_v = df_preds_v_grid.copy()
+            metric_value = metric_grid
+
     # concatenate errors for hyperparameter grid
     df_errors_grid = pd.concat(list_df_error_grid).reset_index(drop=True)
-    #df_preds_v = pd.concat(list_df_preds_v_grid).reset_index(drop=True)
 
     # find best hyperparameters based on validation error
     df_e_v = df_errors_grid[(df_errors_grid['fold'] == 'mean') &
                             (df_errors_grid['set'] == 'valid')]
-    metric = 'rmse'
-    df_e_v_best = df_e_v.loc[df_e_v[metric].idxmin()]
+    df_e_v_best = df_e_v.loc[df_e_v[metric].idxmin()]    # minimize rmse
     idx_hp_best = df_e_v_best['idx_hp']
     df_errors_grid['best_hp'] = False
     df_errors_grid.loc[df_errors_grid['idx_hp'] == idx_hp_best, 'best_hp'] = True
 
-    # append / store
+    # store errors for all hyperparameters
     df_errors_grid = mod._add_params_fold_to_df(df_errors_grid, param_sorted)
     str_file = '_'.join([str(i) for i in param_sorted.values()])
     df_errors_grid.round(5).to_csv(path_vmoutput + 'errors_' + str_file + '.csv', index=False)
 
     # store predictions for best hyperparameter
-    #df_preds_v_best = df_preds_v[df_preds_v['idx_hp'] == idx_hp_best].copy()
-    #list_cols_conc = ['fold', col_conc, 'conc_pred']
-    #df_store = df_preds_v_best[list_cols_preds + list_cols_conc].copy()
-    #df_store = mod._add_params_fold_to_df(df_store, param_sorted)
-    #df_store = mod._add_params_fold_to_df(df_store, hyperparam)
-    #df_store.round(5).to_csv(path_vmoutput + 'preds_' + str_file + '.csv', index=False)
+    list_cols_conc = ['idx_hp', 'fold', col_conc, 'conc_pred']
+    df_store = df_preds_v[list_cols_preds + list_cols_conc].copy()
+    df_store = mod._add_params_fold_to_df(df_store, param_sorted)
+    df_store = mod._add_params_fold_to_df(df_store, hyperparam)
+    df_store.round(5).to_csv(path_vmoutput + 'preds_' + str_file + '.csv', index=False)
 
 print('done')
 # %%
