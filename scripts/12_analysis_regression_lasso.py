@@ -38,7 +38,7 @@ param_grid = [
 
     {
      # features
-     'chem_fp': ['ToxPrint'], #['MACCS', 'pcp', 'Morgan', 'mol2vec'], 
+     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
      'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
      'tax_pdm': ['none'],                       #['none', 'pdm', 'pdm-squared'],
      'tax_prop': ['taxprop-migrate2'],          #['none', 'taxprop-migrate2', 'taxprop-migrate5'],

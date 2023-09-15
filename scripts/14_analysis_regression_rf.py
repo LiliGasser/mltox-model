@@ -34,12 +34,10 @@ path_vmoutput = path_root + 'vm_output_rf/tmp/'
 
 ### parameter grids
 
-# TODO select all
 param_grid = [
     {
      # features
-     'chem_fp': ['ToxPrint'], 
-#     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'mol2vec'], 
+     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
      'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
      'tax_pdm': ['none'],                       #['none', 'pdm', 'pdm-squared'],
      'tax_prop': ['taxprop-migrate2'],          #['none', 'taxprop-migrate2', 'taxprop-migrate5'],
@@ -52,28 +50,28 @@ param_grid = [
 ]
 
 # TODO back to proper grid
+#hyperparam_grid = [
+#    {
+#    # model hyperparameters     
+#    'n_estimators': [25, 75],
+#    'max_depth': [200], 
+#    'min_samples_split': [2],
+#    'min_samples_leaf': [1],
+#    'max_samples': [1.0],  
+#    'max_features': ['sqrt'],
+#    }
+#]
 hyperparam_grid = [
     {
     # model hyperparameters     
-    'n_estimators': [25, 75],
-    'max_depth': [200], 
-    'min_samples_split': [2],
+    'n_estimators': [50, 100, 150, 300],
+    'max_depth': [50, 100, 200], 
+    'min_samples_split': [2, 5, 10],
     'min_samples_leaf': [1],
-    'max_samples': [1.0],  
-    'max_features': ['sqrt'],
+    'max_samples': [0.25, 0.5, 1.0],  
+    'max_features': ['sqrt', 1],
     }
 ]
-#hyperparam_grid = [
-    #{
-    ## model hyperparameters     
-    #'n_estimators': [50, 100, 150, 300],
-    #'max_depth': [50, 100, 200], 
-    #'min_samples_split': [2, 5, 10],
-    #'min_samples_leaf': [1],
-    #'max_samples': [0.25, 0.5, 1.0],  
-    #'max_features': ['sqrt', 1],
-    #}
-#]
 
 lengthscales = -1  # initialize for some functions but it is not actually needed
 
@@ -307,6 +305,3 @@ for i, param in enumerate(ParameterGrid(param_grid)):
 print('done')
 # %%
 
-# TODO store params?
-
-# %%

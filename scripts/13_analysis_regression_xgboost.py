@@ -34,12 +34,10 @@ path_vmoutput = path_root + 'vm_output_xgboost/tmp/'
 
 ### parameter grids
 
-# TODO select all
 param_grid = [
     {
      # features
-     'chem_fp': ['ToxPrint'],
-#     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'mol2vec'], 
+     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
      'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
      'tax_pdm': ['none'],                       #['none', 'pdm', 'pdm-squared'],
      'tax_prop': ['taxprop-migrate2'],          #['none', 'taxprop-migrate2', 'taxprop-migrate5'],
@@ -52,28 +50,28 @@ param_grid = [
 ]
 
 # TODO select proper grid
+#hyperparam_grid = [
+#    {
+#    # model hyperparameters     
+#    'n_estimators': [50, 100],
+#    'eta': [0.1],
+#    'gamma': [0], 
+#    'max_depth': [3], 
+#    'min_child_weight': [1],
+#    'subsample': [1.],
+#    }
+#]
 hyperparam_grid = [
     {
     # model hyperparameters     
     'n_estimators': [50, 100],
-    'eta': [0.1],
-    'gamma': [0], 
-    'max_depth': [3], 
-    'min_child_weight': [1],
-    'subsample': [1.],
+    'eta': [0.1, 0.2, 0.3],
+    'gamma': [0, 1, 10], 
+    'max_depth': [3, 6, 9, 12], 
+    'min_child_weight': [1, 3, 5],
+    'subsample': [0.5, 1.],
     }
 ]
-#hyperparam_grid = [
-    #{
-    ## model hyperparameters     
-    #'n_estimators': [50, 100],
-    #'eta': [0.1, 0.2, 0.3],
-    #'gamma': [0, 1, 10], 
-    #'max_depth': [3, 6, 9, 12], 
-    #'min_child_weight': [1, 3, 5],
-    #'subsample': [0.5, 1.],
-    #}
-#]
 
 lengthscales = -1  # initialize for some functions but it is not actually needed
 
@@ -307,6 +305,3 @@ for i, param in enumerate(ParameterGrid(param_grid)):
 print('done')
 # %%
 
-# TODO store params?
-
-# %%
