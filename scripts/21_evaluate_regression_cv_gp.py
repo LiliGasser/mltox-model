@@ -28,12 +28,10 @@ path_figures = path_output + 'figures/'
 
 # %%
 
-# sparse GP: Fish data, both concentrations, 2023-08-11
+# LASSO: Fish data, updated ADORE, 2023-09-15
 
-# completely new data pre-processing from ECOTOX 2022-09-15
-# for the four fingerprints
-# including chemical properties (mw, mp, ws, clogp)
-# groupsplit: totallyrandom, occurrence (no scaffolds)
+# data pre-processing from ECOTOX 2022-09-15
+# groupsplit: totallyrandom, occurrence
 # tax_pdm: none and pdm
 
 #param_grid = [
@@ -58,7 +56,7 @@ path_figures = path_output + 'figures/'
     #}
 #]
 
-path_output_dir = path_vmoutput + '2023-08-11_bothconcentrations/'
+path_output_dir = path_vmoutput + '2023-09-15_from-updated-adore/'
 df_errors = utils.read_result_files(path_output_dir, file_type='error')
 df_params = utils.read_result_files(path_output_dir, file_type='param')
 
@@ -100,6 +98,7 @@ if df_errors.isna().sum().sum() > 0:
 else:
     print("loading seems correct")
 
+# TODO check when all GP runs are done
 # for none:
 # - 15 of 16 combinations (fps x splits x pdm) successful
 # for pdm: 
@@ -113,9 +112,7 @@ else:
 df_oi = df_errors[df_errors['best_hp'] == True].copy()
 
 # mean errors (train and valid of 5-fold CV)
-df_e_v = df_oi[(df_oi['fold'] == 'mean')
-#               & (df_oi['set'] == 'valid')
-               ].copy()
+df_e_v = df_oi[(df_oi['fold'] == 'mean')].copy()
 
 list_cols = ['chem_fp', 'groupsplit', 'conctype', 'set', 'fold']
 list_cols += ['chem_prop', 'tax_pdm', 'tax_prop', 'exp']
