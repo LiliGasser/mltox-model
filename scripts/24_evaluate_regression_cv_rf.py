@@ -28,15 +28,13 @@ path_figures = path_output + 'figures/'
 
 # %%
 
-# Random forest: Fish data, both concentrations, 2023-08-14
+# Random Forest: Fish data, updated ADORE, 2023-09-15
 
-# completely new data pre-processing from ECOTOX 2022-09-15
-# for the four fingerprints
-# including chemical properties (mw, mp, ws, clogp)
-# groupsplit: totallyrandom, occurrence (no scaffolds)
-
+# data pre-processing from ECOTOX 2022-09-15
+# groupsplit: totallyrandom, occurrence
 
 #param_grid = [
+
     #{
      ## features
      #'chem_fp': ['MACCS', 'pcp', 'Morgan', 'mol2vec', 'ToxPrint'], 
@@ -63,7 +61,7 @@ path_figures = path_output + 'figures/'
     #}
 #]
 
-path_output_dir = path_vmoutput + '2023-08-14_bothconcentrations/'
+path_output_dir = path_vmoutput + '2023-09-15_from-updated-adore/'
 df_errors = utils.read_result_files(path_output_dir, file_type='error')
 
 # %%
@@ -107,14 +105,9 @@ df_oi = df_errors[df_errors['best_hp'] == True].copy()
 df_e_oi = df_errors[(df_errors['best_hp'] == True) &
                     (df_errors['set'] == 'valid') &
                     (df_errors['fold'] == 'mean')]
-df_e_oi
-
-# %%
 
 # mean errors (train and valid of 5-fold CV)
-df_e_v = df_oi[(df_oi['fold'] == 'mean')
-#               & (df_oi['set'] == 'valid')
-               ].copy()
+df_e_v = df_oi[(df_oi['fold'] == 'mean')].copy()
 
 list_cols = ['chem_fp', 'groupsplit', 'conctype', 'set', 'fold']
 list_cols += ['chem_prop', 'tax_pdm', 'tax_prop', 'exp']
