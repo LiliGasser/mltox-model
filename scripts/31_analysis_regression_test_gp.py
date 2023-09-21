@@ -59,7 +59,7 @@ df_cv = df_cv[df_cv['set'] == 'valid'].copy()
 param_grid = [
     {
      # features
-     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'mol2vec'], 
+     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
      # splits
      'groupsplit': ['totallyrandom', 'occurrence'], 
      # tax_pdm (only for GP!)
@@ -206,7 +206,7 @@ for i, param in enumerate(ParameterGrid(param_grid)):
                                                     df_tax_prop_all,
                                                     trainvalid_idx, 
                                                     test_idx)
-    lol_cols_ARD = utils._update_lol_cols_ARD(lol_cols_ARD, tax_prop, do_ARD_other, df_tax_prop)
+    lol_cols_ARD = mod._update_lol_cols_ARD(lol_cols_ARD, tax_prop, do_ARD_other, df_tax_prop)
 
     # concatenate features
     df_features = pd.concat((df_exp, df_chem_fp, df_chem_prop, df_tax_pdm, df_tax_prop), axis=1)
@@ -250,13 +250,13 @@ for i, param in enumerate(ParameterGrid(param_grid)):
         # run sparse GP
         opt_logs, model = mod.run_GP(X_trainvalid, 
                                      y_trainvalid, 
-                                     kernel, mean_function, 
+                                     kernel,
+                                     mean_function, 
                                      noise_variance,
                                      maxiter,
                                      GP_type, 
                                      ind_type, 
-                                     n_inducing,
-                                     do_monitor)
+                                     n_inducing)
 
         time_end = time.time()
         print("execution time:", (time_end-time_start)/60)
