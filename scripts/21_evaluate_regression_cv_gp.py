@@ -98,13 +98,13 @@ if df_errors.isna().sum().sum() > 0:
 else:
     print("loading seems correct")
 
-# TODO check when all GP runs are done
 # for none:
-# - 15 of 16 combinations (fps x splits x pdm) successful
+# - 19 of 20 combinations (fps x splits x conc) successful
+#   (pcp, occurrence, mass not successful)
 # for pdm: 
-# - 16 of 16 combinations (fps x splits x pdm) successful
+# - 20 of 20 combinations (fps x splits x conc) successful
 # total:
-# - 1288 entries of 1536 possible --> 124 runs not successful
+# - 1572 entries of 1920 possible --> 348 runs not successful
 
 # %%
 
@@ -127,7 +127,7 @@ df_e_v[list_cols].round(5).to_csv(path_output + 'gp_CV-errors.csv', index=False)
 
 # %%
 
-# compare mass and molar concentration
+# compare mass and molar concentration for none
 metric = 'rmse'
 tax_pdm = 'none'
 df_plot = df_e_v[df_e_v['tax_pdm'] == tax_pdm].copy()
