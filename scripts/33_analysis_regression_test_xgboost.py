@@ -58,11 +58,14 @@ df_cv = df_cv[df_cv['set'] == 'valid'].copy()
 param_grid = [
     {
      # features
-     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
+     'chem_fp': ['MACCS'],
+#     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
      # splits
-     'groupsplit': ['totallyrandom', 'occurrence'],
+     'groupsplit': ['occurrence'],
+#     'groupsplit': ['totallyrandom', 'occurrence'],
      # concentration
-     'conctype': ['molar', 'mass'],
+     'conctype': ['molar'],
+     #'conctype': ['molar', 'mass'],
     }
 ]
 
@@ -248,11 +251,11 @@ for i, param in enumerate(ParameterGrid(param_grid)):
         print(conctype, groupsplit)
 
         # impurity based feature importances
-        filename_ending = '_'.join((modeltype, 'featimp-impurity', chem_fp, groupsplit, conctype)) + '.csv'
-        filename_fi_impurity = path_pi + filename_ending
-        df_fi = pd.DataFrame([a.feature_importances_ for a in model.estimators_],
-                                columns=df_features.columns)
-        df_fi.to_csv(filename_fi_impurity, index=False)
+        #filename_ending = '_'.join((modeltype, 'featimp-impurity', chem_fp, groupsplit, conctype)) + '.csv'
+        #filename_fi_impurity = path_pi + filename_ending
+        #df_fi = pd.DataFrame([a.feature_importances_ for a in model.estimators_],
+                                #columns=df_features.columns)
+        #df_fi.to_csv(filename_fi_impurity, index=False)
 
         # permutation importance for trainvalidation data
         pi_result_tv = permutation_importance(
