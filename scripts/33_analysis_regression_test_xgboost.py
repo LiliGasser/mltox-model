@@ -10,6 +10,9 @@ else:
 import sys
 sys.path.insert(0, path_root + 'src/')
 
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 import numpy as np
 import pandas as pd
 
@@ -18,6 +21,7 @@ from xgboost import XGBRegressor
 from sklearn.inspection import permutation_importance
 
 import pickle
+from joblib import dump, load
 import shap
 
 from plotnine import *
@@ -54,13 +58,10 @@ df_cv = df_cv[df_cv['set'] == 'valid'].copy()
 param_grid = [
     {
      # features
-#     'chem_fp': ['MACCS'],
      'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
      # splits
-     #'groupsplit': ['occurrence'],
      'groupsplit': ['totallyrandom', 'occurrence'],
      # concentration
-     #'conctype': ['molar'],
      'conctype': ['molar', 'mass'],
     }
 ]
@@ -245,6 +246,15 @@ for i, param in enumerate(ParameterGrid(param_grid)):
 
     if (conctype in list_conctype_fi) & (groupsplit in list_groupsplit_fi):
         print(conctype, groupsplit)
+
+        # impurity based feature importances
+        filename_ending = '_'.join((modeltype, 'featimp-impurity', chem_fp, groupsplit, conctype)) + '.csv'
+        filename_fi_impurity = path_pi + filename_ending
+        df_fi = pd.DataFrame([a.feature_importances_ for a in model.estimators_],
+                                columns=df_features.columns)
+        df_fi.to_csv(filename_fi_impurity, index=False)
+
+        # permutation importance for trainvalidation data
         pi_result_tv = permutation_importance(
             model, 
             X_trainvalid, 
@@ -254,11 +264,13 @@ for i, param in enumerate(ParameterGrid(param_grid)):
             n_jobs=4
         )
         # save permutation importance results
-        filename_ending = '_'.join((modeltype, 'pi-trainvalid', chem_fp, groupsplit, conctype)) + '.p'
+        filename_ending = '_'.join((modeltype, 'permimp-trainvalid', chem_fp, groupsplit, conctype)) + '.p'
         filename_pi_tv = path_pi + filename_ending
         pickle.dump(pi_result_tv, open(filename_pi_tv, 'wb'))
         #pi_result_tv_loaded = pickle.load(open(filename_pi_tv, 'rb'))
         #print(pi_result_tv_loaded)
+
+        # permutation importance for test data
         pi_result_test = permutation_importance(
             model, 
             X_test, 
@@ -267,7 +279,7 @@ for i, param in enumerate(ParameterGrid(param_grid)):
             random_state=123, 
             n_jobs=4
         )
-        filename_ending = '_'.join((modeltype, 'pi-test', chem_fp, groupsplit, conctype)) + '.p'
+        filename_ending = '_'.join((modeltype, 'permimp-test', chem_fp, groupsplit, conctype)) + '.p'
         filename_pi_test = path_pi + filename_ending
         pickle.dump(pi_result_test, open(filename_pi_test, 'wb'))
         #pi_result_test_loaded = pickle.load(open(filename_pi_test, 'rb'))
@@ -294,8 +306,14 @@ for i, param in enumerate(ParameterGrid(param_grid)):
         # store features data frame
         filename_ending = '_'.join((modeltype, 'data', chem_fp, groupsplit, conctype)) + '.csv'
         filename_data = path_features + filename_ending
-        df_features = pd.concat((df_eco[list_cols_preds], df_features))
-        df_features.to_csv(filename_data, index=False)
+        df_features2 = pd.concat((df_eco[list_cols_preds], df_features), axis=1)
+        df_features2.to_csv(filename_data, index=False)
+
+        # store model
+        filename_ending = '_'.join((modeltype, 'model', chem_fp, groupsplit, conctype)) + '.joblib'
+        filename_model = path_features + filename_ending
+        dump(model, filename_model) 
+        # model = load(filename_model) 
 
 # concatenate and store
 df_errors = pd.concat(list_df_errors)
@@ -306,4 +324,3 @@ df_preds.round(5).to_csv(path_output + modeltype + '_predictions.csv', index=Fal
 
 print('done')
 # %%
-

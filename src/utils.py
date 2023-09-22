@@ -125,7 +125,6 @@ def get_fingerprint(df, chem_fp, trainvalid_idx, test_idx):
                                                   col_fp=col_fp,
                                                   name_fp=chem_fp,
                                                   do_drop_duplicates=False)
-        print(df_fp_test.shape)
         df_fp_test = df_fp_test[list(df_fp_tv.columns)].copy()
 
     df_output = pd.DataFrame(index=df.index, columns=df_fp_tv.columns, dtype='float64')
