@@ -47,7 +47,7 @@ df_cv = df_cv[df_cv['set'] == 'valid'].copy()
 param_grid = [
     {
      # features
-     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'mol2vec'], 
+     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
      # splits
      'groupsplit': ['totallyrandom', 'occurrence'], 
      # concentration
