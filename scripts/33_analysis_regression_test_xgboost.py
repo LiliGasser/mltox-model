@@ -58,14 +58,11 @@ df_cv = df_cv[df_cv['set'] == 'valid'].copy()
 param_grid = [
     {
      # features
-     'chem_fp': ['MACCS'],
-#     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
+     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
      # splits
-     'groupsplit': ['occurrence'],
-#     'groupsplit': ['totallyrandom', 'occurrence'],
+     'groupsplit': ['totallyrandom', 'occurrence'],
      # concentration
-     'conctype': ['molar'],
-     #'conctype': ['molar', 'mass'],
+     'conctype': ['molar', 'mass'],
     }
 ]
 
