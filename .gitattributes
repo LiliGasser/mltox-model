@@ -27,3 +27,9 @@ output/regression/gp_predictions.csv filter=lfs diff=lfs merge=lfs -text
 output/regression/gp_trainvalid-coefficients.csv filter=lfs diff=lfs merge=lfs -text
 output/regression/lasso_predictions.csv filter=lfs diff=lfs merge=lfs -text
 output/regression/lasso_trainvalid-coefficients.csv filter=lfs diff=lfs merge=lfs -text
+output/regression/features/*csv filter=lfs diff=lfs merge=lfs -text
+output/regression/permimp/*p filter=lfs diff=lfs merge=lfs -text
+output/regression/permimp/*csv filter=lfs diff=lfs merge=lfs -text
+output/regression/rf_predictions.csv filter=lfs diff=lfs merge=lfs -text
+output/regression/shap/*sav filter=lfs diff=lfs merge=lfs -text
+output/regression/features/*joblib filter=lfs diff=lfs merge=lfs -text
