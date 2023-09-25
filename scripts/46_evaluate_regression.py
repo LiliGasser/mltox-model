@@ -35,8 +35,7 @@ def compile_errors(modeltype):
 
     # load error files
     df_cv = pd.read_csv(path_output + modeltype + '_CV-errors.csv')
-    df_test = pd.DataFrame()
-#    df_test = pd.read_csv(path_output + modeltype + '_test-errors.csv')
+    df_test = pd.read_csv(path_output + modeltype + '_test-errors.csv')
     df = pd.concat((df_cv, df_test)).reset_index(drop=True)
 
     # add modeltype
@@ -54,32 +53,29 @@ def compile_errors(modeltype):
 # %%
 
 # load LASSO: 
-# 4 fps x 2 groupsplits x 4 sets x 2 concentrations = 64 entries
+# 5 fps x 2 groupsplits x 4 sets x 2 concentrations = 80 entries
 df_lasso = compile_errors(modeltype='lasso')
 df_lasso
 
 # %%
 
 # load RF
-# 4 fps x 2 groupsplits x 4 sets x 2 concentrations = 64 entries
+# 5 fps x 2 groupsplits x 4 sets x 2 concentrations = 80 entries
 df_rf = compile_errors(modeltype='rf')
 df_rf
 
 # %%
 
 # load XGBoost
-# 4 fps x 2 groupsplits x 4 sets x 2 concentrations = 64 entries
+# 5 fps x 2 groupsplits x 4 sets x 2 concentrations = 80 entries
 df_xgboost = compile_errors(modeltype='xgboost')
 df_xgboost
 
 # %%
 
 # load GP
-# 4 fps x 2 groupsplits x 4 sets x 2 tax_pdm x 2 concentrations - 8 entries = 120 entries
-# missing for molar: Morgan, totallyrandom, none, test
-#df_gp[(df_gp['conctype'] == 'molar') & (df_gp['chem_fp'] == 'Morgan')]
-# missing for mass: pcp, totallyrandom, none; Morgan, occurrence, none, training and test
-#df_gp[(df_gp['conctype'] == 'mass') & (df_gp['chem_fp'] == 'Morgan')]
+# 5 fps x 2 groupsplits x 4 sets x 2 tax_pdm x 2 concentrations - 4 entries = 156 entries
+# missing for mass: pcp, occurrence, none; training and test
 #df_gp[(df_gp['conctype'] == 'mass') & (df_gp['chem_fp'] == 'pcp')]
 df_gp = compile_errors(modeltype='gp')
 df_gp
@@ -102,8 +98,9 @@ list_cols = ['totallyrandom', 'occurrence']
 df_errors = df_errors[df_errors['groupsplit'].isin(list_cols)].copy()
 
 # categorical variables
+list_cols_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec']
 df_errors = utils._transform_to_categorical(df_errors, 'groupsplit', ['totallyrandom', 'occurrence'])
-df_errors = utils._transform_to_categorical(df_errors, 'chem_fp', ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'])
+df_errors = utils._transform_to_categorical(df_errors, 'chem_fp', list_cols_fps)
 df_errors = utils._transform_to_categorical(df_errors, 'model', ['LASSO', 'RF', 'XGBoost', 'GP'])
 df_errors = utils._transform_to_categorical(df_errors, 'set', ['train', 'valid', 'trainvalid', 'test'])
 df_errors = utils._transform_to_categorical(df_errors, 'conctype', ['molar', 'mass'])
@@ -113,7 +110,7 @@ df_errors = utils._transform_to_categorical(df_errors, 'conctype', ['molar', 'ma
 # best hyperparameters for LASSO
 df_lasso = utils._transform_to_categorical(df_lasso, 'conctype', ['molar', 'mass'])
 df_lasso = utils._transform_to_categorical(df_lasso, 'groupsplit', ['totallyrandom', 'occurrence'])
-df_lasso = utils._transform_to_categorical(df_lasso, 'chem_fp', ['MACCS', 'pcp', 'Morgan', 'mol2vec'])
+df_lasso = utils._transform_to_categorical(df_lasso, 'chem_fp', list_cols_fps)
 
 list_cols_hp = ['alpha']
 list_cols = ['conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
@@ -127,7 +124,7 @@ print(df_l.to_latex(index=False))
 # best hyperparameters for RF
 df_rf = utils._transform_to_categorical(df_rf, 'conctype', ['molar', 'mass'])
 df_rf = utils._transform_to_categorical(df_rf, 'groupsplit', ['totallyrandom', 'occurrence'])
-df_rf = utils._transform_to_categorical(df_rf, 'chem_fp', ['MACCS', 'pcp', 'Morgan', 'mol2vec'])
+df_rf = utils._transform_to_categorical(df_rf, 'chem_fp', list_cols_fps)
 
 # 'max_features', 'min_samples_leaf', 
 list_cols_hp = ['n_estimators', 'max_depth', 'max_samples', 'min_samples_split', 'max_features']
@@ -142,7 +139,7 @@ print(df_l.to_latex(index=False))
 # best hyperparameters for XGBoost
 df_xgboost = utils._transform_to_categorical(df_xgboost, 'conctype', ['molar', 'mass'])
 df_xgboost = utils._transform_to_categorical(df_xgboost, 'groupsplit', ['totallyrandom', 'occurrence'])
-df_xgboost = utils._transform_to_categorical(df_xgboost, 'chem_fp', ['MACCS', 'pcp', 'Morgan', 'mol2vec'])
+df_xgboost = utils._transform_to_categorical(df_xgboost, 'chem_fp', list_cols_fps)
 
 list_cols_hp = ['n_estimators', 'eta', 'gamma', 'max_depth', 'min_child_weight', 'subsample']
 list_cols = ['conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
@@ -156,7 +153,7 @@ print(df_l.to_latex(index=False))
 # best hyperparameters for GP
 df_gp = utils._transform_to_categorical(df_gp, 'conctype', ['molar', 'mass'])
 df_gp = utils._transform_to_categorical(df_gp, 'groupsplit', ['totallyrandom', 'occurrence'])
-df_gp = utils._transform_to_categorical(df_gp, 'chem_fp', ['MACCS', 'pcp', 'Morgan', 'mol2vec'])
+df_gp = utils._transform_to_categorical(df_gp, 'chem_fp', list_cols_fps)
 
 list_cols_hp = ['n_inducing']
 list_cols = ['conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
@@ -173,7 +170,8 @@ print(df_l.to_latex(index=False))
 # color specifications
 
 # for chem_fp: colors from CH2018 report
-list_colors = ['#75aab9', '#998478', '#80a58b', '#fbba76', 'black']
+# and purple from https://www.pinterest.ch/pin/1130403575204052700/
+list_colors = ['#75aab9', '#998478', '#c194ac', '#80a58b', '#fbba76']
 
 # for errors
 list_colors_points = ['#ccc', '#444', '#999', 'black']
@@ -184,65 +182,7 @@ dict_colors_fps = dict(zip(list_chem_fps, list_colors))
 list_sets = ['train', 'valid', 'trainvalid', 'test']
 dict_colors_points = dict(zip(list_sets, list_colors_points))
 
-# %%
-
-# overview of test error  (outdated using plotnine)
-# !! outdated using plotnine
-
-df_plot = df_errors.copy()
-df_plot = df_plot.sort_values(['model', 'chem_fp', 'set'], ascending=[True, True, False])
-df_plot['model_chem_fp'] = df_plot['model'].astype('str') + ' ' + df_plot['chem_fp'].astype('str')
-df_plot['groupsplit_conctype'] = df_plot['groupsplit'].astype('str') + ' ' + df_plot['conctype'].astype('str')
-df_plot_test = df_plot[df_plot['set'] == 'test'].copy()
-
-df_plot['model_chem_fp'] = pd.Categorical(df_plot['model_chem_fp'], 
-                                          categories=df_plot['model_chem_fp'].unique(),
-                                          ordered=True)
-df_plot_test['model_chem_fp'] = pd.Categorical(df_plot_test['model_chem_fp'], 
-                                               categories=df_plot['model_chem_fp'].unique(),
-                                               ordered=True)
-
-df_plot['groupsplit_conctype'] = pd.Categorical(df_plot['groupsplit_conctype'], 
-                                          categories=df_plot['groupsplit_conctype'].unique(),
-                                          ordered=True)
-df_plot_test['groupsplit_conctype'] = pd.Categorical(df_plot_test['groupsplit_conctype'], 
-                                               categories=df_plot['groupsplit_conctype'].unique(),
-                                               ordered=True)
-
-# TODO run for RMSE and R2
-metric = 'rmse'
-#metric = 'mae'
-#metric = 'r2'
-g = (ggplot(data=df_plot, mapping=aes(x='model_chem_fp', 
-                                      y=metric, 
-                                      color='set', 
-                                      fill='chem_fp',
-                                      ))
-    + geom_col(data=df_plot_test, color='none')
-    + geom_point(alpha=0.9, shape='o', fill='none')
-    + facet_grid("groupsplit ~ conctype")     # TODO labels on the left --> plot with matploblib or plotly?
-    + scale_color_manual(values=list_colors_points)
-    + scale_fill_manual(values=list_colors)
-    + geom_hline(yintercept=0.25, color='white', size=0.25)
-    + geom_hline(yintercept=0.5, color='white', size=0.25)
-    + geom_hline(yintercept=0.75, color='white', size=0.25)
-    + geom_hline(yintercept=1., color='white', size=0.25)
-    + geom_hline(yintercept=1.25, color='white', size=0.25)
-    + geom_hline(yintercept=1.5, color='white', size=0.25)
-    + theme_tufte()
-    + labs(x='', fill='fingerprint', color='error type')
-    + theme(axis_text_x=element_blank())
-)
-if metric == 'r2':
-    g = g + labs(y="R$^2$")
-elif metric == 'rmse':
-    g = g + labs(y="RMSE")
-elif metric == 'mae':
-    g = g + labs(y="MAE")
-#g.save(path_figures + '29_all_' + metric + '-vs-models.png', facecolor='white')
-g
-# %%
-
+# function to set maximum values, etc. in plot
 def _calculate_metric_stuff(metric):
 
     if metric == 'r2':
@@ -260,12 +200,15 @@ def _calculate_metric_stuff(metric):
 
     return metric_max, metric_step, str_metric
 
+# store images flag
+do_store_images = True
+
 # %%
 
 # overview plot in plotly (test error)
 # !!! test error
 
-# TODO run for RMSE and R2
+# TODO run for RMSE, MAE and R2
 metric = 'rmse'
 #metric = 'mae'
 #metric = 'r2'
@@ -485,7 +428,8 @@ for errortype in list_sets:
 
 fig.update_layout(template='plotly_white')
 
-#fig.write_image(path_figures + '29_all_' + metric + '-vs-models.png')
+if do_store_images:
+    fig.write_image(path_figures + '46_all_' + metric + '-vs-models.png')
 fig.show()
 
 # %%
@@ -494,7 +438,7 @@ fig.show()
 # overview plot in plotly (validation error)
 # !!! validation error
 
-# TODO run for RMSE and R2
+# TODO run for RMSE, MAE and R2
 metric = 'rmse'
 #metric = 'mae'
 #metric = 'r2'
@@ -717,7 +661,8 @@ fig.update_layout(legend_orientation='h', legend_xanchor='center', legend_x=0.5)
 
 fig.update_layout(template='plotly_white')
 
-#fig.write_image(path_figures + '29_all_' + metric + '-vs-models_validation.png')
+if do_store_images:
+    fig.write_image(path_figures + '46_all_' + metric + '-vs-models_validation.png')
 fig.show()
 
 # %% 
@@ -860,7 +805,8 @@ for errortype in ['valid']:
 
 fig.update_layout(template='plotly_white')
 
-#fig.write_image(path_figures + '29_all_rmse-r2-vs-models_test.png')
+if do_store_images:
+    fig.write_image(path_figures + '46_all_rmse-r2-vs-models_test.png')
 fig.show()
 
 # %%
@@ -899,14 +845,16 @@ for groupsplit in ['totallyrandom', 'occurrence']:
         + theme(axis_ticks_major_x=element_blank())
         + labs(y=str_metric)
     )
-    #g.save(path_figures + '29_' + groupsplit + '_' + metric + '-vs-models.png', facecolor='white')
+
+    if do_store_images:
+        g.save(path_figures + '46_' + groupsplit + '_' + metric + '-vs-models.png', facecolor='white')
     print(g)
 
 # %%
 
 # one plot for all splits and 1 fingerprint
 
-for chem_fp in ['MACCS', 'pcp', 'Morgan', 'mol2vec']:
+for chem_fp in list_cols_fps:
 
     # corresponding color
     list_cats = list(df_plot_test['chem_fp'].cat.categories)
@@ -932,18 +880,22 @@ for chem_fp in ['MACCS', 'pcp', 'Morgan', 'mol2vec']:
         + theme(axis_ticks_major_x=element_blank())
         + labs(y=str_metric)
     )
-    #g.save(path_figures + '29_' + chem_fp + '_' + metric + '-vs-models.png', facecolor='white')
+    
+    if do_store_images:
+        g.save(path_figures + '46_' + chem_fp + '_' + metric + '-vs-models.png', facecolor='white')
     print(g)
 
 # %%
 
+# heatmap for test errors
+
 df_p = df_plot_test.copy()
+
 # inverse order for fingerprint
 df_p['chem_fp'] = pd.Categorical(df_p['chem_fp'],
-                                 categories=['MACCS', 'pcp', 'Morgan', 'mol2vec'][::-1],
+                                 categories=list_cols_fps[::-1],
                                  ordered=True)
 
-# heatmap for test errors
 g = (ggplot(data=df_p, mapping=aes(x='model', y='chem_fp', fill=metric, label=metric))
     + geom_tile()
     + geom_text(format_string='{:.2f}')
@@ -954,7 +906,68 @@ g = (ggplot(data=df_p, mapping=aes(x='model', y='chem_fp', fill=metric, label=me
     + theme(axis_ticks_major=element_blank())
     + theme(figure_size=(7, 12))
 )
-#g.save(path_figures + '29_all_heatmap_' + metric + '.png', facecolor='white')
+
+if do_store_images:
+    g.save(path_figures + '46_all_heatmap_' + metric + '.png', facecolor='white')
 print(g)
 
 # %%
+# %%
+
+# ----------------------------------------------------------------------------
+
+# overview of test error  (outdated using plotnine)
+# !! outdated using plotnine
+
+df_plot = df_errors.copy()
+df_plot = df_plot.sort_values(['model', 'chem_fp', 'set'], ascending=[True, True, False])
+df_plot['model_chem_fp'] = df_plot['model'].astype('str') + ' ' + df_plot['chem_fp'].astype('str')
+df_plot['groupsplit_conctype'] = df_plot['groupsplit'].astype('str') + ' ' + df_plot['conctype'].astype('str')
+df_plot_test = df_plot[df_plot['set'] == 'test'].copy()
+
+df_plot['model_chem_fp'] = pd.Categorical(df_plot['model_chem_fp'], 
+                                          categories=df_plot['model_chem_fp'].unique(),
+                                          ordered=True)
+df_plot_test['model_chem_fp'] = pd.Categorical(df_plot_test['model_chem_fp'], 
+                                               categories=df_plot['model_chem_fp'].unique(),
+                                               ordered=True)
+
+df_plot['groupsplit_conctype'] = pd.Categorical(df_plot['groupsplit_conctype'], 
+                                          categories=df_plot['groupsplit_conctype'].unique(),
+                                          ordered=True)
+df_plot_test['groupsplit_conctype'] = pd.Categorical(df_plot_test['groupsplit_conctype'], 
+                                               categories=df_plot['groupsplit_conctype'].unique(),
+                                               ordered=True)
+
+# TODO run for RMSE and R2
+metric = 'rmse'
+#metric = 'mae'
+#metric = 'r2'
+g = (ggplot(data=df_plot, mapping=aes(x='model_chem_fp', 
+                                      y=metric, 
+                                      color='set', 
+                                      fill='chem_fp',
+                                      ))
+    + geom_col(data=df_plot_test, color='none')
+    + geom_point(alpha=0.9, shape='o', fill='none')
+    + facet_grid("groupsplit ~ conctype")     # TODO labels on the left --> plot with matploblib or plotly?
+    + scale_color_manual(values=list_colors_points)
+    + scale_fill_manual(values=list_colors)
+    + geom_hline(yintercept=0.25, color='white', size=0.25)
+    + geom_hline(yintercept=0.5, color='white', size=0.25)
+    + geom_hline(yintercept=0.75, color='white', size=0.25)
+    + geom_hline(yintercept=1., color='white', size=0.25)
+    + geom_hline(yintercept=1.25, color='white', size=0.25)
+    + geom_hline(yintercept=1.5, color='white', size=0.25)
+    + theme_tufte()
+    + labs(x='', fill='fingerprint', color='error type')
+    + theme(axis_text_x=element_blank())
+)
+if metric == 'r2':
+    g = g + labs(y="R$^2$")
+elif metric == 'rmse':
+    g = g + labs(y="RMSE")
+elif metric == 'mae':
+    g = g + labs(y="MAE")
+#g.save(path_figures + '46_all_' + metric + '-vs-models.png', facecolor='white')
+g

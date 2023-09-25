@@ -34,3 +34,4 @@ output/regression/rf_predictions.csv filter=lfs diff=lfs merge=lfs -text
 output/regression/shap/*sav filter=lfs diff=lfs merge=lfs -text
 output/regression/features/*joblib filter=lfs diff=lfs merge=lfs -text
 output/regression/xgboost_predictions.csv filter=lfs diff=lfs merge=lfs -text
+output/regression/figures/*png filter=lfs diff=lfs merge=lfs -text
