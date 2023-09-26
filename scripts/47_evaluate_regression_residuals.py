@@ -23,590 +23,234 @@ import utils
 # %%
 
 path_vmoutput_gp = path_root + 'vm_output_gp/'
-path_vmoutput_rf = path_root + 'vm_output_rf/'
 path_vmoutput_lasso = path_root + 'vm_output_lasso/'
+path_vmoutput_rf = path_root + 'vm_output_rf/'
+path_vmoutput_xgboost = path_root + 'vm_output_xgboost/'
 
 
 # %%
 
-# sparse GP: Fish data, molar concentration, 2023-06-26
+# load predictions (from cross-validation)
 
-# completely new data pre-processing from ECOTOX 2022-09-15
-# for the four fingerprints
-# including chemical properties (mw, mp, ws, clogp)
-# groupsplit: totallyrandom, occurrence (no scaffolds)
+# sparse GP
+path_output_dir = path_vmoutput_gp + '2023-09-15_from-updated-adore/'
+df_p_gp_all = utils.read_result_files(path_output_dir, file_type='preds')
 
-#param_grid = [
-    #{
-     ## features
-     #'chem_fp': ['MACCS', 'mol2vec', 'pcp', 'Morgan'],
-     #'chem_prop': ['chemprop'],                  #['none', 'chemprop'],
-     #'tax_pdm': ['none'],                        #['none', 'pdm', 'pdm-squared'],
-     #'tax_prop': ['taxprop-migrate2'],           #['none', 'taxprop-migrate2', 'taxprop-migrate5'],
-     #'exp': ['exp-dropfirst'],                   #['none', 'exp-dropnone', 'exp-dropfirst'],     # use dropfirst
-     ## splits
-     #'groupsplit': ['totallyrandom', 'occurrence'],  
-    #}
-#]
+# LASSO
+path_output_dir = path_vmoutput_lasso + '2023-09-15_from-updated-adore/'
+df_p_lasso_all = utils.read_result_files(path_output_dir, file_type='preds')
 
-#hyperparam_grid = [
-    #{
-     ## model hyperparameters     
-     #'n_inducing': [100, 250, 500, 1000],
-    #}
-#]
+# RF
+path_output_dir = path_vmoutput_rf + '2023-09-15_from-updated-adore/'
+df_p_rf_all = utils.read_result_files(path_output_dir, file_type='preds')
 
-path_output_dir = path_vmoutput_gp + '2023-06-26_molarconcentration/'
-df_e_gp_molar = utils.read_result_files(path_output_dir, file_type='error')
-df_p_gp_molar = utils.read_result_files(path_output_dir, file_type='preds')
+# XGBoost
+path_output_dir = path_vmoutput_xgboost + '2023-09-15_from-updated-adore/'
+df_p_xgboost_all = utils.read_result_files(path_output_dir, file_type='preds')
 
 # %%
 
-# categorical variabls for fingerprints and fold
-df_e_gp_molar['chem_fp'] = pd.Categorical(df_e_gp_molar['chem_fp'],
-                                      categories=['MACCS', 'pcp', 'Morgan', 'mol2vec'],
-                                      ordered=True)
-df_p_gp_molar['chem_fp'] = pd.Categorical(df_p_gp_molar['chem_fp'],
-                                     categories=['MACCS', 'pcp', 'Morgan', 'mol2vec'],
-                                     ordered=True)
-                                          
-df_e_gp_molar['fold'] = df_e_gp_molar['fold'].astype('str')
-df_p_gp_molar['fold'] = df_p_gp_molar['fold'].astype('str')
-df_e_gp_molar['fold'] = pd.Categorical(df_e_gp_molar['fold'],
-                                   categories=['mean', '0', '1', '2', '3', '4'],
-                                   ordered=True)
-df_p_gp_molar['fold'] = pd.Categorical(df_p_gp_molar['fold'],
-                                  categories=['0', '1', '2', '3', '4'],
-                                  ordered=True)
+# select run 
+#chem_fp = 'mol2vec'
 
-df_e_gp_molar['groupsplit'] = pd.Categorical(df_e_gp_molar['groupsplit'],
-                                         categories=['totallyrandom', 'occurrence'],
-                                         ordered=True)
-df_p_gp_molar['groupsplit'] = pd.Categorical(df_p_gp_molar['groupsplit'],
-                                         categories=['totallyrandom', 'occurrence'],
-                                        ordered=True)
-
-df_e_gp_molar = df_e_gp_molar.sort_values(['chem_fp', 'groupsplit'])
-df_p_gp_molar = df_p_gp_molar.sort_values(['chem_fp', 'groupsplit'])
-
-# check loading
-if df_e_gp_molar.isna().sum().sum() > 0:
-    print("warning: check whether loading was correct")
-else:
-    print("loading seems correct")
-
-# %%
-
-# Random forest: Fish data, molar concentration, 2023-06-21
-
-# completely new data pre-processing from ECOTOX 2022-09-15
-# for the four fingerprints
-# including chemical properties (mw, mp, ws, clogp)
-# groupsplit: totallyrandom, occurrence (no scaffolds)
-
-#param_grid = [
-    #{
-     ## features
-     #'chem_fp': ['MACCS', 'pcp', 'Morgan', 'mol2vec'], 
-     #'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
-     #'tax_pdm': ['none'],                       #['none', 'pdm', 'pdm-squared'],
-     #'tax_prop': ['taxprop-migrate2'],          #['none', 'taxprop-migrate2', 'taxprop-migrate5'],
-     #'exp': ['exp-dropfirst'],                  #['none', 'exp-dropnone', 'exp-dropfirst'],     # use dropfirst
-     ## splits
-     #'groupsplit': ['totallyrandom', 'occurrence'], 
-    #}
-#]
-
-#hyperparam_grid = [
-    #{
-    ## model hyperparameters     
-    #'n_estimators': [50, 100, 150, 300],
-    #'max_depth': [50, 100, 200], 
-    #'min_samples_split': [2, 5, 10],
-    #'min_samples_leaf': [1],
-    #'max_samples': [0.25, 0.5, 1.0],  
-    #'max_features': ['sqrt'],
-    #}
-#]
-
-path_output_dir = path_vmoutput_rf + '2023-06-21_molarconcentration/'
-df_e_rf_molar = utils.read_result_files(path_output_dir, file_type='error')
-df_p_rf_molar = utils.read_result_files(path_output_dir, file_type='preds')
-
-# %%
-
-# categorical variabls for fingerprints and fold
-df_e_rf_molar['chem_fp'] = pd.Categorical(df_e_rf_molar['chem_fp'],
-                                      categories=['MACCS', 'pcp', 'Morgan', 'mol2vec'],
-                                      ordered=True)
-df_p_rf_molar['chem_fp'] = pd.Categorical(df_p_rf_molar['chem_fp'],
-                                     categories=['MACCS', 'pcp', 'Morgan', 'mol2vec'],
-                                     ordered=True)
-                                          
-df_e_rf_molar['fold'] = df_e_rf_molar['fold'].astype('str')
-df_p_rf_molar['fold'] = df_p_rf_molar['fold'].astype('str')
-df_e_rf_molar['fold'] = pd.Categorical(df_e_rf_molar['fold'],
-                                   categories=['mean', '0', '1', '2', '3', '4'],
-                                   ordered=True)
-df_p_rf_molar['fold'] = pd.Categorical(df_p_rf_molar['fold'],
-                                  categories=['0', '1', '2', '3', '4'],
-                                  ordered=True)
-
-df_e_rf_molar['groupsplit'] = pd.Categorical(df_e_rf_molar['groupsplit'],
-                                         categories=['totallyrandom', 'occurrence'],
-                                         ordered=True)
-df_p_rf_molar['groupsplit'] = pd.Categorical(df_p_rf_molar['groupsplit'],
-                                         categories=['totallyrandom', 'occurrence'],
-                                        ordered=True)
-
-df_e_rf_molar = df_e_rf_molar.sort_values(['chem_fp', 'groupsplit'])
-df_p_rf_molar = df_p_rf_molar.sort_values(['chem_fp', 'groupsplit'])
-
-# check loading
-if df_e_rf_molar.isna().sum().sum() > 0:
-    print("warning: check whether loading was correct")
-else:
-    print("loading seems correct")
-
-
-# %%
-
-chem_fp = 'MACCS'
+#groupsplit = 'totallyrandom'
 groupsplit = 'occurrence'
+
+conctype = 'molar'
+#conctype = 'mass'
+
 tax_pdm = 'none'
 
-df_p_gp = df_p_gp_molar[(df_p_gp_molar['chem_fp'] == chem_fp)
-                        & (df_p_gp_molar['groupsplit'] == groupsplit)
-                        & (df_p_gp_molar['tax_pdm'] == tax_pdm)].copy()
-df_p_rf = df_p_rf_molar[(df_p_rf_molar['chem_fp'] == chem_fp)
-                        & (df_p_rf_molar['groupsplit'] == groupsplit)].copy()
-df_p_rf
+if conctype == 'molar':
+    col_conc = 'result_conc1_mean_mol_log'
+elif conctype == 'mass':
+    col_conc = 'result_conc1_mean_log'
 
+df_p_gp = df_p_gp_all[#(df_p_gp_all['chem_fp'] == chem_fp)
+                      (df_p_gp_all['groupsplit'] == groupsplit)
+                      & (df_p_gp_all['conctype'] == conctype)
+                      & (df_p_gp_all['tax_pdm'] == tax_pdm)].copy()
+df_p_lasso = df_p_lasso_all[#(df_p_lasso_all['chem_fp'] == chem_fp)
+                            (df_p_lasso_all['conctype'] == conctype)
+                            & (df_p_lasso_all['groupsplit'] == groupsplit)].copy()
+df_p_rf = df_p_rf_all[#(df_p_rf_all['chem_fp'] == chem_fp)
+                      (df_p_rf_all['conctype'] == conctype)
+                      & (df_p_rf_all['groupsplit'] == groupsplit)].copy()
+df_p_xgboost = df_p_xgboost_all[#(df_p_xgboost_all['chem_fp'] == chem_fp)
+                                (df_p_xgboost_all['conctype'] == conctype)
+                                & (df_p_xgboost_all['groupsplit'] == groupsplit)].copy()
 
 # %%
 
-# rename
-df_p_gp = df_p_gp.rename(columns={'result_conc1_mean_mol_log': 'true',
+# rename concentration columns
+df_p_gp = df_p_gp.rename(columns={col_conc: 'true',
                                   'conc_pred': 'gp_pred',
-                                  #'conc_pred_var': 'gp_var',
                                   })
+df_p_lasso = df_p_lasso.rename(columns={'conc_pred': 'lasso_pred'})
+df_p_rf = df_p_rf.rename(columns={'conc_pred': 'rf_pred'})
+df_p_xgboost = df_p_xgboost.rename(columns={'conc_pred': 'xgboost_pred'})
 
-# calculate standard deviation
-#df_p_gp['gp_sd'] = np.sqrt(df_p_gp['gp_var'])
-
-# add random forest prediction
+# add other predictions to GP table
 df_p = pd.merge(df_p_gp, 
-                df_p_rf[['result_id', 'conc_pred']],
-                left_on=['result_id'],
-                right_on=['result_id'],
+                df_p_lasso[['chem_fp', 'result_id', 'lasso_pred']],
+                left_on=['chem_fp', 'result_id'],
+                right_on=['chem_fp', 'result_id'],
                 how='left')
-
-# rename
-df_p = df_p.rename(columns={'conc_pred': 'rf_pred'})
-
-# calculate residuals
-df_p['gp_residual'] = df_p['gp_pred'] - df_p['true'] 
-df_p['rf_residual'] = df_p['rf_pred'] - df_p['true'] 
-
-# count chemicals and species
-df_p['n_chemicals'] = df_p.groupby(['test_cas'])['result_id'].transform('count')
-df_p['n_species'] = df_p.groupby(['tax_name'])['result_id'].transform('count')
-
-df_p
-
-# %%
-
-# wide to long
-id_vars=['result_id', 'test_cas', 'chem_name', 'tax_name', 'tax_gs', 'n_species', 'n_chemicals']
-value_vars=['gp_residual', 'rf_residual']
-df_p_long = df_p.melt(id_vars=id_vars, 
-                      value_vars=value_vars,
-                      value_name='residual',
-                      var_name='type')
-
-df_p_long['type'] = df_p_long['type'].str.replace('gp_residual', 'GP')
-df_p_long['type'] = df_p_long['type'].str.replace('rf_residual', 'RF')
-
-# %%
-
-# histogram for all residuals
-(ggplot(data=df_p_long, mapping=aes(x='residual', fill='type'))
- + geom_histogram(position='identity', alpha=0.8)
- + scale_fill_manual(values=['#018571', '#dfc27d'])
- + theme_minimal()
- + labs(fill='')
-
-)
-
-# %%
-
-# histograms for most common species
-df_plot = df_p_long.copy()
-df_plot = df_plot[df_plot['n_species'] > 100]
-list_categories = df_plot['tax_name'].value_counts().index
-df_plot['tax_name'] = pd.Categorical(df_plot['tax_name'],
-                                     categories=list_categories,
-                                     ordered=True)
-
-xmax = df_plot['residual'].abs().max()
-
-(ggplot(data=df_plot, 
-        mapping=aes(x='residual', fill='type'))
- + geom_histogram(position='identity', alpha=0.8)
- + geom_vline(xintercept = -2, color='grey')
- + geom_vline(xintercept = 0, color='grey', linetype='dashed')
- + geom_vline(xintercept = 2, color='grey')
- + facet_wrap('~ tax_name')
- + scale_x_continuous(limits=[-xmax, xmax])
- + scale_fill_manual(values=['#018571', '#dfc27d'])
- + theme_minimal()
- + labs(fill='')
- + theme(figure_size=(18, 10))
-)
-
-
-# %%
-
-# histograms for most common chemicals
-df_plot = df_p_long.copy()
-df_plot = df_plot[df_plot['n_chemicals'] > 100]
-list_categories = df_plot['chem_name'].value_counts().index
-df_plot['chem_name'] = pd.Categorical(df_plot['chem_name'],
-                                      categories=list_categories,
-                                      ordered=True)
-xmax = df_plot['residual'].abs().max()
-
-(ggplot(data=df_plot, 
-        mapping=aes(x='residual', fill='type'))
- + geom_histogram(position='identity', alpha=0.8)
- + geom_vline(xintercept = -2, color='grey')
- + geom_vline(xintercept = 0, color='grey', linetype='dashed')
- + geom_vline(xintercept = 2, color='grey')
- + facet_wrap('~ chem_name')
- + scale_x_continuous(limits=[-xmax, xmax])
- + scale_fill_manual(values=['#018571', '#dfc27d'])
- + theme_minimal()
- + labs(fill='')
- + theme(figure_size=(18, 10))
-)
-
-
-# %%
-
-oom = 1
-
-# entries
-print('entries')
-print(df_p[(df_p['gp_residual']).abs() > oom].shape[0])
-print(df_p[(df_p['rf_residual']).abs() > oom].shape[0])
-print()
-
-# chemicals
-print('chemicals')
-print(df_p[(df_p['gp_residual']).abs() > oom]['test_cas'].nunique())
-print(df_p[(df_p['rf_residual']).abs() > oom]['test_cas'].nunique())
-print()
-
-# species
-print('species')
-print(df_p[(df_p['gp_residual']).abs() > oom]['tax_gs'].nunique())
-print(df_p[(df_p['rf_residual']).abs() > oom]['tax_gs'].nunique())
-print()
-
-# %%
-
-# TODO check residual plots correctly!!!
-(ggplot(data=df_p, mapping=aes(x='true', y='rf_residual'))
-    + geom_point(alpha=0.1) 
-    + theme_minimal()
-)
-# %%
-(ggplot(data=df_p, mapping=aes(x='true', y='gp_residual'))
-    + geom_point(alpha=0.1) 
-    + theme_minimal()
-)
-
-
-
-# %%
-
-# sparse GP: Fish data, mass concentration, 2023-02-03
-
-# !!! 'none' not available for most combinations!
-
-# completely new data pre-processing from ECOTOX 2022-09-15
-# for the four fingerprints
-# including chemical properties (mw, mp, ws, clogp)
-# groupsplit: totallyrandom, occurrence, murcko and general scaffold, (not loo!)
-# with train error!
-
-#param_grid = [
-    #{
-     ## features
-     #'str_overlap': [str_overlap],
-     #'chem_fp': ['MACCS', 'pcp', 'Morgan', 'mol2vec'], 
-     #'chem_prop': ['chemprop'],  
-     #'tax_pdm': ['none', 'pdm'],  
-     #'tax_prop': ['taxprop-migrate2'],
-     #'tax_prop_lh': ['narrow'],
-     #'exp': ['exp-dropfirst'],  
-     ## splits
-    ##'groupsplit': ['totallyrandom', 'occurrence', 'scaffold-murcko', 'scaffold-generic'],  
-    #}
-#]
-
-#hyperparam_grid = [
-    #{
-     ## model hyperparameters     
-     #'n_inducing': [100, 250, 500, 1000],
-    #}
-#]
-
-path_output_dir = path_vmoutput_gp + '2023-02-03_new-data_with-train-error_with-params/'
-df_errors = utils.read_result_files(path_output_dir, file_type='errors')
-df_params = utils.read_result_files(path_output_dir, file_type='param')
-df_preds = utils.read_result_files(path_output_dir, file_type='pred')
-
-# %%
-
-# load corresponding RF output
-
-# !!! so far only Morgan occurrence and by hyperparams!
-
-# Morgan, occurrence, best hyperparams
-
-#'n_estimators': [75],
-#'max_depth': [200], 
-#'min_samples_split': [2],
-#'min_samples_leaf': [1],
-#'max_samples': [1.0],  
-#'max_features': ['sqrt'],
-
-
-path_output_dir = path_vmoutput_rf + '2023-02-09_with-predictions/'
-df_preds_rf = utils.read_result_files(path_output_dir, file_type='pred')
-
-
-# %%
-
-# categorical variabls for fingerprints and fold
-df_errors['chem_fp'] = pd.Categorical(df_errors['chem_fp'],
-                                      categories=['MACCS', 'pcp', 'Morgan', 'mol2vec'],
-                                      ordered=True)
-df_params['chem_fp'] = pd.Categorical(df_params['chem_fp'],
-                                      categories=['MACCS', 'pcp', 'Morgan', 'mol2vec'],
-                                      ordered=True)
-df_preds['chem_fp'] = pd.Categorical(df_preds['chem_fp'],
-                                     categories=['MACCS', 'pcp', 'Morgan', 'mol2vec'],
-                                     ordered=True)
-                                          
-df_errors['fold'] = df_errors['fold'].astype('str')
-df_params['fold'] = df_params['fold'].astype('str')
-#df_preds['fold'] = df_preds['fold'].astype('str')
-df_errors['fold'] = pd.Categorical(df_errors['fold'],
-                                   categories=['mean', '0', '1', '2', '3', '4'],
-                                   ordered=True)
-df_params['fold'] = pd.Categorical(df_params['fold'],
-                                   categories=['0', '1', '2', '3', '4'],
-                                   ordered=True)
-#df_preds['fold'] = pd.Categorical(df_preds['fold'],
-                                  #categories=['0', '1', '2', '3', '4'],
-                                  #ordered=True)
-
-df_errors['groupsplit'] = pd.Categorical(df_errors['groupsplit'],
-                                         categories=['totallyrandom', 'occurrence', 'scaffold-murcko', 'scaffold-generic'],
-                                         ordered=True)
-df_params['groupsplit'] = pd.Categorical(df_params['groupsplit'],
-                                         categories=['totallyrandom', 'occurrence', 'scaffold-murcko', 'scaffold-generic'],
-                                         ordered=True)
-df_preds['groupsplit'] = pd.Categorical(df_preds['groupsplit'],
-                                        categories=['totallyrandom', 'occurrence', 'scaffold-murcko', 'scaffold-generic'],
-                                        ordered=True)
-
-df_errors = df_errors.sort_values(['chem_fp', 'groupsplit'])
-df_params = df_params.sort_values(['chem_fp', 'groupsplit'])
-df_preds = df_preds.sort_values(['chem_fp', 'groupsplit'])
-
-# check loading
-if df_errors.isna().sum().sum() > 0:
-    print("warning: check whether loading was correct")
-else:
-    print("loading seems correct")
-# %%
-
-chem_fp = 'Morgan'
-groupsplit = 'occurrence'
-tax_pdm = 'pdm'    # !!! 'none' not available for most combinations
-
-df_errors[(df_errors['chem_fp'] == chem_fp) &
-          (df_errors['groupsplit'] == groupsplit) &
-          (df_errors['tax_pdm'] == tax_pdm) &
-          (df_errors['fold'] == 'mean') &
-          (df_errors['set'] == 'valid')
-]
-
-# %%
-n_inducing = 100
-
-df_p = df_preds[(df_preds['chem_fp'] == chem_fp) &
-                (df_preds['groupsplit'] == groupsplit) &
-                (df_preds['tax_pdm'] == tax_pdm) &
-                (df_preds['n_inducing'] == n_inducing)
-                ].copy()
-
-df_p
-
-# %%
-
-# function
-def calculate_pdf(mean, std_dev):
-
-    import scipy.stats
-
-    x_min=-5
-    x_max=5
-
-    x = np.linspace(x_min, x_max, 10000)
-    y = scipy.stats.norm.pdf(x, mean, std_dev)
-
-    df = pd.DataFrame(zip(x, y), columns=['x', 'y'])
-
-    return df
-
-# %%
-
-df_plot = df_p.head(6)
-
-# rename
-df_plot = df_plot.rename(columns={'result_conc1_mean_log': 'true',
-                                  'conc_pred': 'gp_pred',
-                                  'conc_pred_var': 'gp_var'})
-# calculate standard deviation
-df_plot['gp_sd'] = np.sqrt(df_plot['gp_var'])
-
-# add random forest prediction
-# ! this is for Morgan, occurrence
-df_plot = pd.merge(df_plot, 
-                   df_preds_rf[['result_id', 'conc_pred']],
-                   left_on=['result_id'],
-                   right_on=['result_id'],
-                   how='left')
-
-# rename
-df_plot = df_plot.rename(columns={'conc_pred': 'rf_pred'})
-
-# wide to long
-id_vars=['result_id', 'test_cas', 'chem_name', 'tax_name', 'tax_gs']
-value_vars=['true', 'gp_pred', 'rf_pred']
-df_plot_long = df_plot.melt(id_vars=id_vars, 
-                            value_vars=value_vars,
-                            value_name='conc',
-                            var_name='type')
-
-# calculate pdf
-list_dfs = []
-for result_id in df_plot['result_id'].unique():
-
-    df_oi = df_plot[df_plot['result_id'] == result_id]
-    mean = df_oi['gp_pred'].iloc[0]
-    std_dev = df_oi['gp_sd'].iloc[0]
-
-    df = calculate_pdf(mean, std_dev)
-    df['result_id'] = result_id
-    list_dfs.append(df)
-
-df_pdfs = pd.concat(list_dfs)
-
-
-# %%
-
-g = (ggplot()
-    + geom_line(data=df_pdfs, mapping=aes(x='x', y='y'), color='#018571', linetype='dotted')
-    + geom_point(data=df_plot_long, 
-                 mapping=aes(x='conc', y=0, color='type', shape='type'), 
-                 alpha=0.7,
-                 size=3)
-    + scale_color_manual(values=['black', '#018571', '#dfc27d'],
-                         limits=['true', 'gp_pred', 'rf_pred'],
-                         labels=['true', 'GP', 'RF'])
-    + scale_shape_manual(values=[6, 7, 7],
-                         limits=['true', 'gp_pred', 'rf_pred'],
-                         labels=['true', 'GP', 'RF'])
-    + facet_wrap('~ result_id')
-    + theme_minimal()
-    + labs(x='log$_{10}$(EC50)', 
-           y='',
-           color='',
-           shape='')
-)
-#g.save(path_output_dir + '_GP-RF_prediction-uncertainty.png', facecolor='white')
-g
-
-# %%
-
-#df_plot.to_csv(path_output_dir + '_GP-RF_prediction-uncertainty_data.csv')
-
-
-# %%
-
-# rename
-df_p = df_p.rename(columns={'result_conc1_mean_log': 'true',
-                            'conc_pred': 'gp_pred',
-                            'conc_pred_var': 'gp_var'})
-
-# calculate standard deviation
-df_p['gp_sd'] = np.sqrt(df_p['gp_var'])
-
-# add random forest prediction
-# ! this is for Morgan, occurrence
 df_p = pd.merge(df_p, 
-                df_preds_rf[['result_id', 'conc_pred']],
-                left_on=['result_id'],
-                right_on=['result_id'],
+                df_p_rf[['chem_fp', 'result_id', 'rf_pred']],
+                left_on=['chem_fp', 'result_id'],
+                right_on=['chem_fp', 'result_id'],
                 how='left')
-
-# rename
-df_p = df_p.rename(columns={'conc_pred': 'rf_pred'})
+df_p = pd.merge(df_p, 
+                df_p_xgboost[['chem_fp', 'result_id', 'xgboost_pred']],
+                left_on=['chem_fp', 'result_id'],
+                right_on=['chem_fp', 'result_id'],
+                how='left')
 
 # calculate residuals
 df_p['gp_residual'] = df_p['gp_pred'] - df_p['true'] 
+df_p['lasso_residual'] = df_p['lasso_pred'] - df_p['true'] 
 df_p['rf_residual'] = df_p['rf_pred'] - df_p['true'] 
+df_p['xgboost_residual'] = df_p['xgboost_pred'] - df_p['true'] 
 
 # count chemicals and species
-df_p['n_chemicals'] = df_p.groupby(['test_cas'])['result_id'].transform('count')
-df_p['n_species'] = df_p.groupby(['tax_name'])['result_id'].transform('count')
+df_p['n_chemicals'] = df_p.groupby(['chem_fp', 'test_cas'])['result_id'].transform('count')
+df_p['n_species'] = df_p.groupby(['chem_fp', 'tax_name'])['result_id'].transform('count')
 
 df_p
 
 # %%
 
-# wide to long
-id_vars=['result_id', 'test_cas', 'chem_name', 'tax_name', 'tax_gs', 'n_species', 'n_chemicals']
-value_vars=['gp_residual', 'rf_residual']
+# wide to long (predictions))
+id_vars = ['chem_fp', 'result_id', 'test_cas', 'chem_name', 'tax_name', 'tax_gs', 'n_species', 'n_chemicals', 'true']
+value_vars = ['gp_pred', 'lasso_pred', 'rf_pred', 'xgboost_pred']
 df_p_long = df_p.melt(id_vars=id_vars, 
+                      value_vars=value_vars,
+                      value_name='pred',
+                      var_name='type')
+
+df_p_long['type'] = df_p_long['type'].str.replace('gp_pred', 'GP')
+df_p_long['type'] = df_p_long['type'].str.replace('lasso_pred', 'LASSO')
+df_p_long['type'] = df_p_long['type'].str.replace('rf_pred', 'RF')
+df_p_long['type'] = df_p_long['type'].str.replace('xgboost_pred', 'XGBoost')
+
+# wide to long (residuals)
+id_vars = ['chem_fp', 'result_id', 'test_cas', 'chem_name', 'tax_name', 'tax_gs', 'n_species', 'n_chemicals', 'true']
+value_vars = ['gp_residual', 'lasso_residual', 'rf_residual', 'xgboost_residual']
+df_p_long2 = df_p.melt(id_vars=id_vars, 
                       value_vars=value_vars,
                       value_name='residual',
                       var_name='type')
 
-df_p_long['type'] = df_p_long['type'].str.replace('gp_residual', 'GP')
-df_p_long['type'] = df_p_long['type'].str.replace('rf_residual', 'RF')
+# add residual to long data frame
+df_p_long['residual'] = df_p_long2['residual']
+
+# categorical variable
+list_cols_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec']
+df_p_long = utils._transform_to_categorical(df_p_long, 'chem_fp', list_cols_fps)
+df_p_long
+
+# %%
+
+# Tukey Anscombe plot: residual vs fitted
+
+# not colored
+df_plot = df_p_long.copy()
+ymax = df_plot['residual'].abs().max()
+(ggplot(data=df_plot, mapping=aes(x='pred', y='residual'))
+    + geom_point(shape='.', color='grey', alpha=0.1) 
+    + scale_y_continuous(limits=[-ymax, ymax])
+    + facet_grid('chem_fp ~ type')
+    + theme_minimal()
+    + theme(figure_size=(15, 8))
+)
+
+# %%
+
+# colored by true concentration
+df_plot = df_p_long.copy()
+ymax = df_plot['residual'].abs().max()
+(ggplot(data=df_plot, mapping=aes(x='pred', y='residual', color='true'))
+    + geom_point(shape='.', alpha=0.1) 
+    + scale_y_continuous(limits=[-ymax, ymax])
+    + scale_color_cmap('cividis')
+    + facet_grid('chem_fp ~ type')
+    + theme_minimal()
+    + theme(figure_size=(15, 8))
+)
+
+# %%
+
+# check LASSO top right cluster
+df_oi = df_p_long[(df_p_long['type'] == 'LASSO')].copy()
+df_oi['special'] = 'normal'
+#df_oi.loc[(df_p_long['pred'] > -2.2) & (df_p_long['residual'] > 3), 'special'] = 'weird'
+df_oi.loc[(df_p_long['chem_name'].isin(['Potassium cyanide', 'Sodium cyanide'])), 'special'] = 'weird'
+
+(ggplot(data=df_oi, mapping=aes(x='pred', y='residual', color='special'))
+    + geom_point(shape='.', alpha=0.1) 
+    + facet_wrap('~ chem_fp')
+    + theme_minimal()
+)
+
+# %%
+
+# nothing suspicious for the species, but this cluster mainly contains entries for two chemicals:
+# - sodium cyanide, potassium cyanide
+# - also there are progargyl alcohol and Potassium dimethyldithiocarbamate
+df_oi[df_oi['special'] == 'weird']['tax_gs'].value_counts()
+df_oi[df_oi['special'] == 'weird']['chem_name'].value_counts()
+#df_oi[df_oi['special'] == 'weird']['n_chemicals'].value_counts()
+
+# %%
+
+# check RF bottom left cluster
+df_oi = df_p_long[(df_p_long['type'] == 'RF')].copy()
+df_oi['special'] = 'normal'
+#df_oi.loc[(df_p_long['pred'] < -8) & (df_p_long['residual'] < 0), 'special'] = 'weird'
+df_oi.loc[(df_p_long['chem_name'] == 'Dieldrin'), 'special'] = 'weird'
+#df_oi.loc[(df_p_long['chem_name'] == 'Cypermethrin'), 'special'] = 'weird'
+
+(ggplot(data=df_oi, mapping=aes(x='pred', y='residual', color='special', shape='special'))
+    + geom_point(shape='.', alpha=0.1) 
+   # + geom_point(alpha=0.1) 
+    + facet_wrap('~ chem_fp')
+    + theme_minimal()
+)
+
+# %%
+
+df_oi[df_oi['special'] == 'weird']['tax_gs'].value_counts()
+df_oi[df_oi['special'] == 'weird']['chem_name'].value_counts()
+
+# %%
+
+# prepare plotting
+
+# colors
+# https://www.pinterest.ch/pin/70439181665757203/
+# TODO check colorblind safeness
+list_colors = ['#83920E', '#EFC201', '#E47900', '#B5134B', '46093E']
 
 # %%
 
 # histogram for all residuals
-(ggplot(data=df_p_long, mapping=aes(x='residual', fill='type'))
- + geom_histogram(position='identity', alpha=0.8)
- + scale_fill_manual(values=['#018571', '#dfc27d'])
+(ggplot(data=df_p_long, mapping=aes(x='residual', color='type'))
+# + geom_histogram(position='identity', alpha=1.0, fill='none', binwidth=0.25)
+ + geom_density()
+ + scale_color_manual(values=list_colors)
+ + facet_wrap('~ chem_fp')
  + theme_minimal()
- + labs(fill='')
-
+ + labs(color='model')
 )
 
 # %%
 
 # histograms for most common species
 df_plot = df_p_long.copy()
-df_plot = df_plot[df_plot['n_species'] > 100]
+df_plot = df_plot[df_plot['n_species'] > 500]
+#df_plot = df_plot[(df_plot['n_species'] > 230) & (df_plot['n_species'] <= 500)]
+#df_plot = df_plot[(df_plot['n_species'] > 100) & (df_plot['n_species'] <= 230)]
 list_categories = df_plot['tax_name'].value_counts().index
 df_plot['tax_name'] = pd.Categorical(df_plot['tax_name'],
                                      categories=list_categories,
@@ -615,25 +259,29 @@ df_plot['tax_name'] = pd.Categorical(df_plot['tax_name'],
 xmax = df_plot['residual'].abs().max()
 
 (ggplot(data=df_plot, 
-        mapping=aes(x='residual', fill='type'))
- + geom_histogram(position='identity', alpha=0.8)
- + geom_vline(xintercept = -2, color='grey')
- + geom_vline(xintercept = 0, color='grey', linetype='dashed')
- + geom_vline(xintercept = 2, color='grey')
- + facet_wrap('~ tax_name')
- + scale_x_continuous(limits=[-xmax, xmax])
- + scale_fill_manual(values=['#018571', '#dfc27d'])
- + theme_minimal()
- + labs(fill='')
- + theme(figure_size=(18, 10))
+        mapping=aes(x='residual', color='type'))
+    + geom_histogram(position='identity', alpha=1.0, fill='none', binwidth=0.25)
+    + geom_vline(xintercept = -2, color='grey')
+    + geom_vline(xintercept = 0, color='grey', linetype='dashed')
+    + geom_vline(xintercept = 2, color='grey')
+    + facet_grid('chem_fp ~ tax_name')
+    + scale_x_continuous(limits=[-xmax, xmax])
+    + scale_color_manual(values=list_colors)
+    + theme_minimal()
+    + labs(color='model')
+    + theme(figure_size=(18, 10))
 )
-
 
 # %%
 
 # histograms for most common chemicals
 df_plot = df_p_long.copy()
-df_plot = df_plot[df_plot['n_chemicals'] > 100]
+#df_plot = df_plot[df_plot['n_chemicals'] > 350]
+#df_plot = df_plot[(df_plot['n_chemicals'] > 250) & (df_plot['n_chemicals'] <= 350)]
+#df_plot = df_plot[(df_plot['n_chemicals'] > 150) & (df_plot['n_chemicals'] <= 250)]
+#df_plot = df_plot[(df_plot['n_chemicals'] > 125) & (df_plot['n_chemicals'] <= 150)]
+#df_plot = df_plot[(df_plot['n_chemicals'] > 100) & (df_plot['n_chemicals'] <= 125)]
+df_plot = df_plot[(df_plot['n_chemicals'] > 80) & (df_plot['n_chemicals'] <= 100)]
 list_categories = df_plot['chem_name'].value_counts().index
 df_plot['chem_name'] = pd.Categorical(df_plot['chem_name'],
                                       categories=list_categories,
@@ -641,60 +289,118 @@ df_plot['chem_name'] = pd.Categorical(df_plot['chem_name'],
 xmax = df_plot['residual'].abs().max()
 
 (ggplot(data=df_plot, 
-        mapping=aes(x='residual', fill='type'))
- + geom_histogram(position='identity', alpha=0.8)
- + geom_vline(xintercept = -2, color='grey')
- + geom_vline(xintercept = 0, color='grey', linetype='dashed')
- + geom_vline(xintercept = 2, color='grey')
- + facet_wrap('~ chem_name')
- + scale_x_continuous(limits=[-xmax, xmax])
- + scale_fill_manual(values=['#018571', '#dfc27d'])
- + theme_minimal()
- + labs(fill='')
- + theme(figure_size=(18, 10))
+        mapping=aes(x='residual', color='type'))
+    + geom_histogram(position='identity', alpha=1.0, fill='none', binwidth=0.25)
+    + geom_vline(xintercept = -2, color='grey')
+    + geom_vline(xintercept = 0, color='grey', linetype='dashed')
+    + geom_vline(xintercept = 2, color='grey')
+    + facet_grid('chem_fp ~ chem_name')
+    + scale_x_continuous(limits=[-xmax, xmax])
+    + scale_color_manual(values=list_colors)
+    + theme_minimal()
+    + labs(color='model')
+    + theme(figure_size=(18, 10))
 )
 
 
-# %%
+    # %%
 
+# order of magnitude
 oom = 1
 
 # entries
 print('entries')
 print(df_p[(df_p['gp_residual']).abs() > oom].shape[0])
-print(df_p[(df_p['rf_residual']).abs() > oom].shape[0])
+print(df_p[(df_p['lasso_residual']).abs() > oom].shape[0])
 print()
 
 # chemicals
 print('chemicals')
 print(df_p[(df_p['gp_residual']).abs() > oom]['test_cas'].nunique())
-print(df_p[(df_p['rf_residual']).abs() > oom]['test_cas'].nunique())
+print(df_p[(df_p['lasso_residual']).abs() > oom]['test_cas'].nunique())
 print()
 
 # species
 print('species')
 print(df_p[(df_p['gp_residual']).abs() > oom]['tax_gs'].nunique())
-print(df_p[(df_p['rf_residual']).abs() > oom]['tax_gs'].nunique())
+print(df_p[(df_p['lasso_residual']).abs() > oom]['tax_gs'].nunique())
 print()
 
 # %%
-
-# TODO check residual plots correctly!!!
-(ggplot(data=df_p, mapping=aes(x='true', y='rf_residual'))
-    + geom_point(alpha=0.1) 
-)
 # %%
-(ggplot(data=df_p, mapping=aes(x='true', y='gp_residual'))
-    + geom_point(alpha=0.01) 
-)
-# %%
-(ggplot(data=df_p, mapping=aes(x='true', y='gp_pred'))
-    #+ geom_point(alpha=0.01) 
-    + geom_bin2d(bins=80)
-    + geom_abline()
-    + scale_fill_cmap('cividis')
-    + scale_x_continuous(limits=(-9,2))
-    + scale_y_continuous(limits=(-9,2))
-)
 
+# LASSO: experimental features not relevant --> same prediction for same fish and chemical
+df_p.groupby(['chem_fp'])['lasso_pred'].value_counts().head(10)
+# %%
+
+# top prediction
+conc_top = df_p['lasso_pred'].value_counts().index[0]
+print(df_p[df_p['lasso_pred'] == conc_top]['chem_name'].unique())
+print(df_p[df_p['lasso_pred'] == conc_top]['tax_name'].unique())
+
+# %%
+
+# top 2 prediction
+conc_top2 = df_p['lasso_pred'].value_counts().index[6]
+print(df_p[df_p['lasso_pred'] == conc_top2]['chem_name'].unique())
+print(df_p[df_p['lasso_pred'] == conc_top2]['tax_name'].unique())
+
+# %%
+
+# GP:
+df_p.groupby(['chem_fp'])['gp_pred'].value_counts().head(10)
+
+# %%
+
+# top prediction
+conc_top = df_p['gp_pred'].value_counts().index[0]
+print(df_p[df_p['gp_pred'] == conc_top]['chem_name'].unique())
+print(df_p[df_p['gp_pred'] == conc_top]['tax_name'].unique())
+
+# %%
+
+# top 2 prediction
+conc_top2 = df_p['gp_pred'].value_counts().index[6]
+print(df_p[df_p['gp_pred'] == conc_top2]['chem_name'].unique())
+print(df_p[df_p['gp_pred'] == conc_top2]['tax_name'].unique())
+# %%
+
+df_p[(df_p['chem_name'] == 'Trichlorfon')
+     & (df_p['tax_name'] == 'Rainbow Trout')
+     & (df_p['chem_fp'] == 'MACCS')]#['true'].mean()
+
+# %%
+
+df_p[(df_p['chem_name'] == 'Methoxychlor')
+     & (df_p['tax_name'] == 'Brook Trout')
+     & (df_p['chem_fp'] == 'MACCS')]#['true'].mean()
+
+# %%
+
+# experimental setting not stored
+list_cols_exp = [c for c in df_p.columns if ('result' in c) or ('test' in c)]
+list_cols_exp
+
+
+# %%
+
+# Random Forest
+df_p.groupby(['chem_fp'])['rf_pred'].value_counts().head(10)
+
+# %%
+
+# XGBoost
+df_p.groupby(['chem_fp'])['xgboost_pred'].value_counts().head(10)
+
+# %%
+# top prediction
+conc_top = df_p['xgboost_pred'].value_counts().index[0]
+print(df_p[df_p['xgboost_pred'] == conc_top]['chem_name'].unique())
+print(df_p[df_p['xgboost_pred'] == conc_top]['tax_name'].unique())
+# %%
+
+# top 2 prediction
+conc_top2 = df_p['gp_pred'].value_counts().index[1]
+print(df_p[df_p['gp_pred'] == conc_top2]['chem_name'].unique())
+print(df_p[df_p['gp_pred'] == conc_top2]['tax_name'].unique())
 # %%
