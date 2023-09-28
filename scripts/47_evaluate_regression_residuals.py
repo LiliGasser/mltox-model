@@ -204,6 +204,22 @@ df_oi[df_oi['special'] == 'weird']['chem_name'].value_counts()
 
 # %%
 
+# TA colored by sodium and potassium cyanide
+df_plot = df_p_long.copy()
+df_plot['compounds'] = 'others'
+df_plot.loc[(df_plot['chem_name'].isin(['Potassium cyanide', 'Sodium cyanide'])), 'compounds'] = 'cyanides'
+
+ymax = df_plot['residual'].abs().max()
+(ggplot(data=df_plot, mapping=aes(x='pred', y='residual', color='compounds'))
+    + geom_point(shape='.', alpha=0.1) 
+    + scale_y_continuous(limits=[-ymax, ymax])
+#    + scale_color_cmap('cividis')
+    + facet_grid('chem_fp ~ type')
+    + theme_minimal()
+    + theme(figure_size=(15, 8))
+)
+# %%
+
 # check RF bottom left cluster
 df_oi = df_p_long[(df_p_long['type'] == 'RF')].copy()
 df_oi['special'] = 'normal'
@@ -225,12 +241,56 @@ df_oi[df_oi['special'] == 'weird']['chem_name'].value_counts()
 
 # %%
 
+# TA colored by Dieldrin
+df_plot = df_p_long.copy()
+df_plot['compounds'] = 'others'
+df_plot.loc[(df_plot['chem_name'].isin(['Dieldrin'])), 'compounds'] = 'Dieldrin'
+
+ymax = df_plot['residual'].abs().max()
+(ggplot(data=df_plot, mapping=aes(x='pred', y='residual', color='compounds'))
+    + geom_point(shape='.', alpha=0.1) 
+    + scale_y_continuous(limits=[-ymax, ymax])
+#    + scale_color_cmap('cividis')
+    + facet_grid('chem_fp ~ type')
+    + theme_minimal()
+    + theme(figure_size=(15, 8))
+)
+
+# %%
+
+# Fenitrothion
+
+# TA colored by Fenitrothion    
+df_plot = df_p_long.copy()
+df_plot['compounds'] = 'others'
+df_plot.loc[(df_plot['chem_name'].isin(['Fenitrothion'])), 'compounds'] = 'Fenitrothion'
+#df_plot.loc[(df_plot['chem_name'].isin(['Fenitrothion'])) & (df_plot['residual'] > 1.5), 'compounds'] = 'Fenitrothion-resid>1.5'
+df_plot.loc[(df_plot['chem_name'].isin(['Fenitrothion'])) & (df_plot['tax_name'] == 'Western Mosquitofish'), 'compounds'] = 'Fenitrothion-Western'
+df_plot = df_plot.sort_values('compounds', ascending=False)
+
+ymax = df_plot['residual'].abs().max()
+(ggplot(data=df_plot, mapping=aes(x='pred', y='residual', color='compounds'))
+    + geom_point(shape='.', alpha=0.1) 
+    + scale_y_continuous(limits=[-ymax, ymax])
+#    + scale_color_cmap('cividis')
+    + facet_grid('chem_fp ~ type')
+    + theme_minimal()
+    + theme(figure_size=(15, 8))
+)
+
+# %%
+
+# all on Western Mosquitofish
+df_plot[(df_plot['compounds'] != 'others') & (df_plot['residual'] > 1.5)]['tax_name'].unique()
+df_plot[(df_plot['compounds'] != 'others') & (df_plot['residual'] > 1.5)]['result_id'].unique()
+
+# %%
 # prepare plotting
 
 # colors
 # https://www.pinterest.ch/pin/70439181665757203/
 # TODO check colorblind safeness
-list_colors = ['#83920E', '#EFC201', '#E47900', '#B5134B', '46093E']
+list_colors = ['#83920E', '#EFC201', '#E47900', '#B5134B', '#46093E']
 
 # %%
 
@@ -302,8 +362,43 @@ xmax = df_plot['residual'].abs().max()
     + theme(figure_size=(18, 10))
 )
 
+# %%
 
-    # %%
+# histograms for most common chemicals and top fish
+df_plot = df_p_long.copy()
+
+list_fish = ['Rainbow Trout', 'Fathead Minnow', 'Bluegill']
+
+df_plot = df_plot[df_plot['tax_name'].isin(list_fish)].copy()
+
+chem_name = "p-p'-DDT"
+#chem_name = 'Carbaryl'
+#chem_name = 'Fenitrothion'
+df_plot = df_plot[df_plot['chem_name'] == 'Carbaryl']
+
+xmax = df_plot['residual'].abs().max()
+
+(ggplot(data=df_plot, 
+        mapping=aes(x='residual', fill='tax_name'))
+    + geom_histogram(position='stack', alpha=0.5, color='darkgrey', binwidth=0.25)
+    + geom_vline(xintercept = -2, color='grey')
+    + geom_vline(xintercept = 0, color='grey', linetype='dashed')
+    + geom_vline(xintercept = 2, color='grey')
+    + facet_grid('chem_fp ~ type')
+    + scale_x_continuous(limits=[-xmax, xmax])
+    + scale_fill_manual(values=list_colors)
+    + theme_minimal()
+    + labs(fill='model', title=chem_name)
+    + theme(figure_size=(18, 10))
+)
+
+
+
+
+
+
+
+# %%
 
 # order of magnitude
 oom = 1
