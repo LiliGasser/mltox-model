@@ -169,16 +169,40 @@ df_oi[df_oi['special'] == 'weird']['chem_name'].value_counts()
 
 # %%
 
-# TA colored by sodium and potassium cyanide
+# TA colored by cyanides
 df_plot = df_p_long.copy()
 df_plot['compounds'] = 'others'
-df_plot.loc[(df_plot['chem_name'].isin(['Potassium cyanide', 'Sodium cyanide'])), 'compounds'] = 'cyanides'
+df_plot.loc[(df_plot['chem_name'].str.contains('cyanide')), 'compounds'] = 'cyanide'
+df_plot = df_plot.sort_values('compounds', ascending=False)
 
 ymax = df_plot['residual'].abs().max()
 (ggplot(data=df_plot, mapping=aes(x='pred', y='residual', color='compounds'))
-    + geom_point(shape='.', alpha=0.1) 
+    + geom_point(shape='.', alpha=0.5) 
     + scale_y_continuous(limits=[-ymax, ymax])
-#    + scale_color_cmap('cividis')
+    + facet_grid('chem_fp ~ type')
+    + theme_minimal()
+    + theme(figure_size=(15, 8))
+)
+
+# %%
+
+# TA colored by cyanides (4 colors)
+df_plot = df_p_long.copy()
+df_plot['compounds'] = 'others'
+df_plot.loc[(df_plot['chem_name'].isin(['Potassium cyanide'])), 'compounds'] = 'Potassium cyanide'
+df_plot.loc[(df_plot['chem_name'].isin(['Sodium cyanide'])), 'compounds'] = 'Sodium cyanide'
+df_plot.loc[(df_plot['chem_name'].isin(['Octyl cyanide'])), 'compounds'] = 'Octyl cyanide'
+df_plot.loc[(df_plot['chem_name'].isin(['Allyl cyanide'])), 'compounds'] = 'Allyl cyanide'
+df_plot = df_plot.sort_values('compounds', ascending=False)
+
+list_colors = ['#EFC201', '#E47900', '#B5134B', '#46093E']   # '#83920E', 
+
+ymax = df_plot['residual'].abs().max()
+(ggplot(data=df_plot, mapping=aes(x='pred', y='residual', color='compounds'))
+    + geom_point(shape='.', alpha=1) 
+    + scale_y_continuous(limits=[-ymax, ymax])
+    + scale_x_continuous(limits=[-5, 0])
+    + scale_color_manual(values=list_colors+['grey'])
     + facet_grid('chem_fp ~ type')
     + theme_minimal()
     + theme(figure_size=(15, 8))
@@ -237,7 +261,16 @@ ymax = df_plot['residual'].abs().max()
 (ggplot(data=df_plot, mapping=aes(x='pred', y='residual', color='compounds'))
     + geom_point(shape='.', alpha=0.1) 
     + scale_y_continuous(limits=[-ymax, ymax])
-#    + scale_color_cmap('cividis')
+    + facet_grid('chem_fp ~ type')
+    + theme_minimal()
+    + theme(figure_size=(15, 8))
+)
+
+# %%
+
+(ggplot(data=df_plot, mapping=aes(x='pred', y='true', color='compounds'))
+    + geom_point(shape='.', alpha=0.1) 
+#    + scale_y_continuous(limits=[-ymax, ymax])
     + facet_grid('chem_fp ~ type')
     + theme_minimal()
     + theme(figure_size=(15, 8))
