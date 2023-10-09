@@ -369,10 +369,10 @@ list_fish = ['Rainbow Trout', 'Fathead Minnow', 'Bluegill']
 
 df_plot = df_plot[df_plot['tax_name'].isin(list_fish)].copy()
 
-chem_name = "p-p'-DDT"
+chem_name = "p,p'-DDT"
 #chem_name = 'Carbaryl'
 #chem_name = 'Fenitrothion'
-df_plot = df_plot[df_plot['chem_name'] == 'Carbaryl']
+df_plot = df_plot[df_plot['chem_name'] == chem_name]
 
 xmax = df_plot['residual'].abs().max()
 
