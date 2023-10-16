@@ -72,7 +72,7 @@ df_preds = utils.read_result_files(path_output_dir, file_type='preds')
 
 # categorical variables for fingerprints
 col = 'chem_fp'
-list_categories = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec']
+list_categories = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
 df_errors = utils._transform_to_categorical(df_errors, col, list_categories)
 df_params = utils._transform_to_categorical(df_params, col, list_categories)
 df_preds = utils._transform_to_categorical(df_preds, col, list_categories)
@@ -217,7 +217,7 @@ df_e_oi
 # number of features for best alpha
 df_plot = df_e_oi.copy()
 df_plot['chem_fp'] = pd.Categorical(df_plot['chem_fp'],
-                                    categories=['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'],
+                                    categories=['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred'],
                                     ordered=True)
 df_plot['groupsplit'] = pd.Categorical(df_plot['groupsplit'],
                                        categories=['totallyrandom', 'occurrence'],
@@ -470,3 +470,5 @@ for chem_fp in ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec']:
 #      - only fold trainvalid aka test data? 
 #      - only features from trainvalid?
 #      - only above a certain threshold?
+
+# %%

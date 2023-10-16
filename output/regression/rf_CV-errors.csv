@@ -39,3 +39,11 @@ mol2vec,occurrence,molar,train,mean,chemprop,none,taxprop-migrate2,exp-dropfirst
 mol2vec,occurrence,molar,valid,mean,chemprop,none,taxprop-migrate2,exp-dropfirst,True,27,300,50,sqrt,1.0,1,2,0.6043,1.01492,0.77585,0.79668
 mol2vec,occurrence,mass,train,mean,chemprop,none,taxprop-migrate2,exp-dropfirst,True,168,50,200,sqrt,1.0,1,2,0.9594,0.30099,0.17849,0.97958
 mol2vec,occurrence,mass,valid,mean,chemprop,none,taxprop-migrate2,exp-dropfirst,True,168,50,200,sqrt,1.0,1,2,0.53637,1.01242,0.7696,0.75343
+Mordred,totallyrandom,mass,train,mean,none,none,taxprop-migrate2,exp-dropfirst,True,99,300,100,sqrt,1.0,1,2,0.96345,0.28968,0.17549,0.98173
+Mordred,totallyrandom,mass,valid,mean,none,none,taxprop-migrate2,exp-dropfirst,True,99,300,100,sqrt,1.0,1,2,0.8893,0.50343,0.31347,0.94306
+Mordred,totallyrandom,molar,train,mean,none,none,taxprop-migrate2,exp-dropfirst,True,171,300,200,sqrt,1.0,1,2,0.96888,0.28986,0.17566,0.98444
+Mordred,totallyrandom,molar,valid,mean,none,none,taxprop-migrate2,exp-dropfirst,True,171,300,200,sqrt,1.0,1,2,0.90549,0.50438,0.31374,0.95161
+Mordred,occurrence,molar,train,mean,none,none,taxprop-migrate2,exp-dropfirst,True,0,50,50,sqrt,0.25,1,2,0.93133,0.42531,0.27595,0.96543
+Mordred,occurrence,molar,valid,mean,none,none,taxprop-migrate2,exp-dropfirst,True,0,50,50,sqrt,0.25,1,2,0.61751,0.99682,0.77324,0.79967
+Mordred,occurrence,mass,train,mean,none,none,taxprop-migrate2,exp-dropfirst,True,170,150,200,sqrt,1.0,1,2,0.95992,0.29905,0.17718,0.97985
+Mordred,occurrence,mass,valid,mean,none,none,taxprop-migrate2,exp-dropfirst,True,170,150,200,sqrt,1.0,1,2,0.54765,0.99791,0.76445,0.76281

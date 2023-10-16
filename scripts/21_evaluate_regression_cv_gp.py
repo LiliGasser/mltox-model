@@ -28,7 +28,7 @@ path_figures = path_output + 'figures/'
 
 # %%
 
-# LASSO: Fish data, updated ADORE, 2023-09-15
+# GP: Fish data, updated ADORE, 2023-09-15
 
 # data pre-processing from ECOTOX 2022-09-15
 # groupsplit: totallyrandom, occurrence
@@ -64,7 +64,7 @@ df_params = utils.read_result_files(path_output_dir, file_type='param')
 
 # categorical variables for fingerprints
 col = 'chem_fp'
-list_categories = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec']
+list_categories = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
 df_errors = utils._transform_to_categorical(df_errors, col, list_categories)
 df_params = utils._transform_to_categorical(df_params, col, list_categories)
                                           
@@ -105,6 +105,7 @@ else:
 # - 20 of 20 combinations (fps x splits x conc) successful
 # total:
 # - 1572 entries of 1920 possible --> 348 runs not successful
+# TODO for Mordred
 
 # %%
 

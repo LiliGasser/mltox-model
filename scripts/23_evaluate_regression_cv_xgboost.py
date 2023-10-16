@@ -66,7 +66,7 @@ df_errors = utils.read_result_files(path_output_dir, file_type='error')
 
 # categorical variables for fingerprints
 col = 'chem_fp'
-list_categories = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec']
+list_categories = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
 df_errors = utils._transform_to_categorical(df_errors, col, list_categories)
 
 # categorical variable for folds
@@ -158,7 +158,7 @@ for col_x in list_cols:
     list_tmp2 = []
 
     # for each fingerprint and groupsplit
-    for chem_fp in ['MACCS', 'pcp', 'Morgan', 'ToxPrint']:   # TODO add mol2vec
+    for chem_fp in ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']:
         for groupsplit in ['totallyrandom', 'occurrence']:
 
             # get best hyperparams
