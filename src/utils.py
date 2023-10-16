@@ -142,6 +142,24 @@ def get_mol2vec(df_eco):
 
     return df_mol2vec
 
+def get_mordred(df_eco):
+
+    # get mordred dataframe
+    list_cols_mordred = [col for col in df_eco.columns if 'mordred' in col]
+    df_mordred = df_eco[list_cols_mordred].copy()
+
+    # remove constant columns
+    df_mordred = df_mordred.loc[:, df_mordred.std() != 0].copy()
+
+    # remove columns with some very high values
+    df_mordred = df_mordred.loc[:, df_mordred.std() < 1e4].copy()
+
+    # remove integer columns with very low standard deviations
+    list_cols = list(df_mordred.loc[:, (df_mordred.dtypes == 'int') & (df_mordred.std() < 0.05)].columns)
+    list_cols += ['chem_mordred_SsssP']   # a float column with all zeros but one other value
+    df_mordred = df_mordred.drop(list_cols, axis=1)
+
+    return df_mordred
 # -------------------------------
 def read_result_files(path, file_type='errors'):
     '''

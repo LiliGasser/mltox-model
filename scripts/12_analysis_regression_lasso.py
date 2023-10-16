@@ -34,12 +34,15 @@ path_vmoutput = path_root + 'vm_output_lasso/tmp/'
 
 # parameter grids
 
+# TODO no chemprops for Mordred
 param_grid = [
 
     {
      # features
-     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
-     'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
+     #'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
+     'chem_fp': ['Mordred'],
+     #'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
+     'chem_prop': ['none'],
      'tax_pdm': ['none'],                       #['none', 'pdm', 'pdm-squared'],
      'tax_prop': ['taxprop-migrate2'],          #['none', 'taxprop-migrate2', 'taxprop-migrate5'],
      'exp': ['exp-dropfirst'],                  #['none', 'exp-dropnone', 'exp-dropfirst'],     # use dropfirst

@@ -46,18 +46,22 @@ path_vmoutput = path_root + 'vm_output_gp/tmp/'
 
 # parameter grids
 
+# TODO no chemprops for Mordred
 param_grid = [
+
     {
      # features
-     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
-     'chem_prop': ['chemprop'],                  #['none', 'chemprop'],
-     'tax_pdm': ['none'],                         #['none', 'pdm', 'pdm-squared'],
+     #'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
+     'chem_fp': ['Mordred'],
+     #'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
+     'chem_prop': ['none'],
+     'tax_pdm': ['none', 'pdm'],                         #['none', 'pdm', 'pdm-squared'],
      'tax_prop': ['taxprop-migrate2'],           #['none', 'taxprop-migrate2', 'taxprop-migrate5'],
      'exp': ['exp-dropfirst'],                   #['none', 'exp-dropnone', 'exp-dropfirst'],     # use dropfirst
      # splits
      'groupsplit': ['occurrence', 'totallyrandom'],  
      # concentration
-     'conctype': ['molar', 'mass'] 
+     'conctype': ['mass', 'molar'] 
     }
 ]
 
@@ -396,6 +400,7 @@ for i, param in enumerate(ParameterGrid(param_grid)):
             df_errors_grid.loc[df_errors_grid['idx_hp'] == idx_hp_best, 'best_hp'] = True
         else:
             df_errors_grid['best_hp'] = np.nan
+            idx_hp_best = -1
     
         # append / store
         df_errors_grid = mod._add_params_fold_to_df(df_errors_grid, param_sorted)
@@ -403,12 +408,13 @@ for i, param in enumerate(ParameterGrid(param_grid)):
         df_errors_grid.round(5).to_csv(path_vmoutput + 'errors_' + str_file + '.csv', index=False)
     
         # store predictions for best hyperparameter
-        df_preds_v_best = df_preds_v[df_preds_v['idx_hp'] == idx_hp_best].copy()
-        list_cols_conc = ['fold', col_conc, 'conc_pred', 'conc_pred_var']
-        df_store = df_preds_v_best[list_cols_preds + list_cols_conc].copy()
-        df_store = mod._add_params_fold_to_df(df_store, param_sorted)
-        df_store = mod._add_params_fold_to_df(df_store, hyperparam)
-        df_store.round(5).to_csv(path_vmoutput + 'preds_' + str_file + '.csv', index=False)
+        if idx_hp_best >= 0:
+            df_preds_v_best = df_preds_v[df_preds_v['idx_hp'] == idx_hp_best].copy()
+            list_cols_conc = ['fold', col_conc, 'conc_pred', 'conc_pred_var']
+            df_store = df_preds_v_best[list_cols_preds + list_cols_conc].copy()
+            df_store = mod._add_params_fold_to_df(df_store, param_sorted)
+            df_store = mod._add_params_fold_to_df(df_store, hyperparam)
+            df_store.round(5).to_csv(path_vmoutput + 'preds_' + str_file + '.csv', index=False)
         
         # concatenate and store parameters
         df_params_grid = pd.concat(list_df_param_grid)
