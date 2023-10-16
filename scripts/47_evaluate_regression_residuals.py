@@ -111,7 +111,7 @@ df_p_long2 = df_p.melt(id_vars=id_vars,
 df_p_long['residual'] = df_p_long2['residual']
 
 # categorical variable
-list_cols_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec']
+list_cols_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
 df_p_long = utils._transform_to_categorical(df_p_long, 'chem_fp', list_cols_fps)
 df_p_long
 
@@ -127,7 +127,7 @@ ymax = df_plot['residual'].abs().max()
     + scale_y_continuous(limits=[-ymax, ymax])
     + facet_grid('chem_fp ~ type')
     + theme_minimal()
-    + theme(figure_size=(15, 8))
+    + theme(figure_size=(15, 9))
 )
 
 # %%
@@ -141,7 +141,7 @@ ymax = df_plot['residual'].abs().max()
     + scale_color_cmap('cividis')
     + facet_grid('chem_fp ~ type')
     + theme_minimal()
-    + theme(figure_size=(15, 8))
+    + theme(figure_size=(15, 9))
 )
 
 # %%
@@ -306,9 +306,9 @@ list_colors = ['#83920E', '#EFC201', '#E47900', '#B5134B', '#46093E']
 
 # histograms for most common species
 df_plot = df_p_long.copy()
-df_plot = df_plot[df_plot['n_species'] > 500]
+#df_plot = df_plot[df_plot['n_species'] > 500]
 #df_plot = df_plot[(df_plot['n_species'] > 230) & (df_plot['n_species'] <= 500)]
-#df_plot = df_plot[(df_plot['n_species'] > 100) & (df_plot['n_species'] <= 230)]
+df_plot = df_plot[(df_plot['n_species'] > 100) & (df_plot['n_species'] <= 230)]
 list_categories = df_plot['tax_name'].value_counts().index
 df_plot['tax_name'] = pd.Categorical(df_plot['tax_name'],
                                      categories=list_categories,
@@ -370,8 +370,8 @@ list_fish = ['Rainbow Trout', 'Fathead Minnow', 'Bluegill']
 df_plot = df_plot[df_plot['tax_name'].isin(list_fish)].copy()
 
 chem_name = "p,p'-DDT"
-#chem_name = 'Carbaryl'
-#chem_name = 'Fenitrothion'
+chem_name = 'Carbaryl'
+chem_name = 'Fenitrothion'
 df_plot = df_plot[df_plot['chem_name'] == chem_name]
 
 xmax = df_plot['residual'].abs().max()
