@@ -53,27 +53,31 @@ def compile_errors(modeltype):
 # %%
 
 # load LASSO: 
-# 5 fps x 2 groupsplits x 4 sets x 2 concentrations = 80 entries
+# 6 fps x 2 groupsplits x 4 sets x 2 concentrations = 96 entries
 df_lasso = compile_errors(modeltype='lasso')
 df_lasso
 
 # %%
 
 # load RF
-# 5 fps x 2 groupsplits x 4 sets x 2 concentrations = 80 entries
+# TODO test missing
+# 6 fps x 2 groupsplits x 4 sets x 2 concentrations = 96 entries
 df_rf = compile_errors(modeltype='rf')
 df_rf
 
 # %%
 
 # load XGBoost
-# 5 fps x 2 groupsplits x 4 sets x 2 concentrations = 80 entries
+# TODO test missing
+# 6 fps x 2 groupsplits x 4 sets x 2 concentrations = 96 entries
 df_xgboost = compile_errors(modeltype='xgboost')
 df_xgboost
 
 # %%
 
 # load GP
+# TODO test missing
+# TODO update count
 # 5 fps x 2 groupsplits x 4 sets x 2 tax_pdm x 2 concentrations - 4 entries = 156 entries
 # missing for mass: pcp, occurrence, none; training and test
 #df_gp[(df_gp['conctype'] == 'mass') & (df_gp['chem_fp'] == 'pcp')]
@@ -98,7 +102,7 @@ list_cols = ['totallyrandom', 'occurrence']
 df_errors = df_errors[df_errors['groupsplit'].isin(list_cols)].copy()
 
 # categorical variables
-list_cols_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec']
+list_cols_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
 df_errors = utils._transform_to_categorical(df_errors, 'groupsplit', ['totallyrandom', 'occurrence'])
 df_errors = utils._transform_to_categorical(df_errors, 'chem_fp', list_cols_fps)
 df_errors = utils._transform_to_categorical(df_errors, 'model', ['LASSO', 'RF', 'XGBoost', 'GP'])
@@ -171,13 +175,14 @@ print(df_l.to_latex(index=False))
 
 # for chem_fp: colors from CH2018 report
 # and purple from https://www.pinterest.ch/pin/1130403575204052700/
-list_colors = ['#75aab9', '#998478', '#c194ac', '#80a58b', '#fbba76']
+# and yellow from https://www.pinterest.ch/pin/57632070223416732/
+list_colors = ['#75aab9', '#dfc85e', '#998478', '#c194ac', '#80a58b', '#fbba76']
 
 # for errors
 list_colors_points = ['#ccc', '#444', '#999', 'black']
 
 # assign colors
-list_chem_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec']
+list_chem_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
 dict_colors_fps = dict(zip(list_chem_fps, list_colors))
 list_sets = ['train', 'valid', 'trainvalid', 'test']
 dict_colors_points = dict(zip(list_sets, list_colors_points))
@@ -201,7 +206,7 @@ def _calculate_metric_stuff(metric):
     return metric_max, metric_step, str_metric
 
 # store images flag
-do_store_images = True
+do_store_images = False
 
 # %%
 

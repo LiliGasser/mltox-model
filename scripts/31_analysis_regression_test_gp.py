@@ -54,12 +54,19 @@ df_cv = df_cv[df_cv['set'] == 'valid'].copy()
 
 # %% 
 
+# load test output
+df_e_test = pd.read_csv(path_output + modeltype + '_test-errors.csv')
+df_pa_test = pd.read_csv(path_output + modeltype + '_trainvalid-coefficients.csv')
+df_pr_test = pd.read_csv(path_output + modeltype + '_predictions.csv')
+
+# %%
+
 # parameter grids
 
 param_grid = [
     {
      # features
-     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
+     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred'], 
      # splits
      'groupsplit': ['totallyrandom', 'occurrence'], 
      # tax_pdm (only for GP!)
@@ -110,6 +117,14 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     groupsplit = param['groupsplit']
     tax_pdm = param['tax_pdm']
     conctype = param['conctype']
+
+    # check whether this test run is already done
+    df_tmp = df_e_test[(df_e_test['chem_fp'] == chem_fp)
+                       & (df_e_test['conctype'] == conctype)
+                       & (df_e_test['groupsplit'] == groupsplit)
+                       & (df_e_test['tax_pdm'] == tax_pdm)]
+    if len(df_tmp) > 0:
+        continue
 
     # get other parameters
     df_e_sel = df_cv[(df_cv['chem_fp'] == chem_fp)
@@ -354,12 +369,15 @@ for i, param in enumerate(ParameterGrid(param_grid)):
 
 # concatenate and store
 df_errors = pd.concat(list_df_errors)
+df_errors = pd.concat((df_e_test, df_errors))
 df_errors.round(5).to_csv(path_output + modeltype + '_test-errors.csv', index=False)
 
 df_params = pd.concat(list_df_params)
+df_params = pd.concat((df_pa_test, df_params))
 df_params.round(5).to_csv(path_output + modeltype + '_trainvalid-coefficients.csv', index=False)
 
 df_preds = pd.concat(list_df_preds)
+df_preds = pd.concat((df_pr_test, df_preds))
 df_preds.round(5).to_csv(path_output + modeltype + '_predictions.csv', index=False)
 
 print('done')
