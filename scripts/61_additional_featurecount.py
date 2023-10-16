@@ -37,7 +37,7 @@ param_grid = [
 
     {
      # features
-     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
+     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred'],  
      # splits
      'groupsplit': ['totallyrandom', 'occurrence'],
     }
@@ -124,36 +124,41 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     df_exp, len_exp = mod.get_df_exp(df_exp_all)
 
     # get chemical fingerprints
-    df_chem_fp, len_chem_fp, lengthscales_fp = mod.get_df_chem_fp(chem_fp, 
-                                                                  df_eco, 
-                                                                  lengthscales, 
-                                                                  trainvalid_idx, 
-                                                                  test_idx)
+    df_chem_fp, _, _ = mod.get_df_chem_fp(chem_fp, 
+                                          df_eco, 
+                                          lengthscales, 
+                                          trainvalid_idx, 
+                                          test_idx)
 
     # get chemical properties
-    df_chem_prop, len_chem_prop, lengthscales_prop = mod.get_df_chem_prop(chem_prop, 
-                                                                            df_chem_prop_all, 
-                                                                            lengthscales, 
-                                                                            trainvalid_idx, 
-                                                                            test_idx)
+    if chem_fp != 'Mordred':
+        df_chem_prop, _, _ = mod.get_df_chem_prop(chem_prop, 
+                                                  df_chem_prop_all, 
+                                                  lengthscales, 
+                                                  trainvalid_idx, 
+                                                  test_idx)
+    else:
+        df_chem_prop = pd.DataFrame()
 
     # get taxonomic pairwise distances
-    df_tax_pdm, len_tax_pdm, squared = mod.get_df_tax_pdm(tax_pdm, df_eco, col_tax_pdm)
+    df_tax_pdm, _, _ = mod.get_df_tax_pdm(tax_pdm, df_eco, col_tax_pdm)
 
     # get taxonomic properties
-    df_tax_prop, len_tax_prop = mod.get_df_tax_prop(tax_prop, 
-                                                    df_tax_prop_all,
-                                                    trainvalid_idx, 
-                                                    test_idx)
+    df_tax_prop, _ = mod.get_df_tax_prop(tax_prop, 
+                                         df_tax_prop_all,
+                                         trainvalid_idx, 
+                                         test_idx)
 
     # concatenate features
     df_features = pd.concat((df_exp, df_chem_fp, df_chem_prop, df_tax_pdm, df_tax_prop), axis=1)
 
     # count features
     n_all = df_features.shape[1]
+    if chem_fp == 'Mordred':
+        chem_fp = 'mordred'
     list_features_chemfp = [i for i in df_features.columns if chem_fp in i]
-    list_features_chemfp = [i.split('_')[1] if '_' in i else i for i in list_features_chemfp]
     list_features_chemfp = [i.replace(chem_fp, '') for i in list_features_chemfp]
+    list_features_chemfp = [i.replace('chem__', '') for i in list_features_chemfp]
     n_chemfp = len(list_features_chemfp)
     n_tax = len([i for i in df_features.columns if 'tax' in i])
     n_exp = len([i for i in df_features.columns if ('result' in i) or ('test' in i)])
@@ -164,6 +169,8 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     features_chemfp = ','.join(list_features_chemfp)
 
     # add to list
+    if chem_fp == 'mordred':
+        chem_fp = 'Mordred'
     list_inner = [chem_fp, groupsplit, n_all, n_exp, n_tax, n_chemprop, n_chemfp, features_all, features_chemfp]
     list_outer.append(list_inner)
 
@@ -175,6 +182,7 @@ df_all
 
 # %%
 
+# table for paper
 list_cols = ['chem_fp', 'groupsplit', 'n_all', 'n_chemfp']
 print(df_all[list_cols].to_latex(index=False))
 # %%
