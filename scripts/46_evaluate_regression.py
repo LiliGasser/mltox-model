@@ -60,7 +60,6 @@ df_lasso
 # %%
 
 # load RF
-# TODO test missing
 # 6 fps x 2 groupsplits x 4 sets x 2 concentrations = 96 entries
 df_rf = compile_errors(modeltype='rf')
 df_rf
@@ -68,7 +67,6 @@ df_rf
 # %%
 
 # load XGBoost
-# TODO test missing
 # 6 fps x 2 groupsplits x 4 sets x 2 concentrations = 96 entries
 df_xgboost = compile_errors(modeltype='xgboost')
 df_xgboost
@@ -76,11 +74,7 @@ df_xgboost
 # %%
 
 # load GP
-# TODO test missing
-# TODO update count
-# 5 fps x 2 groupsplits x 4 sets x 2 tax_pdm x 2 concentrations - 4 entries = 156 entries
-# missing for mass: pcp, occurrence, none; training and test
-#df_gp[(df_gp['conctype'] == 'mass') & (df_gp['chem_fp'] == 'pcp')]
+# 6 fps x 2 groupsplits x 4 sets x 2 tax_pdm x 2 concentrations = 192 entries
 df_gp = compile_errors(modeltype='gp')
 df_gp
 
@@ -206,7 +200,7 @@ def _calculate_metric_stuff(metric):
     return metric_max, metric_step, str_metric
 
 # store images flag
-do_store_images = False
+do_store_images = True
 
 # %%
 
