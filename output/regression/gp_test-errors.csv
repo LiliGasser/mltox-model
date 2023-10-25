@@ -87,3 +87,11 @@ trainvalid,0.61696,0.43357,0.83423,0.91344,trainvalid,none,taxprop-migrate2,exp-
 test,0.64909,0.45082,0.82064,0.90598,test,none,taxprop-migrate2,exp-dropfirst,Mordred,mass,totallyrandom,pdm,1000
 trainvalid,0.58295,0.40597,0.84787,0.92085,trainvalid,none,taxprop-migrate2,exp-dropfirst,Mordred,mass,occurrence,none,1000
 test,1.03222,0.76452,0.60091,0.79277,test,none,taxprop-migrate2,exp-dropfirst,Mordred,mass,occurrence,none,1000
+trainvalid,0.66141,0.47355,0.80416,0.89683,trainvalid,chemprop,taxprop-migrate2,exp-dropfirst,pcp,mass,occurrence,none,250
+test,1.06969,0.79802,0.57141,0.77126,test,chemprop,taxprop-migrate2,exp-dropfirst,pcp,mass,occurrence,none,250
+trainvalid,0.62523,0.44091,0.85173,0.92294,trainvalid,none,taxprop-migrate2,exp-dropfirst,Mordred,molar,occurrence,none,500
+test,1.03744,0.76319,0.65106,0.82041,test,none,taxprop-migrate2,exp-dropfirst,Mordred,molar,occurrence,none,500
+trainvalid,0.59818,0.41694,0.84417,0.91885,trainvalid,none,taxprop-migrate2,exp-dropfirst,Mordred,mass,totallyrandom,none,1000
+test,0.63368,0.43877,0.82906,0.91061,test,none,taxprop-migrate2,exp-dropfirst,Mordred,mass,totallyrandom,none,1000
+trainvalid,0.59201,0.41633,0.8431,0.91828,trainvalid,none,taxprop-migrate2,exp-dropfirst,Mordred,mass,occurrence,pdm,1000
+test,1.04618,0.77341,0.59005,0.79269,test,none,taxprop-migrate2,exp-dropfirst,Mordred,mass,occurrence,pdm,1000

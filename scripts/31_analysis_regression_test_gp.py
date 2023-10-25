@@ -240,59 +240,65 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     y_test = np.array(df_label[test_idx]).reshape(-1, 1)
 
     # GP regression
+    opt_logs_message = 'ABNORMAL_TERMINATION_IN_LNSRCH'
+    count = 0
     try: 
         
-        mean_function = gpflow.mean_functions.Constant(0)
-        #mean_function = None
+        while opt_logs_message == 'ABNORMAL_TERMINATION_IN_LNSRCH' and count < 5:
+
+            mean_function = gpflow.mean_functions.Constant(0)
+            #mean_function = None
             
-        kernel, len_tot =  mod.get_complete_kernel(len_exp, len_chem_fp, len_chem_prop, len_tax_pdm, len_tax_prop,
-                                                   which_kernel_fp, which_kernel_other, 
-                                                   variance, 
-                                                   lengthscales, lengthscales_fp, lengthscales_prop, lengthscales_tax_pdm,
-                                                   do_ARD_fp, do_ARD_other,
-                                                   df_pdm, squared)
+            kernel, len_tot =  mod.get_complete_kernel(len_exp, len_chem_fp, len_chem_prop, len_tax_pdm, len_tax_prop,
+                                                       which_kernel_fp, which_kernel_other, 
+                                                       variance, 
+                                                       lengthscales, lengthscales_fp, lengthscales_prop, lengthscales_tax_pdm,
+                                                       do_ARD_fp, do_ARD_other,
+                                                       df_pdm, squared)
 
-        if show_heatmaps:
-            # heatmap for kernel before training
-            df_tmp = pd.DataFrame(kernel(X_trainvalid).numpy()).round(4)
-            plt.figure(figsize = (12,8))
-            plt.title(' '.join(('before training')))
-            sns.heatmap(df_tmp)
-            plt.show()
+            if show_heatmaps:
+                # heatmap for kernel before training
+                df_tmp = pd.DataFrame(kernel(X_trainvalid).numpy()).round(4)
+                plt.figure(figsize = (12,8))
+                plt.title(' '.join(('before training')))
+                sns.heatmap(df_tmp)
+                plt.show()
 
-        time_start = time.time()
+            time_start = time.time()
 
-        # run sparse GP
-        opt_logs, model = mod.run_GP(X_trainvalid, 
-                                     y_trainvalid, 
-                                     kernel,
-                                     mean_function, 
-                                     noise_variance,
-                                     maxiter,
-                                     GP_type, 
-                                     ind_type, 
-                                     n_inducing)
+            # run sparse GP
+            opt_logs, model = mod.run_GP(X_trainvalid, 
+                                         y_trainvalid, 
+                                         kernel,
+                                         mean_function, 
+                                         noise_variance,
+                                         maxiter,
+                                         GP_type, 
+                                         ind_type, 
+                                         n_inducing)
 
-        time_end = time.time()
-        print("execution time:", (time_end-time_start)/60)
-        #df_opt = mod.get_df_opt(opt_logs)
-        #df_opt = mod._add_params_fold_to_df(df_opt, hyperparam, fold)
-        #list_df_opt_grid.append(df_opt)
+            time_end = time.time()
+            print("execution time:", (time_end-time_start)/60)
+            #df_opt = mod.get_df_opt(opt_logs)
+            #df_opt = mod._add_params_fold_to_df(df_opt, hyperparam, fold)
+            #list_df_opt_grid.append(df_opt)
 
-        if opt_logs['message'] == 'ABNORMAL_TERMINATION_IN_LNSRCH':
-            print()
-            print()
-            continue
+            opt_logs_message = opt_logs['message']
+            count += 1
+            if opt_logs['message'] == 'ABNORMAL_TERMINATION_IN_LNSRCH':
+                print()
+                print()
+                continue
             
-        if show_heatmaps:
-            # heatmap for kernel after training
-            df_tmp = pd.DataFrame(kernel(X_trainvalid).numpy()).round(4)
-            plt.figure(figsize = (12,8))
-            plt.title(' '.join(('after training')))
-            sns.heatmap(df_tmp)
-            plt.show()
+            if show_heatmaps:
+                # heatmap for kernel after training
+                df_tmp = pd.DataFrame(kernel(X_trainvalid).numpy()).round(4)
+                plt.figure(figsize = (12,8))
+                plt.title(' '.join(('after training')))
+                sns.heatmap(df_tmp)
+                plt.show()
         
-        print_summary(model)
+            print_summary(model)
         
     except tf.errors.ResourceExhaustedError:
 
