@@ -745,6 +745,10 @@ def get_complete_kernel(len_exp, len_chem_fp, len_chem_prop, len_tax_pdm, len_ta
 
 # calculate evaluation metrics
 # ------------------------------
+def _calculate_mse(df, col_true, col_pred):
+    
+    return mean_squared_error(df[col_true], df[col_pred], squared=True)
+
 def _calculate_rmse(df, col_true, col_pred):
     
     return mean_squared_error(df[col_true], df[col_pred], squared=False)
