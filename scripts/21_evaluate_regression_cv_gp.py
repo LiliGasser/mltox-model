@@ -98,15 +98,6 @@ if df_errors.isna().sum().sum() > 0:
 else:
     print("loading seems correct")
 
-# for none:
-# - 19 of 20 combinations (fps x splits x conc) successful
-#   (pcp, occurrence, mass not successful)
-# for pdm: 
-# - 20 of 20 combinations (fps x splits x conc) successful
-# total:
-# - 1572 entries of 1920 possible --> 348 runs not successful
-# TODO for Mordred
-
 # %%
 
 # only look at results with best hyperparameters
