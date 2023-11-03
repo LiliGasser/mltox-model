@@ -52,7 +52,6 @@ df_p_xgboost_all = utils.read_result_files(path_output_dir, file_type='preds')
 # %%
 
 # select run 
-#chem_fp = 'mol2vec'
 
 #groupsplit = 'totallyrandom'
 groupsplit = 'occurrence'

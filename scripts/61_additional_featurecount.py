@@ -174,15 +174,17 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     list_inner = [chem_fp, groupsplit, n_all, n_exp, n_tax, n_chemprop, n_chemfp, features_all, features_chemfp]
     list_outer.append(list_inner)
 
+# %%
 
 df_all = pd.DataFrame(list_outer, 
                       columns=['chem_fp', 'groupsplit', 'n_all', 'n_exp', 'n_tax', 'n_chemprop', 'n_chemfp', 'features_all', 'features_chemfp'])
+df_all['n_other'] = df_all['n_all'] - df_all['n_chemfp']
 df_all.to_csv(path_output + 'featurecounts.csv', index=False)
 df_all
 
 # %%
 
 # table for paper
-list_cols = ['chem_fp', 'groupsplit', 'n_all', 'n_chemfp']
+list_cols = ['chem_fp', 'groupsplit', 'n_all', 'n_chemfp', 'n_other']
 print(df_all[list_cols].to_latex(index=False))
 # %%
