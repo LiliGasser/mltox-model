@@ -55,9 +55,13 @@ df_cv = df_cv[df_cv['set'] == 'valid'].copy()
 # %% 
 
 # load test output
-df_e_test = pd.read_csv(path_output + modeltype + '_test-errors.csv')
-df_pa_test = pd.read_csv(path_output + modeltype + '_trainvalid-coefficients.csv')
-df_pr_test = pd.read_csv(path_output + modeltype + '_predictions.csv')
+#df_e_test = pd.read_csv(path_output + modeltype + '_test-errors.csv')
+#df_pa_test = pd.read_csv(path_output + modeltype + '_trainvalid-coefficients.csv')
+#df_pr_test = pd.read_csv(path_output + modeltype + '_predictions.csv')
+
+df_e_test = pd.DataFrame()
+df_pa_test = pd.DataFrame()
+df_pr_test = pd.DataFrame()
 
 # %%
 
@@ -70,7 +74,7 @@ param_grid = [
      # splits
      'groupsplit': ['totallyrandom', 'occurrence'], 
      # tax_pdm (only for GP!)
-     'tax_pdm': ['none', 'pdm'], 
+     'tax_pdm': ['none'],   # 'pdm'
      # concentration
      'conctype': ['molar', 'mass'] 
     }
@@ -119,12 +123,13 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     conctype = param['conctype']
 
     # check whether this test run is already done
-    df_tmp = df_e_test[(df_e_test['chem_fp'] == chem_fp)
-                       & (df_e_test['conctype'] == conctype)
-                       & (df_e_test['groupsplit'] == groupsplit)
-                       & (df_e_test['tax_pdm'] == tax_pdm)]
-    if len(df_tmp) > 0:
-        continue
+    if len(df_e_test) > 0:
+        df_tmp = df_e_test[(df_e_test['chem_fp'] == chem_fp)
+                           & (df_e_test['conctype'] == conctype)
+                           & (df_e_test['groupsplit'] == groupsplit)
+                           & (df_e_test['tax_pdm'] == tax_pdm)]
+        if len(df_tmp) > 0:
+            continue
 
     # get other parameters
     df_e_sel = df_cv[(df_cv['chem_fp'] == chem_fp)

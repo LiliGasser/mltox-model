@@ -53,7 +53,7 @@ param_grid = [
      # features
      'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred'], 
      'chem_prop': ['chemprop'],                  #['none', 'chemprop'],
-     'tax_pdm': ['none'],                        #['none', 'pdm', 'pdm-squared'],
+     'tax_pdm': ['pdm'],                        #['none', 'pdm', 'pdm-squared'],
      'tax_prop': ['taxprop-migrate2'],           #['none', 'taxprop-migrate2', 'taxprop-migrate5'],
      'exp': ['exp-dropfirst'],                   #['none', 'exp-dropnone', 'exp-dropfirst'],     # use dropfirst
      # splits
@@ -314,6 +314,12 @@ for i, param in enumerate(ParameterGrid(param_grid)):
                         plt.show()
         
                     print_summary(model)
+
+                # if no run was successful
+                if opt_logs['message'] == 'ABNORMAL_TERMINATION_IN_LNSRCH' and count == 5:
+                    print()
+                    print()
+                    continue
         
             except tf.errors.ResourceExhaustedError:
 
