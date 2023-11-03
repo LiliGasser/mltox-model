@@ -188,6 +188,31 @@ list_colors = ['#75aab9', '#dfc85e', '#998478', '#c194ac', '#80a58b', '#fbba76']
 # for averagetype
 list_colors_at = ['#998478', '#80a58b', '#75aab9', '#dfc85e']
 
+# assign colors
+list_chem_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
+dict_colors_fps = dict(zip(list_chem_fps, list_colors))
+
+# function to set maximum values, etc. in plot
+def _calculate_metric_stuff(metric):
+
+    if metric == 'r2':
+        metric_max = 1.01
+        metric_step = 0.2
+        str_metric = r'$R^2$'
+    elif metric == 'rmse' or metric == 'RMSE':
+        metric_max = df_errors[metric].max() + 0.1
+        metric_step = 0.25
+        str_metric = 'RMSE'
+    elif metric == 'mae':
+        metric_max = df_errors[metric].max() + 0.1
+        metric_step = 0.25
+        str_metric = 'MAE'
+
+    return metric_max, metric_step, str_metric
+
+# store images flag
+do_store_images = True
+
 # %%
 
 df_plot = df_es[(df_es['fold'] == 'test')
@@ -231,9 +256,161 @@ df_plot = utils._transform_to_categorical(df_plot, 'averagetype', ['micro', 'mac
 
 # %%
 
+# overview plot in plotly (macro-averaged error)
+
+# get only relevant errors
+df_errors = df_es[(df_es['fold'] == 'test')
+                  & (df_es['groupsplit'] == 'occurrence')
+                  & (df_es['conctype'] == 'molar')].copy()
+df_errors = utils._transform_to_categorical(df_errors, 'model', ['LASSO', 'RF', 'XGBoost', 'GP'])
+df_errors = df_errors.sort_values(['model'])
+
+# calculate maximum
+metric = 'RMSE'
+metric_max, metric_step, str_metric = _calculate_metric_stuff(metric)
+list_tickvals = list(np.arange(0, metric_max, metric_step))
+
+# Initialize figure with subplots
+# TODO check subtitles
+fig = make_subplots(
+    rows=2, 
+    cols=2, 
+    subplot_titles=("micro-average", 
+                    "macro-average", 
+                    "taxon macro-average", 
+                    "chemical macro-average"),
+)
+
+# Add traces
+# micro-average
+df_plot = df_errors[(df_errors['averagetype'] == 'micro')].copy()
+row = 1
+col = 1
+for i, chem_fp in enumerate(list_chem_fps):     # add bars
+    df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
+    fig.add_trace(go.Bar(x=df_p['model'], 
+                         y=df_p[metric],
+                         marker_color=df_p['chem_fp'].map(dict_colors_fps),
+                         name=chem_fp,
+                         offsetgroup=i+1,
+                         showlegend=False),
+                  row=row, 
+                  col=col)
+for y in list_tickvals:    # add horizontal lines
+    fig.add_hline(y=y, 
+                  line_width=0.5,
+                  line_color='#eee',
+                  row=row,
+                  col=col)
+
+# macro-average
+df_plot = df_errors[(df_errors['averagetype'] == 'macro')].copy()
+row = 1
+col = 2
+for i, chem_fp in enumerate(list_chem_fps):     # add bars
+    df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
+    fig.add_trace(go.Bar(x=df_p['model'], 
+                         y=df_p[metric],
+                         marker_color=df_p['chem_fp'].map(dict_colors_fps),
+                         name=chem_fp,
+                         offsetgroup=i+1,
+                         showlegend=False),
+                  row=row, 
+                  col=col)
+for y in list_tickvals:    # add horizontal lines
+    fig.add_hline(y=y, 
+                  line_width=0.5,
+                  line_color='#eee',
+                  row=row,
+                  col=col)
+
+# taxon
+df_plot = df_errors[(df_errors['averagetype'] == 'taxon')].copy()
+row = 2
+col = 1
+for i, chem_fp in enumerate(list_chem_fps):     # add bars
+    df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
+    fig.add_trace(go.Bar(x=df_p['model'], 
+                         y=df_p[metric],
+                         marker_color=df_p['chem_fp'].map(dict_colors_fps),
+                         name=chem_fp,
+                         offsetgroup=i+1,
+                         showlegend=False),
+                  row=row, 
+                  col=col)
+for y in list_tickvals:    # add horizontal lines
+    fig.add_hline(y=y, 
+                  line_width=0.5,
+                  line_color='#eee',
+                  row=row,
+                  col=col)
+
+# chemical
+df_plot = df_errors[(df_errors['averagetype'] == 'chemical')].copy()
+row = 2
+col = 2
+for i, chem_fp in enumerate(list_chem_fps):     # add bars
+    df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
+    fig.add_trace(go.Bar(x=df_p['model'], 
+                         y=df_p[metric],
+                         marker_color=df_p['chem_fp'].map(dict_colors_fps),
+                         name=chem_fp,
+                         offsetgroup=i+1,
+                         showlegend=False),
+                  row=row, 
+                  col=col)
+for y in list_tickvals:    # add horizontal lines
+    fig.add_hline(y=y, 
+                  line_width=0.5,
+                  line_color='#eee',
+                  row=row,
+                  col=col)
+
+# Update xaxis properties
+fig.update_xaxes(title_text='', row=1, col=1)
+fig.update_xaxes(title_text='', row=1, col=2)
+fig.update_xaxes(title_text='', row=2, col=1)
+fig.update_xaxes(title_text='', row=2, col=2)
+
+# Update yaxis properties
+fig.update_yaxes(title_text=str_metric, row=1, col=1)
+fig.update_yaxes(title_text='', row=1, col=2)
+fig.update_yaxes(title_text=str_metric, row=2, col=1)
+fig.update_yaxes(title_text='', row=2, col=2)
+
+# Set y axis limits
+fig.update_yaxes(range=[0, metric_max], tickvals=list_tickvals)
+
+# Grouped bars and scatter
+fig.update_layout(scattermode='group')
+
+# Update title and height
+fig.update_layout(height=600, width=900)
+
+# add legend for fingerprints
+for chem_fp in list_chem_fps:
+    fig.add_trace(go.Scatter(x=[None],
+                             y=[None],
+                             mode='markers',
+                             name=chem_fp,
+                             legendgrouptitle_text='molecular representation',
+                             marker_color=dict_colors_fps[chem_fp],
+                             marker_symbol='square',
+                             marker_size=12))
+fig.update_layout(legend_orientation='h', legend_xanchor='center', legend_x=0.5)
+
+fig.update_layout(template='plotly_white')
+
+if do_store_images:
+    fig.write_image(path_figures + '48_molar_occurrence_' + metric.lower() + '-vs-models_test_macro-averages.png')
+
+fig.show()
+
+# %%
+
 title = 'taxon'
-#title = 'chemical'
-#title = 'macro'
+title = 'chemical'
+title = 'macro'
 
 if title == 'taxon':
     df_plot = df_e_t.copy()
