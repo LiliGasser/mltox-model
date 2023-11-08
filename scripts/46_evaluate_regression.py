@@ -428,7 +428,7 @@ for errortype in list_sets:
 fig.update_layout(template='plotly_white')
 
 if do_store_images:
-    fig.write_image(path_figures + '46_all_' + metric + '-vs-models.png')
+    fig.write_image(path_figures + '46_all_' + metric + '-vs-models.pdf')
 fig.show()
 
 # %%
@@ -661,7 +661,7 @@ fig.update_layout(legend_orientation='h', legend_xanchor='center', legend_x=0.5)
 fig.update_layout(template='plotly_white')
 
 if do_store_images:
-    fig.write_image(path_figures + '46_all_' + metric + '-vs-models_validation.png')
+    fig.write_image(path_figures + '46_all_' + metric + '-vs-models_validation.pdf')
 fig.show()
 
 # %% 
@@ -669,8 +669,6 @@ fig.show()
 
 # overview plot in plotly (only molar occurrence)
 # !!! test error only for occurrence and molar
-
-# TODO also include MAE?
 
 # Initialize figure with subplots
 fig = make_subplots(
@@ -805,7 +803,7 @@ for errortype in ['valid']:
 fig.update_layout(template='plotly_white')
 
 if do_store_images:
-    fig.write_image(path_figures + '46_all_rmse-r2-vs-models_test.png')
+    fig.write_image(path_figures + '46_all_rmse-r2-vs-models_test.pdf')
 fig.show()
 
 # %%
@@ -846,7 +844,7 @@ for groupsplit in ['totallyrandom', 'occurrence']:
     )
 
     if do_store_images:
-        g.save(path_figures + '46_' + groupsplit + '_' + metric + '-vs-models.png', facecolor='white')
+        g.save(path_figures + '46_' + groupsplit + '_' + metric + '-vs-models.pdf', facecolor='white')
     print(g)
 
 # %%
@@ -881,7 +879,7 @@ for chem_fp in list_cols_fps:
     )
     
     if do_store_images:
-        g.save(path_figures + '46_' + chem_fp + '_' + metric + '-vs-models.png', facecolor='white')
+        g.save(path_figures + '46_' + chem_fp + '_' + metric + '-vs-models.pdf', facecolor='white')
     print(g)
 
 # %%
@@ -907,7 +905,7 @@ g = (ggplot(data=df_p, mapping=aes(x='model', y='chem_fp', fill=metric, label=me
 )
 
 if do_store_images:
-    g.save(path_figures + '46_all_heatmap_' + metric + '.png', facecolor='white')
+    g.save(path_figures + '46_all_heatmap_' + metric + '.pdf', facecolor='white')
 print(g)
 
 # %%
@@ -968,5 +966,5 @@ elif metric == 'rmse':
     g = g + labs(y="RMSE")
 elif metric == 'mae':
     g = g + labs(y="MAE")
-#g.save(path_figures + '46_all_' + metric + '-vs-models.png', facecolor='white')
+#g.save(path_figures + '46_all_' + metric + '-vs-models.pdf', facecolor='white')
 g

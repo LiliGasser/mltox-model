@@ -402,7 +402,7 @@ fig.update_layout(legend_orientation='h', legend_xanchor='center', legend_x=0.5)
 fig.update_layout(template='plotly_white')
 
 if do_store_images:
-    fig.write_image(path_figures + '48_molar_occurrence_' + metric.lower() + '-vs-models_test_macro-averages.png')
+    fig.write_image(path_figures + '48_molar_occurrence_' + metric.lower() + '-vs-models_test_macro-averages.pdf')
 
 fig.show()
 
