@@ -15,6 +15,7 @@ import pandas as pd
 
 import pickle
 import shap
+from copy import copy
 
 import matplotlib.pyplot as plt
 from plotnine import *
@@ -182,8 +183,8 @@ else:
 
 # permutation feature importances plot
 df_pi_long['feature2'] = pd.Categorical(df_pi_long['feature2'],
-                                       df_pi_long['feature2'].unique(),
-                                       ordered=True)
+                                        df_pi_long['feature2'].unique(),
+                                        ordered=True)
 df_plot = df_pi_long[df_pi_long['set'] == 'test'].copy()
 (ggplot(data=df_plot, mapping=aes(y='importance', x='feature2'))
     + geom_boxplot(outlier_alpha=0)
@@ -215,6 +216,34 @@ if chem_fp in ['MACCS', 'pcp', 'ToxPrint']:
     list_featnames2 = [': '.join((fn, df_bits.loc[df_bits['bit'] == int(fn[-3:]), 'description'].iloc[0])) if chem_fp in fn else fn for fn in list_featnames]
     shap_values.feature_names = list_featnames2
 
+# %%
+
+# Calculate weighted SHAP values
+
+# get original shap values as dataframe and add identifier columns
+list_features = shap_values.feature_names
+df_shap = pd.DataFrame(shap_values.values,
+                       columns=list_features)
+list_cols = ['test_cas', 'chem_name', 'tax_name', 'tax_gs', 'split_occurrence']
+df_shap2 = pd.concat((df_data_trainvalid[list_cols], df_shap), axis=1)
+
+# calculate SHAPs weighted by chemical 
+list_cols_gb = ['test_cas', 'chem_name']
+df_shap_gb_chem = df_shap2.groupby(list_cols_gb)[list_features].mean()
+shap_values_chem = copy(shap_values)
+shap_values_chem.values = df_shap_gb_chem.to_numpy()
+
+# calculate SHAPs weighted by taxon
+list_cols_gb = ['tax_gs', 'tax_name']
+df_shap_gb_tax = df_shap2.groupby(list_cols_gb)[list_features].mean()
+shap_values_tax = copy(shap_values)
+shap_values_tax.values = df_shap_gb_tax.to_numpy()
+
+# calculate SHAPs weighted by chemical and taxon
+list_cols_gb = ['test_cas', 'chem_name', 'tax_gs', 'tax_name']
+df_shap_gb_chemtax = df_shap2.groupby(list_cols_gb)[list_features].mean()
+shap_values_chemtax = copy(shap_values)
+shap_values_chemtax.values = df_shap_gb_chemtax.to_numpy()
 
 # %%
 
@@ -226,12 +255,38 @@ if chem_fp in ['MACCS', 'pcp', 'ToxPrint']:
 
 # Plots for entire test set
 
-# bar plot (averaged (=global))
+# bar plot (averaged (=global)): micro-average
 shap.plots.bar(shap_values,
                max_display=max_display+1,
                show=False)
+plt.title('micro-average')
 plt.tight_layout()
 plt.show()
+
+# bar plot (averaged (=global)): macro-average
+shap.plots.bar(shap_values_chemtax,
+               max_display=max_display+1,
+               show=False)
+plt.title('macro-average')
+plt.tight_layout()
+plt.show()
+
+# bar plot (averaged (=global)): chemical macro-average
+shap.plots.bar(shap_values_chem,
+               max_display=max_display+1,
+               show=False)
+plt.title('chemical macro-average')
+plt.tight_layout()
+plt.show()
+
+# bar plot (averaged (=global)): taxon macro-average
+shap.plots.bar(shap_values_tax,
+               max_display=max_display+1,
+               show=False)
+plt.title('taxon macro-average')
+plt.tight_layout()
+plt.show()
+
 
 # %%
 
