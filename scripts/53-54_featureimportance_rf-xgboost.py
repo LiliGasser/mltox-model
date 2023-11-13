@@ -81,9 +81,11 @@ df_p_xgboost_all = utils.read_result_files(path_output_dir, file_type='preds')
 modeltype = 'xgboost'
 chem_fp = 'MACCS'
 groupsplit = 'occurrence'
+#conctype = 'mass'
 conctype = 'molar'
 
 title = ' '.join((modeltype, chem_fp))
+title_long = '_'.join((groupsplit, conctype, modeltype, chem_fp))
 max_display = 10
 
 # %%
@@ -259,9 +261,13 @@ shap_values_chemtax.values = df_shap_gb_chemtax.to_numpy()
 shap.plots.bar(shap_values,
                max_display=max_display+1,
                show=False)
-plt.title('micro-average')
+#plt.title('micro-average')
+plt.savefig(path_figures + '53-54_SHAPglobal_' + title_long + '.pdf',
+            bbox_inches='tight')
 plt.tight_layout()
 plt.show()
+
+# %%
 
 # bar plot (averaged (=global)): macro-average
 shap.plots.bar(shap_values_chemtax,
@@ -295,7 +301,12 @@ shap.summary_plot(shap_values,
                   max_display=max_display, 
                   cmap='cividis', 
                   alpha=0.4,
+                  show=False,
                   )
+plt.savefig(path_figures + '53-54_SHAPlocal_' + title_long + '.pdf',
+            bbox_inches='tight')
+plt.tight_layout()
+plt.show()
 
 # %%
 
@@ -380,13 +391,14 @@ df_plot_long['type'] = df_plot_long['type'].str.replace('gp_pred', 'GP')
 df_plot_long['type'] = df_plot_long['type'].str.replace('lasso_pred', 'LASSO')
 df_plot_long['type'] = df_plot_long['type'].str.replace('rf_pred', 'RF')
 df_plot_long['type'] = df_plot_long['type'].str.replace('xgboost_pred', 'XGBoost')
+df_plot_long = utils._transform_to_categorical(df_plot_long, 'type', ['LASSO', 'RF', 'XGBoost', 'GP'])
 
-# %%
-
+# plot
 (ggplot(data=df_plot, mapping=aes(x='label', y='true'))
     + geom_boxplot(outlier_alpha=0)
-    + geom_jitter(#mapping=aes(fill='test_media_type'), 
+    + geom_jitter(#mapping=aes(color='test_media_type'), 
                   fill='grey',
+                  #fill='none',
                   alpha=0.8,
                   color='none', 
                   size=0.8, 
@@ -399,6 +411,7 @@ df_plot_long['type'] = df_plot_long['type'].str.replace('xgboost_pred', 'XGBoost
                  height=0, 
                  width=0.1)
     + scale_fill_manual(values=list_colors)
+#    + scale_color_cmap('cividis_r')
     + coord_flip()
     + theme_minimal()
     + labs(x='', y='log10(molar concentration)', fill='model')
@@ -445,33 +458,103 @@ df_plot_long['type'] = df_plot_long['type'].str.replace('gp_pred', 'GP')
 df_plot_long['type'] = df_plot_long['type'].str.replace('lasso_pred', 'LASSO')
 df_plot_long['type'] = df_plot_long['type'].str.replace('rf_pred', 'RF')
 df_plot_long['type'] = df_plot_long['type'].str.replace('xgboost_pred', 'XGBoost')
+df_plot_long = utils._transform_to_categorical(df_plot_long, 'type', ['LASSO', 'RF', 'XGBoost', 'GP'])
 
-# %%
-
-(ggplot(data=df_plot.dropna(subset=['conc_true_median']), mapping=aes(x='label', y='true'))
+# plot
+(ggplot(data=df_plot, mapping=aes(x='label', y='true'))
     + geom_boxplot(outlier_alpha=0)
-    + geom_jitter(#mapping=aes(fill='test_media_type'), 
-                  fill='grey',
+    + geom_jitter(mapping=aes(color='result_obs_duration_mean'), 
+                  #fill='grey',
+                  fill='none',
                   alpha=0.8,
-                  color='none', 
+                  #color='none', 
                   size=0.8, 
                   height=0, 
-                  width=0.15)
-    + geom_jitter(data=df_plot_long.dropna(subset=['pred']),
-                  mapping=aes(y='pred', fill='type'), 
-                  color='none',
-                  size=0.8,
-                  height=0,
-                  width=0.05)
+                  width=0.2)
+    #+ geom_jitter(data=df_plot_long,
+                 #mapping=aes(y='pred', fill='type'), 
+                 #color='none',
+                 #size=0.8,
+                 #height=0, 
+                 #width=0.1)
     + scale_fill_manual(values=list_colors)
+    + scale_color_cmap('cividis_r')
     + coord_flip()
     + theme_minimal()
     + labs(x='', y='log10(molar concentration)', fill='model')
-    + theme(figure_size=(10, 10))
+    + theme(figure_size=(10, 8))
  )
 
 # %%
 # %%
+
+# box plots for most tested species
+
+# merge df_eco with predictions
+df_eco_p = pd.merge(df_eco,
+                    df_p[['result_id', 'true', 'lasso_pred', 'rf_pred', 'xgboost_pred', 'gp_pred']],
+                    left_on=['result_id'],
+                    right_on=['result_id'],
+                    how='left')
+
+# groupby by species only
+list_cols_gb = ['tax_gs', 'tax_name']
+df_eco_p['count'] = df_eco_p.groupby(list_cols_gb)['result_id'].transform('count')
+df_eco_p['conc_true_median'] = df_eco_p.groupby(list_cols_gb)['true'].transform('median')
+df_eco_p['conc_lasso_pred_median'] = df_eco_p.groupby(list_cols_gb)['lasso_pred'].transform('median')
+df_eco_p['conc_rf_pred_median'] = df_eco_p.groupby(list_cols_gb)['rf_pred'].transform('median')
+df_eco_p['conc_xgboost_pred_median'] = df_eco_p.groupby(list_cols_gb)['xgboost_pred'].transform('median')
+df_eco_p['conc_gp_pred_median'] = df_eco_p.groupby(list_cols_gb)['gp_pred'].transform('median')
+df_eco_p['label'] = df_eco_p['tax_name'] + ' (' + df_eco_p['tax_gs'] + ') n=' + df_eco_p['count'].astype('str')
+df_eco_p = df_eco_p.sort_values('conc_true_median')
+
+df_plot = df_eco_p[df_eco_p['count'] >= 200].copy()
+df_plot['label'] = pd.Categorical(df_plot['label'],
+                                  categories=df_plot['label'].unique()[::-1],
+                                  ordered=True)
+
+# wide to long (predictions))
+id_vars = ['result_id', 'test_cas', 'chem_name', 'tax_name', 'tax_gs', 'label', 'true']
+value_vars = ['gp_pred', 'lasso_pred', 'rf_pred', 'xgboost_pred']
+df_plot_long = df_plot.melt(id_vars=id_vars, 
+                         value_vars=value_vars,
+                         value_name='pred',
+                         var_name='type')
+
+df_plot_long['type'] = df_plot_long['type'].str.replace('gp_pred', 'GP')
+df_plot_long['type'] = df_plot_long['type'].str.replace('lasso_pred', 'LASSO')
+df_plot_long['type'] = df_plot_long['type'].str.replace('rf_pred', 'RF')
+df_plot_long['type'] = df_plot_long['type'].str.replace('xgboost_pred', 'XGBoost')
+df_plot_long = utils._transform_to_categorical(df_plot_long, 'type', ['LASSO', 'RF', 'XGBoost', 'GP'])
+
+# plot
+(ggplot(data=df_plot, mapping=aes(x='label', y='true'))
+    + geom_boxplot(outlier_alpha=0)
+    + geom_jitter(#mapping=aes(color='chem_rdkit_clogp'), 
+                  fill='grey',
+                  #fill='none',
+                  alpha=0.8,
+                  color='none', 
+                  size=0.8, 
+                  height=0, 
+                  width=0.2)
+    + geom_jitter(data=df_plot_long,
+                 mapping=aes(y='pred', fill='type'), 
+                 color='none',
+                 size=0.8,
+                 height=0, 
+                 width=0.1)
+    + scale_fill_manual(values=list_colors)
+#    + scale_color_cmap('cividis')
+    + coord_flip()
+    + theme_minimal()
+    + labs(x='', y='log10(molar concentration)', fill='model')
+    + theme(figure_size=(10, 8))
+ )
+
+
+# %%
+# # %%
 
 # function to summarize feature importance by variable type (tax, exp, chem)
 def get_abs_mean_shap(shap_values, df_data_trainvalid, list_idx, chem_name):
