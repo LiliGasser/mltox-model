@@ -345,3 +345,5 @@ conda-env/*
 # vm output
 vm_output*/*
 
+# trystuff
+trystuff/*
