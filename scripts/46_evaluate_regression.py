@@ -31,12 +31,22 @@ path_figures = path_output + 'figures/'
 
 # %%
 
-def compile_errors(modeltype):
+def compile_errors(modeltype, load_top3=False):
 
     # load error files
     df_cv = pd.read_csv(path_output + modeltype + '_CV-errors.csv')
     df_test = pd.read_csv(path_output + modeltype + '_test-errors.csv')
-    df = pd.concat((df_cv, df_test)).reset_index(drop=True)
+
+    # load top3 features error files
+    if load_top3:
+        df_cv_top3 = pd.read_csv(path_output + modeltype + '_CV-errors_top3features.csv')
+        df_test_top3 = pd.read_csv(path_output + modeltype + '_test-errors_top3features.csv')
+    else:
+        df_cv_top3 = pd.DataFrame()
+        df_test_top3 = pd.DataFrame()
+
+    # concatenate
+    df = pd.concat((df_cv, df_test, df_cv_top3, df_test_top3)).reset_index(drop=True)
 
     # add modeltype
     if modeltype == 'lasso':
@@ -61,14 +71,18 @@ df_lasso
 
 # load RF
 # 6 fps x 2 groupsplits x 4 sets x 2 concentrations = 96 entries
-df_rf = compile_errors(modeltype='rf')
+# + 1 fps x 2 groupsplits x 4 sets x 2 concentrations = 16 entries (top3 features)
+# total: 112 entries
+df_rf = compile_errors(modeltype='rf', load_top3=True)
 df_rf
 
 # %%
 
 # load XGBoost
 # 6 fps x 2 groupsplits x 4 sets x 2 concentrations = 96 entries
-df_xgboost = compile_errors(modeltype='xgboost')
+# + 1 fps x 2 groupsplits x 4 sets x 2 concentrations = 16 entries (top3 features)
+# total: 112 entries
+df_xgboost = compile_errors(modeltype='xgboost', load_top3=True)
 df_xgboost
 
 # %%
@@ -96,7 +110,8 @@ list_cols = ['totallyrandom', 'occurrence']
 df_errors = df_errors[df_errors['groupsplit'].isin(list_cols)].copy()
 
 # categorical variables
-list_cols_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
+# the fingerprint 'none' corresponds to the top 3 features models
+list_cols_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred', 'none']
 df_errors = utils._transform_to_categorical(df_errors, 'groupsplit', ['totallyrandom', 'occurrence'])
 df_errors = utils._transform_to_categorical(df_errors, 'chem_fp', list_cols_fps)
 df_errors = utils._transform_to_categorical(df_errors, 'model', ['LASSO', 'RF', 'XGBoost', 'GP'])
@@ -170,13 +185,13 @@ print(df_l.to_latex(index=False))
 # for chem_fp: colors from CH2018 report
 # and purple from https://www.pinterest.ch/pin/1130403575204052700/
 # and yellow from https://www.pinterest.ch/pin/57632070223416732/
-list_colors = ['#75aab9', '#dfc85e', '#998478', '#c194ac', '#80a58b', '#fbba76']
+list_colors = ['#75aab9', '#dfc85e', '#998478', '#c194ac', '#80a58b', '#fbba76', 'grey']
 
 # for errors
 list_colors_points = ['#ccc', '#444', '#999', 'black']
 
 # assign colors
-list_chem_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
+list_chem_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred', 'none']
 dict_colors_fps = dict(zip(list_chem_fps, list_colors))
 list_sets = ['train', 'valid', 'trainvalid', 'test']
 dict_colors_points = dict(zip(list_sets, list_colors_points))
@@ -187,7 +202,7 @@ def _calculate_metric_stuff(metric):
     if metric == 'r2':
         metric_max = 1.01
         metric_step = 0.2
-        str_metric = r'$R^2$'
+        str_metric = r'R$^2$'
     elif metric == 'rmse':
         metric_max = df_errors[metric].max() + 0.1
         metric_step = 0.25
@@ -200,7 +215,7 @@ def _calculate_metric_stuff(metric):
     return metric_max, metric_step, str_metric
 
 # store images flag
-do_store_images = True
+do_store_images = False
 
 # %%
 
