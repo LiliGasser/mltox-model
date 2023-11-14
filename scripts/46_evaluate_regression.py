@@ -64,7 +64,9 @@ def compile_errors(modeltype, load_top3=False):
 
 # load LASSO: 
 # 6 fps x 2 groupsplits x 4 sets x 2 concentrations = 96 entries
-df_lasso = compile_errors(modeltype='lasso')
+# + 1 fps x 2 groupsplits x 4 sets x 2 concentrations = 16 entries (top3 features)
+# total: 112 entries
+df_lasso = compile_errors(modeltype='lasso', load_top3=True)
 df_lasso
 
 # %%
@@ -95,6 +97,7 @@ df_gp
 # %%
 
 # GP: without tax_pdm
+df_gp_all = df_gp.copy()
 df_gp = df_gp[df_gp['tax_pdm'] == 'none'].copy()
 
 # %%
@@ -108,6 +111,7 @@ df_errors
 # only two group splits
 list_cols = ['totallyrandom', 'occurrence']
 df_errors = df_errors[df_errors['groupsplit'].isin(list_cols)].copy()
+df_gp_all = df_gp_all[df_gp_all['groupsplit'].isin(list_cols)].copy()
 
 # categorical variables
 # the fingerprint 'none' corresponds to the top 3 features models
@@ -117,6 +121,11 @@ df_errors = utils._transform_to_categorical(df_errors, 'chem_fp', list_cols_fps)
 df_errors = utils._transform_to_categorical(df_errors, 'model', ['LASSO', 'RF', 'XGBoost', 'GP'])
 df_errors = utils._transform_to_categorical(df_errors, 'set', ['train', 'valid', 'trainvalid', 'test'])
 df_errors = utils._transform_to_categorical(df_errors, 'conctype', ['molar', 'mass'])
+df_gp_all = utils._transform_to_categorical(df_gp_all, 'groupsplit', ['totallyrandom', 'occurrence'])
+df_gp_all = utils._transform_to_categorical(df_gp_all, 'chem_fp', list_cols_fps[:6])
+df_gp_all = utils._transform_to_categorical(df_gp_all, 'tax_pdm', ['none', 'pdm'])
+df_gp_all = utils._transform_to_categorical(df_gp_all, 'set', ['train', 'valid', 'trainvalid', 'test'])
+df_gp_all = utils._transform_to_categorical(df_gp_all, 'conctype', ['molar', 'mass'])
 
 # %%
 
@@ -197,7 +206,7 @@ list_sets = ['train', 'valid', 'trainvalid', 'test']
 dict_colors_points = dict(zip(list_sets, list_colors_points))
 
 # function to set maximum values, etc. in plot
-def _calculate_metric_stuff(metric):
+def _calculate_metric_stuff(df_errors, metric):
 
     if metric == 'r2':
         metric_max = 1.01
@@ -228,7 +237,7 @@ metric = 'rmse'
 #metric = 'r2'
 
 # calculate maximum
-metric_max, metric_step, str_metric = _calculate_metric_stuff(metric)
+metric_max, metric_step, str_metric = _calculate_metric_stuff(df_errors, metric)
 list_tickvals = list(np.arange(0, metric_max, metric_step))
 
 # Initialize figure with subplots
@@ -458,7 +467,7 @@ metric = 'rmse'
 #metric = 'r2'
 
 # calculate maximum
-metric_max, metric_step, str_metric = _calculate_metric_stuff(metric)
+metric_max, metric_step, str_metric = _calculate_metric_stuff(df_errors, metric)
 list_tickvals = list(np.arange(0, metric_max, metric_step))
 
 # Initialize figure with subplots
@@ -696,7 +705,7 @@ fig = make_subplots(
 # Add traces
 # occurrence, molar, RMSE
 metric='rmse'
-metric_max, metric_step, str_metric = _calculate_metric_stuff(metric)
+metric_max, metric_step, str_metric = _calculate_metric_stuff(df_errors, metric)
 list_tickvals = list(np.arange(0, metric_max, metric_step))
 df_plot = df_errors[(df_errors['groupsplit'] == 'occurrence')
                     & (df_errors['conctype'] == 'molar')].copy()
@@ -741,7 +750,7 @@ fig.update_yaxes(range=[0, metric_max], tickvals=list_tickvals, row=row, col=col
 
 # occurrence, molar, RMSE
 metric='r2'
-metric_max, metric_step, str_metric = _calculate_metric_stuff(metric)
+metric_max, metric_step, str_metric = _calculate_metric_stuff(df_errors, metric)
 list_tickvals = list(np.arange(0, metric_max, metric_step))
 df_plot = df_errors[(df_errors['groupsplit'] == 'occurrence')
                     & (df_errors['conctype'] == 'molar')].copy()
@@ -835,7 +844,7 @@ metric = 'rmse'
 #metric = 'r2'
 
 # calculate maximum
-metric_max, metric_step, str_metric = _calculate_metric_stuff(metric)
+metric_max, metric_step, str_metric = _calculate_metric_stuff(df_errors, metric)
 
 for groupsplit in ['totallyrandom', 'occurrence']:
     df_p = df_plot_test[df_plot_test['groupsplit'] == groupsplit]
@@ -922,6 +931,186 @@ g = (ggplot(data=df_p, mapping=aes(x='model', y='chem_fp', fill=metric, label=me
 if do_store_images:
     g.save(path_figures + '46_all_heatmap_' + metric + '.pdf', facecolor='white')
 print(g)
+
+# %%
+
+# TODO without 'none' in legend
+# TODO color bars differently for tax_pdm
+
+
+# compare GP runs in plotly (validation error)
+# !!! validation error
+
+# TODO run for RMSE, MAE and R2
+metric = 'rmse'
+#metric = 'mae'
+#metric = 'r2'
+
+# calculate maximum
+metric_max, metric_step, str_metric = _calculate_metric_stuff(df_gp_all, metric)
+list_tickvals = list(np.arange(0, metric_max, metric_step))
+
+# Initialize figure with subplots
+fig = make_subplots(
+    rows=2, 
+    cols=2, 
+    subplot_titles=("totally random split<br>mass concentration", 
+                    "totally random split<br>molar concentration", 
+                    "split by occurrence<br>mass concentration", 
+                    "split by occurrence<br>molar concentration"),
+)
+
+# Add traces
+# totallyrandom, mass
+df_plot = df_gp_all[(df_gp_all['groupsplit'] == 'totallyrandom')
+                    & (df_gp_all['conctype'] == 'mass')
+                    & (df_gp_all['set'] == 'valid')].copy()
+row = 1
+col = 1
+for i, tax_pdm in enumerate(['none', 'pdm']):     # add bars
+    df_pt = df_plot[df_plot['tax_pdm'] == tax_pdm].copy()
+    fig.add_trace(go.Bar(x=df_pt['chem_fp'], 
+                         y=df_pt[metric],
+                         marker_color=df_pt['chem_fp'].map(dict_colors_fps),
+                         name=chem_fp,
+                         offsetgroup=i+1,
+                         showlegend=False),
+                  row=row, 
+                  col=col)
+for y in list_tickvals:    # add horizontal lines
+    fig.add_hline(y=y, 
+                  line_width=0.5,
+                  line_color='#eee',
+                  row=row,
+                  col=col)
+
+# totallyrandom, molar
+df_plot = df_gp_all[(df_gp_all['groupsplit'] == 'totallyrandom')
+                    & (df_gp_all['conctype'] == 'molar')
+                    & (df_gp_all['set'] == 'valid')].copy()
+row = 1
+col = 2
+for i, tax_pdm in enumerate(['none', 'pdm']):     # add bars
+    df_pt = df_plot[df_plot['tax_pdm'] == tax_pdm].copy()
+    fig.add_trace(go.Bar(x=df_pt['chem_fp'], 
+                         y=df_pt[metric],
+                         marker_color=df_pt['chem_fp'].map(dict_colors_fps),
+                         name=chem_fp,
+                         offsetgroup=i+1,
+                         showlegend=False),
+                  row=row, 
+                  col=col)
+for y in list_tickvals:    # add horizontal lines
+    fig.add_hline(y=y, 
+                  line_width=0.5,
+                  line_color='#eee',
+                  row=row,
+                  col=col)
+
+# occurrence, mass
+df_plot = df_gp_all[(df_gp_all['groupsplit'] == 'occurrence')
+                    & (df_gp_all['conctype'] == 'mass')
+                    & (df_gp_all['set'] == 'valid')].copy()
+row = 2
+col = 1
+for i, tax_pdm in enumerate(['none', 'pdm']):     # add bars
+    df_pt = df_plot[df_plot['tax_pdm'] == tax_pdm].copy()
+    fig.add_trace(go.Bar(x=df_pt['chem_fp'], 
+                         y=df_pt[metric],
+                         marker_color=df_pt['chem_fp'].map(dict_colors_fps),
+                         name=chem_fp,
+                         offsetgroup=i+1,
+                         showlegend=False),
+                  row=row, 
+                  col=col)
+for y in list_tickvals:    # add horizontal lines
+    fig.add_hline(y=y, 
+                  line_width=0.5,
+                  line_color='#eee',
+                  row=row,
+                  col=col)
+
+# occurrence, molar
+df_plot = df_gp_all[(df_gp_all['groupsplit'] == 'occurrence')
+                    & (df_gp_all['conctype'] == 'molar')
+                    & (df_gp_all['set'] == 'valid')].copy()
+row = 2
+col = 2
+for i, tax_pdm in enumerate(['none', 'pdm']):     # add bars
+    df_pt = df_plot[df_plot['tax_pdm'] == tax_pdm].copy()
+    fig.add_trace(go.Bar(x=df_pt['chem_fp'], 
+                         y=df_pt[metric],
+                         marker_color=df_pt['chem_fp'].map(dict_colors_fps),
+                         name=chem_fp,
+                         offsetgroup=i+1,
+                         showlegend=False),
+                  row=row, 
+                  col=col)
+for y in list_tickvals:    # add horizontal lines
+    fig.add_hline(y=y, 
+                  line_width=0.5,
+                  line_color='#eee',
+                  row=row,
+                  col=col)
+
+# Update xaxis properties
+fig.update_xaxes(title_text='', row=1, col=1)
+fig.update_xaxes(title_text='', row=1, col=2)
+fig.update_xaxes(title_text='', row=2, col=1)
+fig.update_xaxes(title_text='', row=2, col=2)
+
+# Update yaxis properties
+fig.update_yaxes(title_text=str_metric, row=1, col=1)
+fig.update_yaxes(title_text='', row=1, col=2)
+fig.update_yaxes(title_text=str_metric, row=2, col=1)
+fig.update_yaxes(title_text='', row=2, col=2)
+
+# Set y axis limits
+fig.update_yaxes(range=[0, metric_max], tickvals=list_tickvals)
+
+# Grouped bars and scatter
+#fig.update_layout(barmode='group')
+fig.update_layout(scattermode='group')
+
+# Update title and height
+fig.update_layout(height=600, width=900)
+
+# add legend for fingerprints
+for chem_fp in list_chem_fps:
+    fig.add_trace(go.Scatter(x=[None],
+                             y=[None],
+                             mode='markers',
+                             name=chem_fp,
+                             #legendgroup='chem_fp',
+                             legendgrouptitle_text='molecular representation',
+                             marker_color=dict_colors_fps[chem_fp],
+                             marker_symbol='square',
+                             marker_size=12))
+fig.update_layout(legend_orientation='h', legend_xanchor='center', legend_x=0.5)
+
+fig.update_layout(template='plotly_white')
+
+if do_store_images:
+    fig.write_image(path_figures + '46_GP_' + metric + '-vs-taxpdm_validation.pdf')
+fig.show()
+
+# %%
+
+metric = 'rmse'
+#metric = 'mae'
+#metric = 'r2'
+
+df_plot = df_gp_all[df_gp_all['set'] == 'test'].copy()
+
+(ggplot(data=df_plot, mapping=aes(x='chem_fp', y=metric, color='tax_pdm', fill='tax_pdm'))
+    + geom_col(position='dodge')
+    + facet_grid('groupsplit ~ conctype')
+    + theme_minimal()
+    + theme(axis_text_x=element_text(angle=90))
+)
+
+
+
 
 # %%
 # %%

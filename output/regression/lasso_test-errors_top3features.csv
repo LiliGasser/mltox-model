@@ -1,0 +1,9 @@
+fold,rmse,mae,r2,pearson,set,chem_prop,tax_pdm,tax_prop,exp,chem_fp,conctype,groupsplit,alpha
+trainvalid,1.15017,0.87628,0.51005,0.71418,trainvalid,chemprop,none,none,none,none,molar,totallyrandom,1e-05
+test,1.15138,0.88156,0.52133,0.72227,test,chemprop,none,none,none,none,molar,totallyrandom,1e-05
+trainvalid,1.13781,0.86344,0.50898,0.71343,trainvalid,chemprop,none,none,none,none,molar,occurrence,0.1
+test,1.23513,0.97903,0.50539,0.71858,test,chemprop,none,none,none,none,molar,occurrence,0.1
+trainvalid,1.1495,0.87735,0.42455,0.65157,trainvalid,chemprop,none,none,none,none,mass,totallyrandom,1e-05
+test,1.15034,0.88184,0.43667,0.6611,test,chemprop,none,none,none,none,mass,totallyrandom,1e-05
+trainvalid,1.14004,0.86626,0.41816,0.64665,trainvalid,chemprop,none,none,none,none,mass,occurrence,0.15849
+test,1.23888,0.98414,0.42512,0.6624,test,chemprop,none,none,none,none,mass,occurrence,0.15849
