@@ -47,6 +47,7 @@ def compile_errors(modeltype, load_top3=False):
 
     # concatenate
     df = pd.concat((df_cv, df_test, df_cv_top3, df_test_top3)).reset_index(drop=True)
+    df['chem_fp'] = df['chem_fp'].str.replace('pcp', 'PubChem')
 
     # add modeltype
     if modeltype == 'lasso':
@@ -115,14 +116,15 @@ df_gp_all = df_gp_all[df_gp_all['groupsplit'].isin(list_cols)].copy()
 
 # categorical variables
 # the fingerprint 'none' corresponds to the top 3 features models
-list_cols_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred', 'none']
+list_cols_fps = ['MACCS', 'PubChem', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
+list_cols_fps_none = list_cols_fps + ['none']
 df_errors = utils._transform_to_categorical(df_errors, 'groupsplit', ['totallyrandom', 'occurrence'])
-df_errors = utils._transform_to_categorical(df_errors, 'chem_fp', list_cols_fps)
+df_errors = utils._transform_to_categorical(df_errors, 'chem_fp', list_cols_fps_none)
 df_errors = utils._transform_to_categorical(df_errors, 'model', ['LASSO', 'RF', 'XGBoost', 'GP'])
 df_errors = utils._transform_to_categorical(df_errors, 'set', ['train', 'valid', 'trainvalid', 'test'])
 df_errors = utils._transform_to_categorical(df_errors, 'conctype', ['molar', 'mass'])
 df_gp_all = utils._transform_to_categorical(df_gp_all, 'groupsplit', ['totallyrandom', 'occurrence'])
-df_gp_all = utils._transform_to_categorical(df_gp_all, 'chem_fp', list_cols_fps[:6])
+df_gp_all = utils._transform_to_categorical(df_gp_all, 'chem_fp', list_cols_fps)
 df_gp_all = utils._transform_to_categorical(df_gp_all, 'tax_pdm', ['none', 'pdm'])
 df_gp_all = utils._transform_to_categorical(df_gp_all, 'set', ['train', 'valid', 'trainvalid', 'test'])
 df_gp_all = utils._transform_to_categorical(df_gp_all, 'conctype', ['molar', 'mass'])
@@ -132,7 +134,7 @@ df_gp_all = utils._transform_to_categorical(df_gp_all, 'conctype', ['molar', 'ma
 # best hyperparameters for LASSO
 df_lasso = utils._transform_to_categorical(df_lasso, 'conctype', ['molar', 'mass'])
 df_lasso = utils._transform_to_categorical(df_lasso, 'groupsplit', ['totallyrandom', 'occurrence'])
-df_lasso = utils._transform_to_categorical(df_lasso, 'chem_fp', list_cols_fps)
+df_lasso = utils._transform_to_categorical(df_lasso, 'chem_fp', list_cols_fps_none)
 
 list_cols_hp = ['alpha']
 list_cols = ['conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
@@ -146,7 +148,7 @@ print(df_l.to_latex(index=False))
 # best hyperparameters for RF
 df_rf = utils._transform_to_categorical(df_rf, 'conctype', ['molar', 'mass'])
 df_rf = utils._transform_to_categorical(df_rf, 'groupsplit', ['totallyrandom', 'occurrence'])
-df_rf = utils._transform_to_categorical(df_rf, 'chem_fp', list_cols_fps)
+df_rf = utils._transform_to_categorical(df_rf, 'chem_fp', list_cols_fps_none)
 
 # 'max_features', 'min_samples_leaf', 
 list_cols_hp = ['n_estimators', 'max_depth', 'max_samples', 'min_samples_split', 'max_features']
@@ -161,7 +163,7 @@ print(df_l.to_latex(index=False))
 # best hyperparameters for XGBoost
 df_xgboost = utils._transform_to_categorical(df_xgboost, 'conctype', ['molar', 'mass'])
 df_xgboost = utils._transform_to_categorical(df_xgboost, 'groupsplit', ['totallyrandom', 'occurrence'])
-df_xgboost = utils._transform_to_categorical(df_xgboost, 'chem_fp', list_cols_fps)
+df_xgboost = utils._transform_to_categorical(df_xgboost, 'chem_fp', list_cols_fps_none)
 
 list_cols_hp = ['n_estimators', 'eta', 'gamma', 'max_depth', 'min_child_weight', 'subsample']
 list_cols = ['conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
@@ -175,7 +177,7 @@ print(df_l.to_latex(index=False))
 # best hyperparameters for GP
 df_gp = utils._transform_to_categorical(df_gp, 'conctype', ['molar', 'mass'])
 df_gp = utils._transform_to_categorical(df_gp, 'groupsplit', ['totallyrandom', 'occurrence'])
-df_gp = utils._transform_to_categorical(df_gp, 'chem_fp', list_cols_fps)
+df_gp = utils._transform_to_categorical(df_gp, 'chem_fp', list_cols_fps_none)
 
 list_cols_hp = ['n_inducing']
 list_cols = ['conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
@@ -200,8 +202,8 @@ list_colors = ['#75aab9', '#dfc85e', '#998478', '#c194ac', '#80a58b', '#fbba76',
 list_colors_points = ['#ccc', '#444', '#999', 'black']
 
 # assign colors
-list_chem_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred', 'none']
-dict_colors_fps = dict(zip(list_chem_fps, list_colors))
+dict_colors_fps = dict(zip(list_cols_fps, list_colors))
+dict_colors_fps_none = dict(zip(list_cols_fps_none, list_colors))
 list_sets = ['train', 'valid', 'trainvalid', 'test']
 dict_colors_points = dict(zip(list_sets, list_colors_points))
 
@@ -254,16 +256,15 @@ fig = make_subplots(
 # totallyrandom, mass
 df_plot = df_errors[(df_errors['groupsplit'] == 'totallyrandom')
                     & (df_errors['conctype'] == 'mass')].copy()
-df_plot['model_chem_fp'] = df_plot['model'].astype('str') + ' ' + df_plot['chem_fp'].astype('str')
 df_plot_test = df_plot[(df_plot['set'] == 'test')].copy()
 row = 1
 col = 1
-for i, chem_fp in enumerate(list_chem_fps):     # add bars
+for i, chem_fp in enumerate(list_cols_fps_none):     # add bars
     df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
     df_pt = df_plot_test[df_plot_test['chem_fp'] == chem_fp].copy()
     fig.add_trace(go.Bar(x=df_pt['model'], 
                          y=df_pt[metric],
-                         marker_color=df_pt['chem_fp'].map(dict_colors_fps),
+                         marker_color=df_pt['chem_fp'].map(dict_colors_fps_none),
                          name=chem_fp,
                          offsetgroup=i+1,
                          showlegend=False),
@@ -275,7 +276,7 @@ for y in list_tickvals:    # add horizontal lines
                   line_color='#eee',
                   row=row,
                   col=col)
-for i, chem_fp in enumerate(list_chem_fps):    # add points
+for i, chem_fp in enumerate(list_cols_fps_none):    # add points
     df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
     fig.add_trace(go.Scatter(x=df_p['model'],
                              y=df_p[metric],
@@ -292,16 +293,15 @@ for i, chem_fp in enumerate(list_chem_fps):    # add points
 # totallyrandom, molar
 df_plot = df_errors[(df_errors['groupsplit'] == 'totallyrandom')
                     & (df_errors['conctype'] == 'molar')].copy()
-df_plot['model_chem_fp'] = df_plot['model'].astype('str') + ' ' + df_plot['chem_fp'].astype('str')
 df_plot_test = df_plot[(df_plot['set'] == 'test')].copy()
 row = 1
 col = 2
-for i, chem_fp in enumerate(list_chem_fps):     # add bars
+for i, chem_fp in enumerate(list_cols_fps_none):    # add points
     df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
     df_pt = df_plot_test[df_plot_test['chem_fp'] == chem_fp].copy()
     fig.add_trace(go.Bar(x=df_pt['model'], 
                          y=df_pt[metric],
-                         marker_color=df_pt['chem_fp'].map(dict_colors_fps),
+                         marker_color=df_pt['chem_fp'].map(dict_colors_fps_none),
                          name=chem_fp,
                          offsetgroup=i+1,
                          showlegend=False),
@@ -313,7 +313,7 @@ for y in list_tickvals:    # add horizontal lines
                   line_color='#eee',
                   row=row,
                   col=col)
-for i, chem_fp in enumerate(list_chem_fps):    # add points
+for i, chem_fp in enumerate(list_cols_fps_none):    # add points
     df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
     fig.add_trace(go.Scatter(x=df_p['model'],
                              y=df_p[metric],
@@ -330,16 +330,15 @@ for i, chem_fp in enumerate(list_chem_fps):    # add points
 # occurrence, mass
 df_plot = df_errors[(df_errors['groupsplit'] == 'occurrence')
                     & (df_errors['conctype'] == 'mass')].copy()
-df_plot['model_chem_fp'] = df_plot['model'].astype('str') + ' ' + df_plot['chem_fp'].astype('str')
 df_plot_test = df_plot[(df_plot['set'] == 'test')].copy()
 row = 2
 col = 1
-for i, chem_fp in enumerate(list_chem_fps):     # add bars
+for i, chem_fp in enumerate(list_cols_fps_none):    # add points
     df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
     df_pt = df_plot_test[df_plot_test['chem_fp'] == chem_fp].copy()
     fig.add_trace(go.Bar(x=df_pt['model'], 
                          y=df_pt[metric],
-                         marker_color=df_pt['chem_fp'].map(dict_colors_fps),
+                         marker_color=df_pt['chem_fp'].map(dict_colors_fps_none),
                          name=chem_fp,
                          offsetgroup=i+1,
                          showlegend=False),
@@ -351,7 +350,7 @@ for y in list_tickvals:    # add horizontal lines
                   line_color='#eee',
                   row=row,
                   col=col)
-for i, chem_fp in enumerate(list_chem_fps):    # add points
+for i, chem_fp in enumerate(list_cols_fps_none):    # add points
     df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
     fig.add_trace(go.Scatter(x=df_p['model'],
                              y=df_p[metric],
@@ -368,16 +367,15 @@ for i, chem_fp in enumerate(list_chem_fps):    # add points
 # occurrence, molar
 df_plot = df_errors[(df_errors['groupsplit'] == 'occurrence')
                     & (df_errors['conctype'] == 'molar')].copy()
-df_plot['model_chem_fp'] = df_plot['model'].astype('str') + ' ' + df_plot['chem_fp'].astype('str')
 df_plot_test = df_plot[(df_plot['set'] == 'test')].copy()
 row = 2
 col = 2
-for i, chem_fp in enumerate(list_chem_fps):     # add bars
+for i, chem_fp in enumerate(list_cols_fps_none):     # add bars
     df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
     df_pt = df_plot_test[df_plot_test['chem_fp'] == chem_fp].copy()
     fig.add_trace(go.Bar(x=df_pt['model'], 
                          y=df_pt[metric],
-                         marker_color=df_pt['chem_fp'].map(dict_colors_fps),
+                         marker_color=df_pt['chem_fp'].map(dict_colors_fps_none),
                          name=chem_fp,
                          offsetgroup=i+1,
                          showlegend=False),
@@ -389,7 +387,7 @@ for y in list_tickvals:    # add horizontal lines
                   line_color='#eee',
                   row=row,
                   col=col)
-for i, chem_fp in enumerate(list_chem_fps):    # add points
+for i, chem_fp in enumerate(list_cols_fps_none):    # add points
     df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
     fig.add_trace(go.Scatter(x=df_p['model'],
                              y=df_p[metric],
@@ -426,14 +424,14 @@ fig.update_layout(scattermode='group')
 fig.update_layout(height=600, width=900)
 
 # add legend for fingerprints
-for chem_fp in list_chem_fps:
+for chem_fp in list_cols_fps_none:
     fig.add_trace(go.Scatter(x=[None],
                              y=[None],
                              mode='markers',
                              name=chem_fp,
                              legendgroup='chem_fp',
                              legendgrouptitle_text='molecular<br>representation',
-                             marker_color=dict_colors_fps[chem_fp],
+                             marker_color=dict_colors_fps_none[chem_fp],
                              marker_symbol='square',
                              marker_size=12))
 for errortype in list_sets:
@@ -484,17 +482,14 @@ fig = make_subplots(
 # totallyrandom, mass
 df_plot = df_errors[(df_errors['groupsplit'] == 'totallyrandom')
                     & (df_errors['conctype'] == 'mass')
-                    & (df_errors['set'].isin(['train', 'valid']))].copy()
-#df_plot['model_chem_fp'] = df_plot['model'].astype('str') + ' ' + df_plot['chem_fp'].astype('str')
-df_plot_bar = df_plot[(df_plot['set'] == 'valid')].copy()
+                    & (df_errors['set'] == 'valid')].copy()
 row = 1
 col = 1
-for i, chem_fp in enumerate(list_chem_fps):     # add bars
-    df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
-    df_pt = df_plot_bar[df_plot_bar['chem_fp'] == chem_fp].copy()
+for i, chem_fp in enumerate(list_cols_fps_none):     # add bars
+    df_pt = df_plot[df_plot['chem_fp'] == chem_fp].copy()
     fig.add_trace(go.Bar(x=df_pt['model'], 
                          y=df_pt[metric],
-                         marker_color=df_pt['chem_fp'].map(dict_colors_fps),
+                         marker_color=df_pt['chem_fp'].map(dict_colors_fps_none),
                          name=chem_fp,
                          offsetgroup=i+1,
                          showlegend=False),
@@ -506,34 +501,18 @@ for y in list_tickvals:    # add horizontal lines
                   line_color='#eee',
                   row=row,
                   col=col)
-#for i, chem_fp in enumerate(list_chem_fps):    # add points
-    #df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
-    #fig.add_trace(go.Scatter(x=df_p['model'],
-                             #y=df_p[metric],
-                             #mode='markers',
-                             #marker_color=df_p['set'].map(dict_colors_points),
-                             #marker_symbol='circle-open',
-                             #marker_size=7,
-                             #name=chem_fp,
-                             #offsetgroup=i+1,
-                             #showlegend=False),
-                  #row=row, 
-                  #col=col)
 
 # totallyrandom, molar
 df_plot = df_errors[(df_errors['groupsplit'] == 'totallyrandom')
                     & (df_errors['conctype'] == 'molar')
-                    & (df_errors['set'].isin(['train', 'valid']))].copy()
-#df_plot['model_chem_fp'] = df_plot['model'].astype('str') + ' ' + df_plot['chem_fp'].astype('str')
-df_plot_bar = df_plot[(df_plot['set'] == 'valid')].copy()
+                    & (df_errors['set'] == 'valid')].copy()
 row = 1
 col = 2
-for i, chem_fp in enumerate(list_chem_fps):     # add bars
-    df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
-    df_pt = df_plot_bar[df_plot_bar['chem_fp'] == chem_fp].copy()
+for i, chem_fp in enumerate(list_cols_fps_none):     # add bars
+    df_pt = df_plot[df_plot['chem_fp'] == chem_fp].copy()
     fig.add_trace(go.Bar(x=df_pt['model'], 
                          y=df_pt[metric],
-                         marker_color=df_pt['chem_fp'].map(dict_colors_fps),
+                         marker_color=df_pt['chem_fp'].map(dict_colors_fps_none),
                          name=chem_fp,
                          offsetgroup=i+1,
                          showlegend=False),
@@ -545,34 +524,18 @@ for y in list_tickvals:    # add horizontal lines
                   line_color='#eee',
                   row=row,
                   col=col)
-#for i, chem_fp in enumerate(list_chem_fps):    # add points
-    #df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
-    #fig.add_trace(go.Scatter(x=df_p['model'],
-                             #y=df_p[metric],
-                             #mode='markers',
-                             #marker_color=df_p['set'].map(dict_colors_points),
-                             #marker_symbol='circle-open',
-                             #marker_size=7,
-                             #name=chem_fp,
-                             #offsetgroup=i+1,
-                             #showlegend=False),
-                  #row=row, 
-                  #col=col)
 
 # occurrence, mass
 df_plot = df_errors[(df_errors['groupsplit'] == 'occurrence')
                     & (df_errors['conctype'] == 'mass')
-                    & (df_errors['set'].isin(['train', 'valid']))].copy()
-#df_plot['model_chem_fp'] = df_plot['model'].astype('str') + ' ' + df_plot['chem_fp'].astype('str')
-df_plot_bar = df_plot[(df_plot['set'] == 'valid')].copy()
+                    & (df_errors['set'] == 'valid')].copy()
 row = 2
 col = 1
-for i, chem_fp in enumerate(list_chem_fps):     # add bars
-    df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
-    df_pt = df_plot_bar[df_plot_bar['chem_fp'] == chem_fp].copy()
+for i, chem_fp in enumerate(list_cols_fps_none):     # add bars
+    df_pt = df_plot[df_plot['chem_fp'] == chem_fp].copy()
     fig.add_trace(go.Bar(x=df_pt['model'], 
                          y=df_pt[metric],
-                         marker_color=df_pt['chem_fp'].map(dict_colors_fps),
+                         marker_color=df_pt['chem_fp'].map(dict_colors_fps_none),
                          name=chem_fp,
                          offsetgroup=i+1,
                          showlegend=False),
@@ -584,34 +547,18 @@ for y in list_tickvals:    # add horizontal lines
                   line_color='#eee',
                   row=row,
                   col=col)
-#for i, chem_fp in enumerate(list_chem_fps):    # add points
-    #df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
-    #fig.add_trace(go.Scatter(x=df_p['model'],
-                             #y=df_p[metric],
-                             #mode='markers',
-                             #marker_color=df_p['set'].map(dict_colors_points),
-                             #marker_symbol='circle-open',
-                             #marker_size=7,
-                             #name=chem_fp,
-                             #offsetgroup=i+1,
-                             #showlegend=False),
-                  #row=row, 
-                  #col=col)
 
 # occurrence, molar
 df_plot = df_errors[(df_errors['groupsplit'] == 'occurrence')
                     & (df_errors['conctype'] == 'molar')
-                    & (df_errors['set'].isin(['train', 'valid']))].copy()
-#df_plot['model_chem_fp'] = df_plot['model'].astype('str') + ' ' + df_plot['chem_fp'].astype('str')
-df_plot_bar = df_plot[(df_plot['set'] == 'valid')].copy()
+                    & (df_errors['set'] == 'valid')].copy()
 row = 2
 col = 2
-for i, chem_fp in enumerate(list_chem_fps):     # add bars
-    df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
-    df_pt = df_plot_bar[df_plot_bar['chem_fp'] == chem_fp].copy()
+for i, chem_fp in enumerate(list_cols_fps_none):     # add bars
+    df_pt = df_plot[df_plot['chem_fp'] == chem_fp].copy()
     fig.add_trace(go.Bar(x=df_pt['model'], 
                          y=df_pt[metric],
-                         marker_color=df_pt['chem_fp'].map(dict_colors_fps),
+                         marker_color=df_pt['chem_fp'].map(dict_colors_fps_none),
                          name=chem_fp,
                          offsetgroup=i+1,
                          showlegend=False),
@@ -623,19 +570,6 @@ for y in list_tickvals:    # add horizontal lines
                   line_color='#eee',
                   row=row,
                   col=col)
-#for i, chem_fp in enumerate(list_chem_fps):    # add points
-    #df_p = df_plot[df_plot['chem_fp'] == chem_fp].copy()
-    #fig.add_trace(go.Scatter(x=df_p['model'],
-                             #y=df_p[metric],
-                             #mode='markers',
-                             #marker_color=df_p['set'].map(dict_colors_points),
-                             #marker_symbol='circle-open',
-                             #marker_size=7,
-                             #name=chem_fp,
-                             #offsetgroup=i+1,
-                             #showlegend=False),
-                  #row=row, 
-                  #col=col)
 
 # Update xaxis properties
 fig.update_xaxes(title_text='', row=1, col=1)
@@ -660,26 +594,16 @@ fig.update_layout(scattermode='group')
 fig.update_layout(height=600, width=900)
 
 # add legend for fingerprints
-for chem_fp in list_chem_fps:
+for chem_fp in list_cols_fps_none:
     fig.add_trace(go.Scatter(x=[None],
                              y=[None],
                              mode='markers',
                              name=chem_fp,
                              #legendgroup='chem_fp',
                              legendgrouptitle_text='molecular representation',
-                             marker_color=dict_colors_fps[chem_fp],
+                             marker_color=dict_colors_fps_none[chem_fp],
                              marker_symbol='square',
                              marker_size=12))
-#for errortype in ['train', 'valid']:
-    #fig.add_trace(go.Scatter(x=[None],
-                             #y=[None],
-                             #mode='markers',
-                             #name=errortype,
-                             #legendgroup='set',
-                             #legendgrouptitle_text='error type',
-                             #marker_color=dict_colors_points[errortype],
-                             #marker_symbol='circle-open',
-                             #marker_size=7))
 fig.update_layout(legend_orientation='h', legend_xanchor='center', legend_x=0.5)
 
 fig.update_layout(template='plotly_white')
@@ -713,11 +637,11 @@ df_plot_bar = df_plot[(df_plot['set'] == 'test')].copy()
 df_plot_dot = df_plot[(df_plot['set'] == 'valid')].copy()
 row = 1
 col = 1
-for i, chem_fp in enumerate(list_chem_fps):     # add bars
+for i, chem_fp in enumerate(list_cols_fps_none):     # add bars
     df_pb = df_plot_bar[df_plot_bar['chem_fp'] == chem_fp].copy()
     fig.add_trace(go.Bar(x=df_pb['model'], 
                          y=df_pb[metric],
-                         marker_color=df_pb['chem_fp'].map(dict_colors_fps),
+                         marker_color=df_pb['chem_fp'].map(dict_colors_fps_none),
                          name=chem_fp,
                          offsetgroup=i+1,
                          showlegend=False),
@@ -729,7 +653,7 @@ for y in list_tickvals:    # add horizontal lines
                   line_color='#eee',
                   row=row,
                   col=col)
-for i, chem_fp in enumerate(list_chem_fps):    # add points
+for i, chem_fp in enumerate(list_cols_fps_none):    # add points
     df_pt = df_plot_dot[df_plot_dot['chem_fp'] == chem_fp].copy()
     fig.add_trace(go.Scatter(x=df_pt['model'],
                              y=df_pt[metric],
@@ -758,11 +682,11 @@ df_plot_bar = df_plot[(df_plot['set'] == 'test')].copy()
 df_plot_dot = df_plot[(df_plot['set'] == 'valid')].copy()
 row = 2
 col = 1
-for i, chem_fp in enumerate(list_chem_fps):     # add bars
+for i, chem_fp in enumerate(list_cols_fps_none):     # add bars
     df_pb = df_plot_bar[df_plot_bar['chem_fp'] == chem_fp].copy()
     fig.add_trace(go.Bar(x=df_pb['model'], 
                          y=df_pb[metric],
-                         marker_color=df_pb['chem_fp'].map(dict_colors_fps),
+                         marker_color=df_pb['chem_fp'].map(dict_colors_fps_none),
                          name=chem_fp,
                          offsetgroup=i+1,
                          showlegend=False),
@@ -774,7 +698,7 @@ for y in list_tickvals:    # add horizontal lines
                   line_color='#eee',
                   row=row,
                   col=col)
-for i, chem_fp in enumerate(list_chem_fps):    # add points
+for i, chem_fp in enumerate(list_cols_fps_none):    # add points
     df_pt = df_plot_dot[df_plot_dot['chem_fp'] == chem_fp].copy()
     fig.add_trace(go.Scatter(x=df_pt['model'],
                              y=df_pt[metric],
@@ -801,14 +725,14 @@ fig.update_layout(scattermode='group')
 fig.update_layout(height=600, width=500)
 
 # add legend for fingerprints
-for chem_fp in list_chem_fps:
+for chem_fp in list_cols_fps_none:
     fig.add_trace(go.Scatter(x=[None],
                              y=[None],
                              mode='markers',
                              name=chem_fp,
                              legendgroup='chem_fp',
                              legendgrouptitle_text='molecular<br>representation',
-                             marker_color=dict_colors_fps[chem_fp],
+                             marker_color=dict_colors_fps_none[chem_fp],
                              marker_symbol='square',
                              marker_size=12))
 for errortype in ['valid']:
@@ -934,9 +858,7 @@ print(g)
 
 # %%
 
-# TODO without 'none' in legend
 # TODO color bars differently for tax_pdm
-
 
 # compare GP runs in plotly (validation error)
 # !!! validation error
@@ -1076,7 +998,7 @@ fig.update_layout(scattermode='group')
 fig.update_layout(height=600, width=900)
 
 # add legend for fingerprints
-for chem_fp in list_chem_fps:
+for chem_fp in list_cols_fps:
     fig.add_trace(go.Scatter(x=[None],
                              y=[None],
                              mode='markers',
@@ -1095,80 +1017,3 @@ if do_store_images:
 fig.show()
 
 # %%
-
-metric = 'rmse'
-#metric = 'mae'
-#metric = 'r2'
-
-df_plot = df_gp_all[df_gp_all['set'] == 'test'].copy()
-
-(ggplot(data=df_plot, mapping=aes(x='chem_fp', y=metric, color='tax_pdm', fill='tax_pdm'))
-    + geom_col(position='dodge')
-    + facet_grid('groupsplit ~ conctype')
-    + theme_minimal()
-    + theme(axis_text_x=element_text(angle=90))
-)
-
-
-
-
-# %%
-# %%
-
-# ----------------------------------------------------------------------------
-
-# overview of test error  (outdated using plotnine)
-# !! outdated using plotnine
-
-df_plot = df_errors.copy()
-df_plot = df_plot.sort_values(['model', 'chem_fp', 'set'], ascending=[True, True, False])
-df_plot['model_chem_fp'] = df_plot['model'].astype('str') + ' ' + df_plot['chem_fp'].astype('str')
-df_plot['groupsplit_conctype'] = df_plot['groupsplit'].astype('str') + ' ' + df_plot['conctype'].astype('str')
-df_plot_test = df_plot[df_plot['set'] == 'test'].copy()
-
-df_plot['model_chem_fp'] = pd.Categorical(df_plot['model_chem_fp'], 
-                                          categories=df_plot['model_chem_fp'].unique(),
-                                          ordered=True)
-df_plot_test['model_chem_fp'] = pd.Categorical(df_plot_test['model_chem_fp'], 
-                                               categories=df_plot['model_chem_fp'].unique(),
-                                               ordered=True)
-
-df_plot['groupsplit_conctype'] = pd.Categorical(df_plot['groupsplit_conctype'], 
-                                          categories=df_plot['groupsplit_conctype'].unique(),
-                                          ordered=True)
-df_plot_test['groupsplit_conctype'] = pd.Categorical(df_plot_test['groupsplit_conctype'], 
-                                               categories=df_plot['groupsplit_conctype'].unique(),
-                                               ordered=True)
-
-# TODO run for RMSE and R2
-metric = 'rmse'
-#metric = 'mae'
-#metric = 'r2'
-g = (ggplot(data=df_plot, mapping=aes(x='model_chem_fp', 
-                                      y=metric, 
-                                      color='set', 
-                                      fill='chem_fp',
-                                      ))
-    + geom_col(data=df_plot_test, color='none')
-    + geom_point(alpha=0.9, shape='o', fill='none')
-    + facet_grid("groupsplit ~ conctype")     # TODO labels on the left --> plot with matploblib or plotly?
-    + scale_color_manual(values=list_colors_points)
-    + scale_fill_manual(values=list_colors)
-    + geom_hline(yintercept=0.25, color='white', size=0.25)
-    + geom_hline(yintercept=0.5, color='white', size=0.25)
-    + geom_hline(yintercept=0.75, color='white', size=0.25)
-    + geom_hline(yintercept=1., color='white', size=0.25)
-    + geom_hline(yintercept=1.25, color='white', size=0.25)
-    + geom_hline(yintercept=1.5, color='white', size=0.25)
-    + theme_tufte()
-    + labs(x='', fill='fingerprint', color='error type')
-    + theme(axis_text_x=element_blank())
-)
-if metric == 'r2':
-    g = g + labs(y="R$^2$")
-elif metric == 'rmse':
-    g = g + labs(y="RMSE")
-elif metric == 'mae':
-    g = g + labs(y="MAE")
-#g.save(path_figures + '46_all_' + metric + '-vs-models.pdf', facecolor='white')
-g
