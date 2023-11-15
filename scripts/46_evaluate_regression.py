@@ -92,7 +92,9 @@ df_xgboost
 
 # load GP
 # 6 fps x 2 groupsplits x 4 sets x 2 tax_pdm x 2 concentrations = 192 entries
-df_gp = compile_errors(modeltype='gp')
+# + 1 fps x 2 groupsplits x 4 sets x 2 concentrations = 16 entries (top3 features)
+# total: 208 entries
+df_gp = compile_errors(modeltype='gp', load_top3=True)
 df_gp
 
 # %%
@@ -838,7 +840,7 @@ df_p = df_plot_test.copy()
 
 # inverse order for fingerprint
 df_p['chem_fp'] = pd.Categorical(df_p['chem_fp'],
-                                 categories=list_cols_fps[::-1],
+                                 categories=list_cols_fps_none[::-1],
                                  ordered=True)
 
 g = (ggplot(data=df_p, mapping=aes(x='model', y='chem_fp', fill=metric, label=metric))

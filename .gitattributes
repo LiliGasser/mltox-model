@@ -70,3 +70,9 @@ output/regression/figures/46_ToxPrint_r2-vs-models.pdf filter=lfs diff=lfs merge
 output/regression/figures/46_mol2vec_mae-vs-models.pdf filter=lfs diff=lfs merge=lfs -text
 output/regression/figures/46_Morgan_rmse-vs-models.pdf filter=lfs diff=lfs merge=lfs -text
 output/additional/*pdf filter=lfs diff=lfs merge=lfs -text
+output/regression/rf_predictions_top3features.csv filter=lfs diff=lfs merge=lfs -text
+output/regression/xgboost_predictions_top3features.csv filter=lfs diff=lfs merge=lfs -text
+output/regression/gp_predictions_top3features.csv filter=lfs diff=lfs merge=lfs -text
+output/regression/gp_trainvalid-coefficients_top3features.csv filter=lfs diff=lfs merge=lfs -text
+output/regression/lasso_predictions_top3features.csv filter=lfs diff=lfs merge=lfs -text
+output/regression/lasso_trainvalid-coefficients_top3features.csv filter=lfs diff=lfs merge=lfs -text
