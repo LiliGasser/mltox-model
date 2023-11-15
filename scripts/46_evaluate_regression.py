@@ -64,7 +64,7 @@ def compile_errors(modeltype, load_top3=False):
 # %%
 
 # load LASSO: 
-# 6 fps x 2 groupsplits x 4 sets x 2 concentrations = 96 entries
+# 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 112 entries
 # + 1 fps x 2 groupsplits x 4 sets x 2 concentrations = 16 entries (top3 features)
 # total: 112 entries
 df_lasso = compile_errors(modeltype='lasso', load_top3=True)
@@ -111,6 +111,7 @@ df_errors
 
 # %%
 
+# TODO adjust for top3 features and no fingerprint!!
 # only two group splits
 list_cols = ['totallyrandom', 'occurrence']
 df_errors = df_errors[df_errors['groupsplit'].isin(list_cols)].copy()
@@ -860,8 +861,6 @@ print(g)
 
 # %%
 
-# TODO color bars differently for tax_pdm
-
 # compare GP runs in plotly (validation error)
 # !!! validation error
 
@@ -873,6 +872,12 @@ metric = 'rmse'
 # calculate maximum
 metric_max, metric_step, str_metric = _calculate_metric_stuff(df_gp_all, metric)
 list_tickvals = list(np.arange(0, metric_max, metric_step))
+
+# pattern for pdm
+# ['', '/', '\\', 'x', '-', '|', '+', '.']
+dict_patterns_pdm = {}
+dict_patterns_pdm['none'] = ''
+dict_patterns_pdm['pdm'] = '/'
 
 # Initialize figure with subplots
 fig = make_subplots(
@@ -896,7 +901,8 @@ for i, tax_pdm in enumerate(['none', 'pdm']):     # add bars
     fig.add_trace(go.Bar(x=df_pt['chem_fp'], 
                          y=df_pt[metric],
                          marker_color=df_pt['chem_fp'].map(dict_colors_fps),
-                         name=chem_fp,
+                         marker_pattern_shape=dict_patterns_pdm[tax_pdm],
+                         name=tax_pdm,
                          offsetgroup=i+1,
                          showlegend=False),
                   row=row, 
@@ -919,7 +925,8 @@ for i, tax_pdm in enumerate(['none', 'pdm']):     # add bars
     fig.add_trace(go.Bar(x=df_pt['chem_fp'], 
                          y=df_pt[metric],
                          marker_color=df_pt['chem_fp'].map(dict_colors_fps),
-                         name=chem_fp,
+                         marker_pattern_shape=dict_patterns_pdm[tax_pdm],
+                         name=tax_pdm,
                          offsetgroup=i+1,
                          showlegend=False),
                   row=row, 
@@ -942,7 +949,8 @@ for i, tax_pdm in enumerate(['none', 'pdm']):     # add bars
     fig.add_trace(go.Bar(x=df_pt['chem_fp'], 
                          y=df_pt[metric],
                          marker_color=df_pt['chem_fp'].map(dict_colors_fps),
-                         name=chem_fp,
+                         marker_pattern_shape=dict_patterns_pdm[tax_pdm],
+                         name=tax_pdm,
                          offsetgroup=i+1,
                          showlegend=False),
                   row=row, 
@@ -965,7 +973,8 @@ for i, tax_pdm in enumerate(['none', 'pdm']):     # add bars
     fig.add_trace(go.Bar(x=df_pt['chem_fp'], 
                          y=df_pt[metric],
                          marker_color=df_pt['chem_fp'].map(dict_colors_fps),
-                         name=chem_fp,
+                         marker_pattern_shape=dict_patterns_pdm[tax_pdm],
+                         name=tax_pdm,
                          offsetgroup=i+1,
                          showlegend=False),
                   row=row, 
@@ -999,23 +1008,169 @@ fig.update_layout(scattermode='group')
 # Update title and height
 fig.update_layout(height=600, width=900)
 
-# add legend for fingerprints
-for chem_fp in list_cols_fps:
-    fig.add_trace(go.Scatter(x=[None],
-                             y=[None],
-                             mode='markers',
-                             name=chem_fp,
-                             #legendgroup='chem_fp',
-                             legendgrouptitle_text='molecular representation',
-                             marker_color=dict_colors_fps[chem_fp],
-                             marker_symbol='square',
-                             marker_size=12))
+# add legend for tax_pdm
+for tax_pdm in ['none', 'pdm']:
+    if tax_pdm == 'none':
+        str_tax_pdm = 'no'
+    else:
+        str_tax_pdm = 'yes'
+    fig.add_trace(go.Bar(x=[None],
+                         y=[None],
+                         name=str_tax_pdm,
+                         legendgrouptitle_text='pairwise distance matrix included',
+                         marker_color='lightgrey',
+                         marker_pattern_shape=dict_patterns_pdm[tax_pdm])
+                         )
 fig.update_layout(legend_orientation='h', legend_xanchor='center', legend_x=0.5)
 
 fig.update_layout(template='plotly_white')
 
 if do_store_images:
     fig.write_image(path_figures + '46_GP_' + metric + '-vs-taxpdm_validation.pdf')
+fig.show()
+
+# %%
+
+# compare GP runs in plotly (only molar occurrence)
+# !!! test error only for occurrence and molar
+
+# Initialize figure with subplots
+fig = make_subplots(
+    rows=2, 
+    cols=1, 
+    subplot_titles=('split by occurrence<br>molar concentration', 
+                    ''),
+)
+
+# Add traces
+# occurrence, molar, RMSE
+metric='rmse'
+metric_max, metric_step, str_metric = _calculate_metric_stuff(df_gp_all, metric)
+list_tickvals = list(np.arange(0, metric_max, metric_step))
+df_plot = df_gp_all[(df_gp_all['groupsplit'] == 'occurrence')
+                    & (df_gp_all['conctype'] == 'molar')].copy()
+df_plot_bar = df_plot[(df_plot['set'] == 'test')].copy()
+df_plot_dot = df_plot[(df_plot['set'] == 'valid')].copy()
+row = 1
+col = 1
+for i, tax_pdm in enumerate(['none', 'pdm']):     # add bars
+    df_pb = df_plot_bar[df_plot_bar['tax_pdm'] == tax_pdm].copy()
+    fig.add_trace(go.Bar(x=df_pb['chem_fp'], 
+                         y=df_pb[metric],
+                         marker_color=df_pb['chem_fp'].map(dict_colors_fps),
+                         marker_pattern_shape=dict_patterns_pdm[tax_pdm],
+                         name=tax_pdm,
+                         offsetgroup=i+1,
+                         showlegend=False),
+                  row=row, 
+                  col=col)
+for y in list_tickvals:    # add horizontal lines
+    fig.add_hline(y=y, 
+                  line_width=1.,
+                  line_color='#eee',
+                  row=row,
+                  col=col)
+#for i, chem_fp in enumerate(list_cols_fps_none):    # add points
+    #df_pt = df_plot_dot[df_plot_dot['chem_fp'] == chem_fp].copy()
+    #fig.add_trace(go.Scatter(x=df_pt['model'],
+                             #y=df_pt[metric],
+                             #mode='markers',
+                             #marker_color=df_pt['set'].map(dict_colors_points),
+                             #marker_symbol='diamond-open',
+                             #marker_size=7,
+                             #name=chem_fp,
+                             #offsetgroup=i+1,
+                             #showlegend=False),
+                  #row=row, 
+                  #col=col)
+
+# update axes
+fig.update_xaxes(title_text='', row=row, col=col)
+fig.update_yaxes(title_text=str_metric, row=row, col=col)
+fig.update_yaxes(range=[0, metric_max], tickvals=list_tickvals, row=row, col=col)
+
+# occurrence, molar, R2
+metric='r2'
+metric_max, metric_step, str_metric = _calculate_metric_stuff(df_errors, metric)
+list_tickvals = list(np.arange(0, metric_max, metric_step))
+df_plot = df_gp_all[(df_gp_all['groupsplit'] == 'occurrence')
+                    & (df_gp_all['conctype'] == 'molar')].copy()
+df_plot_bar = df_plot[(df_plot['set'] == 'test')].copy()
+df_plot_dot = df_plot[(df_plot['set'] == 'valid')].copy()
+row = 2
+col = 1
+for i, tax_pdm in enumerate(['none', 'pdm']):     # add bars
+    df_pb = df_plot_bar[df_plot_bar['tax_pdm'] == tax_pdm].copy()
+    fig.add_trace(go.Bar(x=df_pb['chem_fp'], 
+                         y=df_pb[metric],
+                         marker_color=df_pb['chem_fp'].map(dict_colors_fps),
+                         marker_pattern_shape=dict_patterns_pdm[tax_pdm],
+                         name=tax_pdm,
+                         offsetgroup=i+1,
+                         showlegend=False),
+                  row=row, 
+                  col=col)
+for y in list_tickvals:    # add horizontal lines
+    fig.add_hline(y=y, 
+                  line_width=1.,
+                  line_color='#eee',
+                  row=row,
+                  col=col)
+#for i, chem_fp in enumerate(list_cols_fps_none):    # add points
+    #df_pt = df_plot_dot[df_plot_dot['chem_fp'] == chem_fp].copy()
+    #fig.add_trace(go.Scatter(x=df_pt['model'],
+                             #y=df_pt[metric],
+                             #mode='markers',
+                             #marker_color=df_pt['set'].map(dict_colors_points),
+                             #marker_symbol='diamond-open',
+                             #marker_size=7,
+                             #name=chem_fp,
+                             #offsetgroup=i+1,
+                             #showlegend=False),
+                  #row=row, 
+                  #col=col)
+
+# update axes
+fig.update_xaxes(title_text='', row=row, col=col)
+fig.update_yaxes(title_text=str_metric, row=row, col=col)
+fig.update_yaxes(range=[0, metric_max], tickvals=list_tickvals, row=row, col=col)
+
+# Grouped bars and scatter
+#fig.update_layout(barmode='group')
+fig.update_layout(scattermode='group')
+
+# Update title and height
+fig.update_layout(height=600, width=500)
+
+#for errortype in ['valid']:
+    #fig.add_trace(go.Scatter(x=[None],
+                             #y=[None],
+                             #mode='markers',
+                             #name=errortype,
+                             #legendgroup='set',
+                             #legendgrouptitle_text='error type',
+                             #marker_color=dict_colors_points[errortype],
+                             #marker_symbol='diamond-open',
+                             #marker_size=7))
+# add legend for tax_pdm
+for tax_pdm in ['none', 'pdm']:
+    if tax_pdm == 'none':
+        str_tax_pdm = 'no'
+    else:
+        str_tax_pdm = 'yes'
+    fig.add_trace(go.Bar(x=[None],
+                         y=[None],
+                         name=str_tax_pdm,
+                         legendgrouptitle_text='pairwise distance matrix included',
+                         marker_color='lightgrey',
+                         marker_pattern_shape=dict_patterns_pdm[tax_pdm])
+                         )
+fig.update_layout(legend_orientation='h', legend_xanchor='center', legend_x=0.5)
+
+fig.update_layout(template='plotly_white')
+
+if do_store_images:
+    fig.write_image(path_figures + '46_GP_rmse-r2-vs-taxpdm_test.pdf')
 fig.show()
 
 # %%
