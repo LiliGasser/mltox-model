@@ -211,7 +211,7 @@ for col_x in list_cols:
         g = g + labs(y="R$^2$")
     elif metric == 'rmse':
         g = g + labs(y="RMSE")
-#    g.save(path_figures + '25_XGB_' + metric + '-vs-' + col_x + '.png', facecolor='white')
+#    g.save(path_figures + '23_XGB_' + metric + '-vs-' + col_x + '.png', facecolor='white')
     print(g)
 
 # %%
@@ -242,7 +242,7 @@ if metric == 'r2':
     g = g + labs(y="R$^2$")
 elif metric == 'rmse':
     g = g + labs(y="RMSE")
-#g.save(path_figures + '25_XGB_' + metric + '-vs-fold.png', facecolor='white')
+#g.save(path_figures + '23_XGB_' + metric + '-vs-fold.png', facecolor='white')
 g
 
 # %%

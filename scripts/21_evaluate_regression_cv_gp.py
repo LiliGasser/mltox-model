@@ -197,10 +197,9 @@ g = (ggplot(data=df_plot, mapping=aes(x=col_x,
 #g.save(path_output_dir + '_GP_RMSE-vs-' + col_x + '.png', facecolor='white')
 g
 
-# TODO fix bug in plot!
-
 # %%
 
+# TODO check what is still needed of the code below
 # !! only look at tax_pdm != none?
 
 # %%
