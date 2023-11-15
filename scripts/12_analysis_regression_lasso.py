@@ -40,9 +40,9 @@ param_grid = [
     {
      # features
      #'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
-     'chem_fp': ['Mordred'],
-     #'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
-     'chem_prop': ['none'],
+     #'chem_fp': ['Mordred'],
+     'chem_fp': ['none'],
+     'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
      'tax_pdm': ['none'],                       #['none', 'pdm', 'pdm-squared'],
      'tax_prop': ['taxprop-migrate2'],          #['none', 'taxprop-migrate2', 'taxprop-migrate5'],
      'exp': ['exp-dropfirst'],                  #['none', 'exp-dropnone', 'exp-dropfirst'],     # use dropfirst
@@ -324,6 +324,3 @@ for i, param in enumerate(ParameterGrid(param_grid)):
 print('done')
 
 # %%
-
-# old TODOs:
-# - show results only for overall

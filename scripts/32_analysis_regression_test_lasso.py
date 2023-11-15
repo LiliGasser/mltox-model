@@ -54,7 +54,7 @@ df_pr_test = pd.read_csv(path_output + modeltype + '_predictions.csv')
 param_grid = [
     {
      # features
-     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred'], 
+     'chem_fp': ['none', 'MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred'], 
      # splits
      'groupsplit': ['totallyrandom', 'occurrence'], 
      # concentration
