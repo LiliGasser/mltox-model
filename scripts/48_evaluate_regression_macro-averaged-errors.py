@@ -37,6 +37,9 @@ def compile_predictions(modeltype):
     # load file
     df = pd.read_csv(path_output + modeltype + '_predictions.csv')
 
+    # rename pcp to PubChem
+    df['chem_fp'] = df['chem_fp'].str.replace('pcp', 'PubChem')
+
     # add modeltype
     if modeltype == 'lasso':
         df['model'] = 'LASSO'
@@ -189,7 +192,7 @@ list_colors = ['#75aab9', '#dfc85e', '#998478', '#c194ac', '#80a58b', '#fbba76']
 list_colors_at = ['#998478', '#80a58b', '#75aab9', '#dfc85e']
 
 # assign colors
-list_chem_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
+list_chem_fps = ['MACCS', 'PubChem', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
 dict_colors_fps = dict(zip(list_chem_fps, list_colors))
 
 # function to set maximum values, etc. in plot
@@ -198,7 +201,7 @@ def _calculate_metric_stuff(metric):
     if metric == 'r2':
         metric_max = 1.01
         metric_step = 0.2
-        str_metric = r'$R^2$'
+        str_metric = r'R$^2$'
     elif metric == 'rmse' or metric == 'RMSE':
         metric_max = df_errors[metric].max() + 0.1
         metric_step = 0.25
@@ -218,7 +221,7 @@ do_store_images = True
 df_plot = df_es[(df_es['fold'] == 'test')
                 & (df_es['groupsplit'] == 'occurrence')
                 & (df_es['conctype'] == 'molar')].copy()
-list_categories = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
+list_categories = ['MACCS', 'PubChem', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
 df_plot = utils._transform_to_categorical(df_plot, 'chem_fp', list_categories)
 df_plot = utils._transform_to_categorical(df_plot, 'model', ['LASSO', 'RF', 'XGBoost', 'GP'])
 df_plot = utils._transform_to_categorical(df_plot, 'averagetype', ['micro', 'macro', 'taxon', 'chemical'])
@@ -423,7 +426,7 @@ else:
 df_plot = df_plot[(df_plot['fold'] == 'test')
                  & (df_plot['groupsplit'] == 'occurrence')
                  & (df_plot['conctype'] == 'molar')].copy()
-list_categories = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
+list_categories = ['MACCS', 'PubChem', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
 df_plot = utils._transform_to_categorical(df_plot, 'chem_fp', list_categories)
 df_plot = utils._transform_to_categorical(df_plot, 'model', ['LASSO', 'RF', 'XGBoost', 'GP'])
 
