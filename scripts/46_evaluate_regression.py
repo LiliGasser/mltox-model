@@ -217,7 +217,7 @@ def _calculate_metric_stuff(df_errors, metric):
     if metric == 'r2':
         metric_max = 1.01
         metric_step = 0.2
-        str_metric = r'R$^2$'
+        str_metric = r'$R^2$'
     elif metric == 'rmse':
         metric_max = df_errors[metric].max() + 0.1
         metric_step = 0.25
@@ -230,7 +230,7 @@ def _calculate_metric_stuff(df_errors, metric):
     return metric_max, metric_step, str_metric
 
 # store images flag
-do_store_images = False
+do_store_images = True
 
 # %%
 
@@ -425,7 +425,7 @@ fig.update_yaxes(range=[0, metric_max], tickvals=list_tickvals)
 fig.update_layout(scattermode='group')
 
 # Update title and height
-fig.update_layout(height=700, width=1000)
+fig.update_layout(height=700, width=1100)
 
 # add legend for fingerprints
 for chem_fp in list_cols_fps_none:
@@ -595,7 +595,7 @@ fig.update_yaxes(range=[0, metric_max], tickvals=list_tickvals)
 fig.update_layout(scattermode='group')
 
 # Update title and height
-fig.update_layout(height=700, width=1000)
+fig.update_layout(height=700, width=1100)
 
 # add legend for fingerprints
 for chem_fp in list_cols_fps_none:
@@ -1141,7 +1141,7 @@ fig.update_yaxes(range=[0, metric_max], tickvals=list_tickvals, row=row, col=col
 fig.update_layout(scattermode='group')
 
 # Update title and height
-fig.update_layout(height=600, width=500)
+fig.update_layout(height=600, width=560)
 
 #for errortype in ['valid']:
     #fig.add_trace(go.Scatter(x=[None],
