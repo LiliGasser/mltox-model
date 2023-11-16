@@ -40,7 +40,9 @@ def compile_errors(modeltype, load_top3=False):
     # load top3 features error files
     if load_top3:
         df_cv_top3 = pd.read_csv(path_output + modeltype + '_CV-errors_top3features.csv')
+        df_cv_top3['chem_fp'] = 'top 3'
         df_test_top3 = pd.read_csv(path_output + modeltype + '_test-errors_top3features.csv')
+        df_test_top3['chem_fp'] = 'top 3'
     else:
         df_cv_top3 = pd.DataFrame()
         df_test_top3 = pd.DataFrame()
@@ -66,34 +68,34 @@ def compile_errors(modeltype, load_top3=False):
 # load LASSO: 
 # 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 112 entries
 # + 1 fps x 2 groupsplits x 4 sets x 2 concentrations = 16 entries (top3 features)
-# total: 112 entries
+# total: 128 entries
 df_lasso = compile_errors(modeltype='lasso', load_top3=True)
 df_lasso
 
 # %%
 
 # load RF
-# 6 fps x 2 groupsplits x 4 sets x 2 concentrations = 96 entries
+# 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 112 entries
 # + 1 fps x 2 groupsplits x 4 sets x 2 concentrations = 16 entries (top3 features)
-# total: 112 entries
+# total: 128 entries
 df_rf = compile_errors(modeltype='rf', load_top3=True)
 df_rf
 
 # %%
 
 # load XGBoost
-# 6 fps x 2 groupsplits x 4 sets x 2 concentrations = 96 entries
+# 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 112 entries
 # + 1 fps x 2 groupsplits x 4 sets x 2 concentrations = 16 entries (top3 features)
-# total: 112 entries
+# total: 128 entries
 df_xgboost = compile_errors(modeltype='xgboost', load_top3=True)
 df_xgboost
 
 # %%
 
 # load GP
-# 6 fps x 2 groupsplits x 4 sets x 2 tax_pdm x 2 concentrations = 192 entries
+# 7 fps x 2 groupsplits x 4 sets x 2 tax_pdm x 2 concentrations = 224 entries
 # + 1 fps x 2 groupsplits x 4 sets x 2 concentrations = 16 entries (top3 features)
-# total: 208 entries
+# total: 240 entries
 df_gp = compile_errors(modeltype='gp', load_top3=True)
 df_gp
 
@@ -111,7 +113,6 @@ df_errors
 
 # %%
 
-# TODO adjust for top3 features and no fingerprint!!
 # only two group splits
 list_cols = ['totallyrandom', 'occurrence']
 df_errors = df_errors[df_errors['groupsplit'].isin(list_cols)].copy()
@@ -119,8 +120,8 @@ df_gp_all = df_gp_all[df_gp_all['groupsplit'].isin(list_cols)].copy()
 
 # categorical variables
 # the fingerprint 'none' corresponds to the top 3 features models
-list_cols_fps = ['MACCS', 'PubChem', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
-list_cols_fps_none = list_cols_fps + ['none']
+list_cols_fps = ['MACCS', 'PubChem', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred', 'none']
+list_cols_fps_none = list_cols_fps + ['top 3']
 df_errors = utils._transform_to_categorical(df_errors, 'groupsplit', ['totallyrandom', 'occurrence'])
 df_errors = utils._transform_to_categorical(df_errors, 'chem_fp', list_cols_fps_none)
 df_errors = utils._transform_to_categorical(df_errors, 'model', ['LASSO', 'RF', 'XGBoost', 'GP'])
@@ -199,7 +200,7 @@ print(df_l.to_latex(index=False))
 # for chem_fp: colors from CH2018 report
 # and purple from https://www.pinterest.ch/pin/1130403575204052700/
 # and yellow from https://www.pinterest.ch/pin/57632070223416732/
-list_colors = ['#75aab9', '#dfc85e', '#998478', '#c194ac', '#80a58b', '#fbba76', 'grey']
+list_colors = ['#75aab9', '#dfc85e', '#998478', '#c194ac', '#80a58b', '#fbba76', '#999', '#ddd']
 
 # for errors
 list_colors_points = ['#ccc', '#444', '#999', 'black']
@@ -424,7 +425,7 @@ fig.update_yaxes(range=[0, metric_max], tickvals=list_tickvals)
 fig.update_layout(scattermode='group')
 
 # Update title and height
-fig.update_layout(height=600, width=900)
+fig.update_layout(height=700, width=1000)
 
 # add legend for fingerprints
 for chem_fp in list_cols_fps_none:
@@ -594,7 +595,7 @@ fig.update_yaxes(range=[0, metric_max], tickvals=list_tickvals)
 fig.update_layout(scattermode='group')
 
 # Update title and height
-fig.update_layout(height=600, width=900)
+fig.update_layout(height=700, width=1000)
 
 # add legend for fingerprints
 for chem_fp in list_cols_fps_none:
@@ -738,16 +739,16 @@ for chem_fp in list_cols_fps_none:
                              marker_color=dict_colors_fps_none[chem_fp],
                              marker_symbol='square',
                              marker_size=12))
-for errortype in ['valid']:
-    fig.add_trace(go.Scatter(x=[None],
-                             y=[None],
-                             mode='markers',
-                             name=errortype,
-                             legendgroup='set',
-                             legendgrouptitle_text='error type',
-                             marker_color=dict_colors_points[errortype],
-                             marker_symbol='diamond-open',
-                             marker_size=7))
+#for errortype in ['valid']:
+    #fig.add_trace(go.Scatter(x=[None],
+                             #y=[None],
+                             #mode='markers',
+                             #name=errortype,
+                             #legendgroup='set',
+                             #legendgrouptitle_text='error type',
+                             #marker_color=dict_colors_points[errortype],
+                             #marker_symbol='diamond-open',
+                             #marker_size=7))
 # TODO legend at bottom horizontally aligned
 #fig.update_layout(legend_orientation='h', legend_xanchor='center', legend_x=0.5)
 
@@ -1006,7 +1007,7 @@ fig.update_yaxes(range=[0, metric_max], tickvals=list_tickvals)
 fig.update_layout(scattermode='group')
 
 # Update title and height
-fig.update_layout(height=600, width=900)
+fig.update_layout(height=700, width=1000)
 
 # add legend for tax_pdm
 for tax_pdm in ['none', 'pdm']:
