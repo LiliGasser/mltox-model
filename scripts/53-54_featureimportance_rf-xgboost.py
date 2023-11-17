@@ -17,6 +17,7 @@ import pickle
 import shap
 from copy import copy
 
+import matplotlib
 import matplotlib.pyplot as plt
 from plotnine import *
 
@@ -85,6 +86,7 @@ groupsplit = 'occurrence'
 conctype = 'molar'
 
 title = ' '.join((modeltype, chem_fp))
+title_medium = '_'.join((groupsplit, conctype, chem_fp))
 title_long = '_'.join((groupsplit, conctype, modeltype, chem_fp))
 max_display = 10
 
@@ -188,15 +190,19 @@ df_pi_long['feature2'] = pd.Categorical(df_pi_long['feature2'],
                                         df_pi_long['feature2'].unique(),
                                         ordered=True)
 df_plot = df_pi_long[df_pi_long['set'] == 'test'].copy()
-(ggplot(data=df_plot, mapping=aes(y='importance', x='feature2'))
+g = (ggplot(data=df_plot, mapping=aes(y='importance', x='feature2'))
     + geom_boxplot(outlier_alpha=0)
     + geom_point(color='darkgrey', shape='.')
     + geom_vline(xintercept=0, linetype='--')
-    + labs(y='Decrease in accuracy score', x='', title=title)
+    + labs(y='Decrease in accuracy score', x='', title='')
+    #+ labs(y='Decrease in accuracy score', x='', title=title)
     + coord_flip()
     + theme_minimal()
     + theme(figure_size=(8, 6))
  )
+g.save(path_figures + '53-54_Permimp_' + title_long + '.pdf')
+g
+
 # %%
 
 # %%
@@ -253,6 +259,16 @@ shap_values_chemtax.values = df_shap_gb_chemtax.to_numpy()
 
 # The default colormap should not be used as it is not colorblind safe.
 
+# Change default SHAP colors based on this article 
+# https://towardsdatascience.com/how-to-easily-customize-shap-plots-in-python-fdff9c0483f2
+# Default SHAP colors
+default_pos_color = "#ff0051"
+default_neg_color = "#008bfb"
+
+# Custom colors
+positive_color = "#666"  #"#ca0020"
+negative_color = "#92c5de"
+
 # %%
 
 # Plots for entire test set
@@ -261,6 +277,23 @@ shap_values_chemtax.values = df_shap_gb_chemtax.to_numpy()
 shap.plots.bar(shap_values,
                max_display=max_display+1,
                show=False)
+
+# change the bar and text colors
+for fc in plt.gcf().get_children():
+    # Ignore last Rectangle
+    for fcc in fc.get_children()[:-1]:
+        if (isinstance(fcc, matplotlib.patches.Rectangle)):
+            if (matplotlib.colors.to_hex(fcc.get_facecolor()) == default_pos_color):
+                fcc.set_facecolor(positive_color)
+            elif (matplotlib.colors.to_hex(fcc.get_facecolor()) == default_neg_color):
+                fcc.set_color(negative_color)
+        elif (isinstance(fcc, plt.Text)):
+            if (matplotlib.colors.to_hex(fcc.get_color()) == default_pos_color):
+                fcc.set_color(positive_color)
+            elif (matplotlib.colors.to_hex(fcc.get_color()) == default_neg_color):
+                fcc.set_color(negative_color)
+
+plt.gcf().set_size_inches(8,6)
 #plt.title('micro-average')
 plt.savefig(path_figures + '53-54_SHAPglobal_' + title_long + '.pdf',
             bbox_inches='tight')
@@ -303,6 +336,7 @@ shap.summary_plot(shap_values,
                   alpha=0.4,
                   show=False,
                   )
+plt.gcf().set_size_inches(8,6)
 plt.savefig(path_figures + '53-54_SHAPlocal_' + title_long + '.pdf',
             bbox_inches='tight')
 plt.tight_layout()
@@ -552,6 +586,109 @@ df_plot_long = utils._transform_to_categorical(df_plot_long, 'type', ['LASSO', '
     + theme(figure_size=(10, 8))
  )
 
+# %%
+
+# Species sensitivity distribution (SSD)
+
+# merge df_eco with predictions
+df_ssd = pd.merge(df_eco,
+                  df_p[['result_id', 'true', 'lasso_pred', 'rf_pred', 'xgboost_pred', 'gp_pred']],
+                  left_on=['result_id'],
+                  right_on=['result_id'],
+                  how='inner')   # with inner: only trainvalid predictions
+
+# calculate backtransformation of predicted concentrations
+df_ssd['10^lasso_pred'] = 10**df_ssd['lasso_pred']
+df_ssd['10^rf_pred'] = 10**df_ssd['rf_pred']
+df_ssd['10^xgboost_pred'] = 10**df_ssd['xgboost_pred']
+df_ssd['10^gp_pred'] = 10**df_ssd['gp_pred']
+
+# only tests with lasted 96 hours and with an active ingredient
+df_ssd = df_ssd[(df_ssd['result_obs_duration_mean'] == 96) 
+                & (df_ssd['result_conc1_type'] == 'A')
+                ].copy()
+
+# only chemicals which are tested on at least 15 species
+df_ssd['n_species'] = df_ssd.groupby(['chem_name', 'test_cas'])['tax_gs'].transform('nunique')
+df_ssd = df_ssd[df_ssd['n_species'] >= 15]
+print(df_ssd.shape)
+
+# set column for concentration
+if conctype == 'molar':
+    col_conc = 'result_conc1_mean_mol'
+elif conctype == 'mass':
+    col_conc = 'result_conc1_mean'
+
+# get minimum and maximum concentration
+conc_min = df_ssd[col_conc].min()
+conc_max = df_ssd[col_conc].max()
+
+# %%
+
+# calculate median and standard deviation
+list_cols_gb = ['test_cas', 'chem_name', 'tax_gs']
+#list_cols_gb += ['result_obs_duration_mean', 'result_conc1_type', 'test_exposure_type', 'test_media_type']
+df_ssd_gb = df_ssd.groupby(list_cols_gb).agg(n_tests=('result_id', 'count'),
+                                             true_median=(col_conc, 'median'),
+                                             true_std=(col_conc, 'std'),
+                                             lasso_median=('10^lasso_pred', 'median'),
+                                             lasso_std=('10^lasso_pred', 'std'),
+                                             rf_median=('10^rf_pred', 'median'),
+                                             rf_std=('10^rf_pred', 'std'),
+                                             xgboost_median=('10^xgboost_pred', 'median'),
+                                             xgboost_std=('10^xgboost_pred', 'std'),
+                                             gp_median=('10^gp_pred', 'median'),
+                                             gp_std=('10^gp_pred', 'std'),
+                                             ).reset_index()
+# fill NAs in standard deviation with 0
+df_ssd_gb = df_ssd_gb.fillna(0)
+
+# %%
+
+# plot
+alpha = 1
+
+# for each chemical
+for chem_name in df_ssd_gb['chem_name'].unique():
+    df_plot = df_ssd_gb[df_ssd_gb['chem_name'] == chem_name].copy()
+
+    # sort by true median concentration and calculate index fractions
+    df_plot = df_plot.sort_values(['true_median'])
+    df_plot = df_plot.reset_index(drop=True).reset_index()
+    df_plot['index_frac'] = df_plot['index'] / df_plot['index'].max()
+
+    g = (ggplot(data=df_plot, mapping=aes(x='index_frac'))
+        + geom_segment(aes(xend='index_frac', y='true_median-true_std', yend='true_median+true_std'), size=0.5)
+        + geom_point(aes(y='true_median'))
+        + geom_segment(aes(xend='index_frac', y='lasso_median-lasso_std', yend='lasso_median+lasso_std'), size=0.5, color=list_colors[0], alpha=alpha)
+        + geom_point(aes(y='lasso_median'), color=list_colors[0], alpha=alpha)
+        + geom_segment(aes(xend='index_frac', y='rf_median-rf_std', yend='rf_median+rf_std'), size=0.5, color=list_colors[1], alpha=alpha)
+        + geom_point(aes(y='rf_median'), color=list_colors[1], alpha=alpha)
+        + geom_segment(aes(xend='index_frac', y='xgboost_median-xgboost_std', yend='xgboost_median+xgboost_std'), size=0.5, color=list_colors[2], alpha=alpha)
+        + geom_point(aes(y='xgboost_median'), color=list_colors[2], alpha=alpha)
+        + geom_segment(aes(xend='index_frac', y='gp_median-gp_std', yend='gp_median+gp_std'), size=0.5, color=list_colors[3], alpha=alpha)
+        + geom_point(aes(y='gp_median'), color=list_colors[3], alpha=alpha)
+        + scale_y_continuous(trans='log10', limits=(conc_min, conc_max))
+        + coord_flip()
+        + theme_minimal()
+        + labs(title=chem_name,
+               x='potentially affected fraction', 
+               y='molar concentration')
+    )
+    #g.save(path_figures + '53-54_SSD_' + title_medium + '_' + chem_name + '_96h.pdf')
+    print(g)
+
+# %%
+
+
+# How to do the SSD?
+# - 1) summarize for chemical and species
+# - 2) for each chemical and species, provide summary for each experimental setting?
+# - 3) for each experimental setting? but then there are fewer tests
+
+# summary statistics are calculated from raw LC50, not log10-transformed(LC50)
+
+
 
 # %%
 # # %%
@@ -672,7 +809,4 @@ plt.show()
 #plt.tight_layout()
 #plt.show()
 
-# do not run
-#shap.plots.embedding(0, shap_values)
-#shap.plots.force(shap_values)
 # %%
