@@ -64,7 +64,7 @@ df_params = utils.read_result_files(path_output_dir, file_type='param')
 
 # categorical variables for fingerprints
 col = 'chem_fp'
-list_categories = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
+list_categories = ['none', 'MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
 df_errors = utils._transform_to_categorical(df_errors, col, list_categories)
 df_params = utils._transform_to_categorical(df_params, col, list_categories)
                                           
@@ -119,7 +119,7 @@ df_e_v[list_cols].round(5).to_csv(path_output + 'gp_CV-errors.csv', index=False)
 
 # %%
 
-# compare mass and molar concentration for none
+# compare mass and molar concentration for tax_pdm none
 metric = 'rmse'
 tax_pdm = 'none'
 df_plot = df_e_v[df_e_v['tax_pdm'] == tax_pdm].copy()
@@ -367,7 +367,5 @@ for i in df_p_oi_l['wrap'].unique():
 filepath = path_figures + '21_GP_featureimportance_' + chem_fp + '_' + groupsplit + '_' + conctype + '.png'
 #fig.savefig(filepath, facecolor='white')
 plt.show()
-
-
 
 # %%

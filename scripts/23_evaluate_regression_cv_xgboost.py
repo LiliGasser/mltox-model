@@ -66,7 +66,7 @@ df_errors = utils.read_result_files(path_output_dir, file_type='error')
 
 # categorical variables for fingerprints
 col = 'chem_fp'
-list_categories = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
+list_categories = ['none', 'MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
 df_errors = utils._transform_to_categorical(df_errors, col, list_categories)
 
 # categorical variable for folds
