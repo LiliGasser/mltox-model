@@ -34,20 +34,20 @@ path_vmoutput = path_root + 'vm_output_xgboost/tmp/'
 
 ### parameter grids
 
-# TODO no chemprops for Mordred
+# TODO for single species challenges: no tax_prop and tax_pdm
 param_grid = [
 
     {
+     # data
+     'challenge': ['s-F2F-1', 's-F2F-2', 's-F2F-3', 's-C2C', 's-A2A'],
      # features
-     #'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec'], 
-     #'chem_fp': ['Mordred'],
-     'chem_fp': ['none'],
+     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred', 'none'], 
      'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
      'tax_pdm': ['none'],                       #['none', 'pdm', 'pdm-squared'],
-     'tax_prop': ['taxprop-migrate2'],          #['none', 'taxprop-migrate2', 'taxprop-migrate5'],
+     'tax_prop': ['none'],                      #['none', 'taxprop-migrate2', 'taxprop-migrate5'],
      'exp': ['exp-dropfirst'],                  #['none', 'exp-dropnone', 'exp-dropfirst'],     # use dropfirst
      # splits
-     'groupsplit': ['occurrence', 'totallyrandom'], 
+     'groupsplit': ['totallyrandom', 'occurrence'],
      # concentration
      'conctype': ['molar', 'mass'] 
     }
@@ -98,6 +98,7 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     print("-------------------------------")
 
     # get settings
+    challenge = param['challenge']
     chem_fp = param['chem_fp']
     chem_prop = param['chem_prop']
     tax_pdm = param['tax_pdm']
@@ -112,8 +113,12 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     elif conctype == 'molar':
         col_conc = 'result_conc1_mean_mol_log'
 
-    # load fish data
-    df_eco = pd.read_csv(path_data + 'processed/t-F2F_mortality.csv', low_memory=False)
+    # no chemprops for Mordred
+    if chem_fp == 'Mordred':
+        chem_prop = 'none'
+
+    # load data
+    df_eco = pd.read_csv(path_data + 'processed/' + challenge + '_mortality.csv', low_memory=False)
 
     # load phylogenetic distance matrix
     tax_group = 'FCA'
