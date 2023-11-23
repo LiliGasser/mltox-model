@@ -23,11 +23,14 @@ import evaluation as eval
 
 # %%
 
+# set paths
 path_vmoutput_gp = path_root + 'vm_output_gp/'
 path_vmoutput_lasso = path_root + 'vm_output_lasso/'
 path_vmoutput_rf = path_root + 'vm_output_rf/'
 path_vmoutput_xgboost = path_root + 'vm_output_xgboost/'
 
+path_output = path_root + 'output/regression/'
+path_figures = path_output + 'figures/'
 
 # %%
 
@@ -52,13 +55,8 @@ df_p_xgboost_all = utils.read_result_files(path_output_dir, file_type='preds')
 # %%
 
 # select run 
-
-#groupsplit = 'totallyrandom'
 groupsplit = 'occurrence'
-
 conctype = 'molar'
-#conctype = 'mass'
-
 tax_pdm = 'none'
 
 df_p = eval.filter_and_merge_predictions(df_p_gp_all, 
@@ -110,7 +108,7 @@ df_p_long2 = df_p.melt(id_vars=id_vars,
 df_p_long['residual'] = df_p_long2['residual']
 
 # categorical variable
-list_cols_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred']
+list_cols_fps = ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred', 'none']
 df_p_long = utils._transform_to_categorical(df_p_long, 'chem_fp', list_cols_fps)
 df_p_long
 
@@ -142,6 +140,49 @@ ymax = df_plot['residual'].abs().max()
     + theme_minimal()
     + theme(figure_size=(15, 9))
 )
+
+# %%
+
+# residual vs true
+df_plot = df_p_long.copy()
+ymax = df_plot['residual'].abs().max()
+(ggplot(data=df_plot, mapping=aes(x='true', y='residual'))
+    + geom_point(shape='.', color='grey', alpha=0.1) 
+    + scale_y_continuous(limits=[-ymax, ymax])
+    + facet_grid('chem_fp ~ type')
+    + theme_minimal()
+    + theme(figure_size=(15, 9))
+)
+
+# %%
+
+# for MACCS and XGBoost
+chem_fp = 'MACCS'
+type = 'XGBoost'
+
+title = ' '.join((type, chem_fp))
+title_medium = '_'.join((groupsplit, conctype, chem_fp))
+title_long = '_'.join((groupsplit, conctype, type, chem_fp))
+
+# residual vs true
+df_plot = df_p_long[(df_p_long['chem_fp'] == chem_fp)
+                    & (df_p_long['type'] == type)].copy()
+ymax = df_plot['residual'].abs().max()
+g = (ggplot(data=df_plot, mapping=aes(x='true', y='residual'))
+    + geom_point(shape='o', fill='#000', color='none', size=1, alpha=0.3) 
+    + scale_y_continuous(limits=[-ymax, ymax], breaks=[-6, -3, 0, 3, 6])
+    + scale_x_continuous(breaks=[-10, -8, -6, -4, -2, 0])
+    + theme_classic()
+    + theme(figure_size=(8,6))
+    + theme(axis_text=element_text(size=12, color='black'))
+    + theme(axis_title=element_text(size=13, color='black'))
+    + labs(title='',
+           x='log10(LC50 in $mol/L$)',
+           y='residual')
+)
+g.save(path_figures + '47_Residuals_' + title_long + '.pdf')
+g
+
 
 # %%
 

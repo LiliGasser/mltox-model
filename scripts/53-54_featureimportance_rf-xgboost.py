@@ -20,9 +20,6 @@ from copy import copy
 import matplotlib
 import matplotlib.pyplot as plt
 from plotnine import *
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import plotly.express as px
 
 import utils
 import evaluation as eval
