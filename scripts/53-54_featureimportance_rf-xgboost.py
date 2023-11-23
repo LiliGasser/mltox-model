@@ -20,6 +20,9 @@ from copy import copy
 import matplotlib
 import matplotlib.pyplot as plt
 from plotnine import *
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import plotly.express as px
 
 import utils
 import evaluation as eval
@@ -192,12 +195,12 @@ df_pi_long['feature2'] = pd.Categorical(df_pi_long['feature2'],
 df_plot = df_pi_long[df_pi_long['set'] == 'test'].copy()
 g = (ggplot(data=df_plot, mapping=aes(y='importance', x='feature2'))
     + geom_boxplot(outlier_alpha=0)
-    + geom_point(color='darkgrey', shape='.')
+    + geom_jitter(color='#444', shape='.', width=0.1, height=0)
     + geom_vline(xintercept=0, linetype='--')
-    + labs(y='Decrease in accuracy score', x='', title='')
-    #+ labs(y='Decrease in accuracy score', x='', title=title)
+    + labs(y='decrease in accuracy score', x='', title='')
     + coord_flip()
-    + theme_minimal()
+    + theme_classic()
+    + theme(panel_grid_major_y=element_line(color='#ccc', linetype='dotted'))
     + theme(figure_size=(8, 6))
  )
 g.save(path_figures + '53-54_Permimp_' + title_long + '.pdf')
@@ -284,7 +287,7 @@ for fc in plt.gcf().get_children():
     for fcc in fc.get_children()[:-1]:
         if (isinstance(fcc, matplotlib.patches.Rectangle)):
             if (matplotlib.colors.to_hex(fcc.get_facecolor()) == default_pos_color):
-                fcc.set_facecolor(positive_color)
+                fcc.set_color(positive_color)
             elif (matplotlib.colors.to_hex(fcc.get_facecolor()) == default_neg_color):
                 fcc.set_color(negative_color)
         elif (isinstance(fcc, plt.Text)):
@@ -293,11 +296,12 @@ for fc in plt.gcf().get_children():
             elif (matplotlib.colors.to_hex(fcc.get_color()) == default_neg_color):
                 fcc.set_color(negative_color)
 
-plt.gcf().set_size_inches(8,6)
 #plt.title('micro-average')
+plt.xlabel('mean absolute SHAP value')
+plt.gcf().set_size_inches(8,6)
+plt.tight_layout()
 plt.savefig(path_figures + '53-54_SHAPglobal_' + title_long + '.pdf',
             bbox_inches='tight')
-plt.tight_layout()
 plt.show()
 
 # %%
@@ -337,9 +341,9 @@ shap.summary_plot(shap_values,
                   show=False,
                   )
 plt.gcf().set_size_inches(8,6)
+plt.tight_layout()
 plt.savefig(path_figures + '53-54_SHAPlocal_' + title_long + '.pdf',
             bbox_inches='tight')
-plt.tight_layout()
 plt.show()
 
 # %%
@@ -597,17 +601,6 @@ df_ssd = pd.merge(df_eco,
                   right_on=['result_id'],
                   how='inner')   # with inner: only trainvalid predictions
 
-# calculate backtransformation of predicted concentrations
-df_ssd['10^lasso_pred'] = 10**df_ssd['lasso_pred']
-df_ssd['10^rf_pred'] = 10**df_ssd['rf_pred']
-df_ssd['10^xgboost_pred'] = 10**df_ssd['xgboost_pred']
-df_ssd['10^gp_pred'] = 10**df_ssd['gp_pred']
-
-# only tests with lasted 96 hours and with an active ingredient
-df_ssd = df_ssd[(df_ssd['result_obs_duration_mean'] == 96) 
-                & (df_ssd['result_conc1_type'] == 'A')
-                ].copy()
-
 # only chemicals which are tested on at least 15 species
 df_ssd['n_species'] = df_ssd.groupby(['chem_name', 'test_cas'])['tax_gs'].transform('nunique')
 df_ssd = df_ssd[df_ssd['n_species'] >= 15]
@@ -623,60 +616,101 @@ elif conctype == 'mass':
 conc_min = df_ssd[col_conc].min()
 conc_max = df_ssd[col_conc].max()
 
+# only tests with lasted 96 hours and with an active ingredient
+#df_ssd = df_ssd[(df_ssd['result_obs_duration_mean'] == 96) 
+                #& (df_ssd['result_conc1_type'] == 'A')
+                #].copy()
+
+df_ssd
+# %%
+
+# from wide to long
+id_vars = ['result_id', 'chem_name', 'test_cas', 'tax_gs', 'tax_name', 'n_species', col_conc]
+value_vars = ['true', 'lasso_pred', 'rf_pred', 'xgboost_pred', 'gp_pred']
+df_ssd_long = pd.melt(df_ssd, 
+                      id_vars=id_vars, 
+                      value_vars=value_vars,
+                      var_name='model',
+                      value_name='conc_log10')
+
+# replace model names
+df_ssd_long['model'] = df_ssd_long['model'].str.replace('lasso_pred', 'LASSO')
+df_ssd_long['model'] = df_ssd_long['model'].str.replace('rf_pred', 'RF')
+df_ssd_long['model'] = df_ssd_long['model'].str.replace('xgboost_pred', 'XGBoost')
+df_ssd_long['model'] = df_ssd_long['model'].str.replace('gp_pred', 'GP')
+
+# calculate backtransformation of predicted concentrations
+df_ssd_long['conc'] = 10**df_ssd_long['conc_log10']
+df_ssd_long
+
 # %%
 
 # calculate median and standard deviation
-list_cols_gb = ['test_cas', 'chem_name', 'tax_gs']
+list_cols_gb = ['test_cas', 'chem_name', 'tax_gs', 'tax_name', 'model']
 #list_cols_gb += ['result_obs_duration_mean', 'result_conc1_type', 'test_exposure_type', 'test_media_type']
-df_ssd_gb = df_ssd.groupby(list_cols_gb).agg(n_tests=('result_id', 'count'),
-                                             true_median=(col_conc, 'median'),
-                                             true_std=(col_conc, 'std'),
-                                             lasso_median=('10^lasso_pred', 'median'),
-                                             lasso_std=('10^lasso_pred', 'std'),
-                                             rf_median=('10^rf_pred', 'median'),
-                                             rf_std=('10^rf_pred', 'std'),
-                                             xgboost_median=('10^xgboost_pred', 'median'),
-                                             xgboost_std=('10^xgboost_pred', 'std'),
-                                             gp_median=('10^gp_pred', 'median'),
-                                             gp_std=('10^gp_pred', 'std'),
-                                             ).reset_index()
+df_ssd_gb = df_ssd_long.groupby(list_cols_gb).agg(n_tests=('result_id', 'count'),
+                                                  conc_median=('conc', 'mean'),
+                                                  conc_std=('conc', 'std'),
+                                                  ).reset_index()
 # fill NAs in standard deviation with 0
 df_ssd_gb = df_ssd_gb.fillna(0)
 
+# calculate log10 transformations
+# TODO how to handle std that is larger than median?
+df_ssd_gb['conc_median_log10'] = np.log10(df_ssd_gb['conc_median'])
+df_ssd_gb['conc_median-std_log10'] = np.log10(df_ssd_gb['conc_median'] - df_ssd_gb['conc_std'])
+df_ssd_gb['conc_median+std_log10'] = np.log10(df_ssd_gb['conc_median'] + df_ssd_gb['conc_std'])
+df_ssd_gb
+
+
 # %%
 
-# plot
-alpha = 1
+# TODO size
 
-# for each chemical
-for chem_name in df_ssd_gb['chem_name'].unique():
-    df_plot = df_ssd_gb[df_ssd_gb['chem_name'] == chem_name].copy()
+# %%
+
+# SSD with plotnine
+
+list_cols_models = ['true', 'LASSO', 'RF', 'XGBoost', 'GP']
+list_colors_models = ['black'] + list_colors[:4]
+
+df_ssd_gb['chemical'] = df_ssd_gb['chem_name'] + ' (' + df_ssd_gb['test_cas'] + ')'
+list_chemicals = list(df_ssd_gb['chemical'].unique())[:4]
+
+for chemical in list_chemicals:
+    df_plot = df_ssd_gb[df_ssd_gb['chemical'] == chemical].copy()
 
     # sort by true median concentration and calculate index fractions
-    df_plot = df_plot.sort_values(['true_median'])
-    df_plot = df_plot.reset_index(drop=True).reset_index()
-    df_plot['index_frac'] = df_plot['index'] / df_plot['index'].max()
+    df_pt = df_plot[df_plot['model'] == 'true'].sort_values('conc_median_log10')
+    df_pt = df_pt.reset_index(drop=True).reset_index()
+    df_pt['index_frac'] = df_pt['index'] / df_pt['index'].max()
 
-    g = (ggplot(data=df_plot, mapping=aes(x='index_frac'))
-        + geom_segment(aes(xend='index_frac', y='true_median-true_std', yend='true_median+true_std'), size=0.5)
-        + geom_point(aes(y='true_median'))
-        + geom_segment(aes(xend='index_frac', y='lasso_median-lasso_std', yend='lasso_median+lasso_std'), size=0.5, color=list_colors[0], alpha=alpha)
-        + geom_point(aes(y='lasso_median'), color=list_colors[0], alpha=alpha)
-        + geom_segment(aes(xend='index_frac', y='rf_median-rf_std', yend='rf_median+rf_std'), size=0.5, color=list_colors[1], alpha=alpha)
-        + geom_point(aes(y='rf_median'), color=list_colors[1], alpha=alpha)
-        + geom_segment(aes(xend='index_frac', y='xgboost_median-xgboost_std', yend='xgboost_median+xgboost_std'), size=0.5, color=list_colors[2], alpha=alpha)
-        + geom_point(aes(y='xgboost_median'), color=list_colors[2], alpha=alpha)
-        + geom_segment(aes(xend='index_frac', y='gp_median-gp_std', yend='gp_median+gp_std'), size=0.5, color=list_colors[3], alpha=alpha)
-        + geom_point(aes(y='gp_median'), color=list_colors[3], alpha=alpha)
-        + scale_y_continuous(trans='log10', limits=(conc_min, conc_max))
+    # merge back with df_plot
+    df_plot = pd.merge(df_plot,
+                       df_pt[['test_cas', 'chem_name', 'tax_gs', 'index', 'index_frac']],
+                       left_on=['test_cas', 'chem_name', 'tax_gs'],
+                       right_on=['test_cas', 'chem_name', 'tax_gs'],
+                       how='left')
+
+    df_plot['model'] = pd.Categorical(df_plot['model'],
+                                      categories=list_cols_models,
+                                      ordered=True)
+
+    g = (ggplot(data=df_plot, mapping=aes(x='index_frac', color='model'))
+        + geom_segment(aes(xend='index_frac', y='conc_median-std_log10', yend='conc_median+std_log10'), 
+                       size=0.5,
+                       show_legend=False)
+        + geom_point(aes(y='conc_median_log10')) 
+        + scale_color_manual(values=list_colors_models)
+        + scale_y_continuous(limits=(np.log10(conc_min), np.log10(conc_max)))
         + coord_flip()
-        + theme_minimal()
-        + labs(title=chem_name,
-               x='potentially affected fraction', 
-               y='molar concentration')
-    )
+        + theme_classic()
+        + labs(title=chemical,
+                x='potentially affected fraction', 
+                y='log10(LC50 in $mol/L$)')
+     )
     #g.save(path_figures + '53-54_SSD_' + title_medium + '_' + chem_name + '_96h.pdf')
-    print(g)
+    print(g) 
 
 # %%
 
