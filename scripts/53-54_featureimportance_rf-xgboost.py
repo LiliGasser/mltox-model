@@ -617,14 +617,13 @@ elif conctype == 'mass':
 # get minimum and maximum concentration
 conc_min = df_ssd[col_conc].min()
 conc_max = df_ssd[col_conc].max()
+conc_min_log10 = np.floor(np.log10(conc_min))
+conc_max_log10 = np.ceil(np.log10(conc_max))
 
 # only tests with lasted 96 hours and with an active ingredient
 #df_ssd = df_ssd[(df_ssd['result_obs_duration_mean'] == 96) 
                 #& (df_ssd['result_conc1_type'] == 'A')
                 #].copy()
-
-df_ssd
-# %%
 
 # from wide to long
 id_vars = ['result_id', 'chem_name', 'test_cas', 'tax_gs', 'tax_name', 'n_species', col_conc]
@@ -643,9 +642,6 @@ df_ssd_long['model'] = df_ssd_long['model'].str.replace('gp_pred', 'GP')
 
 # calculate backtransformation of predicted concentrations
 df_ssd_long['conc'] = 10**df_ssd_long['conc_log10']
-df_ssd_long
-
-# %%
 
 # calculate median and standard deviation
 list_cols_gb = ['test_cas', 'chem_name', 'tax_gs', 'tax_name', 'model']
@@ -662,12 +658,6 @@ df_ssd_gb = df_ssd_gb.fillna(0)
 df_ssd_gb['conc_median_log10'] = np.log10(df_ssd_gb['conc_median'])
 df_ssd_gb['conc_median-std_log10'] = np.log10(df_ssd_gb['conc_median'] - df_ssd_gb['conc_std'])
 df_ssd_gb['conc_median+std_log10'] = np.log10(df_ssd_gb['conc_median'] + df_ssd_gb['conc_std'])
-df_ssd_gb
-
-
-# %%
-
-# TODO size
 
 # %%
 
@@ -677,10 +667,12 @@ list_cols_models = ['true', 'LASSO', 'RF', 'XGBoost', 'GP']
 list_colors_models = ['black'] + list_colors[:4]
 
 df_ssd_gb['chemical'] = df_ssd_gb['chem_name'] + ' (' + df_ssd_gb['test_cas'] + ')'
-list_chemicals = list(df_ssd_gb['chemical'].unique())[:4]
+list_chemicals = list(df_ssd_gb['chemical'].unique())[:10]
 
 for chemical in list_chemicals:
+    #chemical = 'Potassium cyanide (151-50-8)'
     df_plot = df_ssd_gb[df_ssd_gb['chemical'] == chemical].copy()
+    chem_name = chemical.split(' (')[0]
 
     # sort by true median concentration and calculate index fractions
     df_pt = df_plot[df_plot['model'] == 'true'].sort_values('conc_median_log10')
@@ -704,14 +696,20 @@ for chemical in list_chemicals:
                        show_legend=False)
         + geom_point(aes(y='conc_median_log10')) 
         + scale_color_manual(values=list_colors_models)
-        + scale_y_continuous(limits=(np.log10(conc_min), np.log10(conc_max)))
+        + scale_y_continuous(limits=(conc_min_log10, conc_max_log10), breaks=(-10, -8, -6, -4, -2, 0, 2))
         + coord_flip()
         + theme_classic()
+        + theme(legend_position=(0.9, 0.3), legend_direction='vertical')
+        + theme(axis_text=element_text(size=12, color='black'))
+        + theme(axis_title=element_text(size=13, color='black'))
+        + theme(figure_size=(8, 6))
         + labs(title=chemical,
                 x='potentially affected fraction', 
                 y='log10(LC50 in $mol/L$)')
      )
-    #g.save(path_figures + '53-54_SSD_' + title_medium + '_' + chem_name + '_96h.pdf')
+    if chem_name == 'Potassium cyanide':
+        g = g + theme(legend_position=(0.2, 0.3), legend_direction='vertical')
+    g.save(path_figures + '53-54_SSD_' + title_medium + '_' + chem_name + '.pdf')
     print(g) 
 
 # %%
