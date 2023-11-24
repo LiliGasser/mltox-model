@@ -51,8 +51,8 @@ df_cv = df_cv[df_cv['set'] == 'valid'].copy()
 # %%
 
 # load test output
-#df_e_test = pd.read_csv(path_output + modeltype + '_test-errors.csv')
-#df_pr_test = pd.read_csv(path_output + modeltype + '_predictions.csv')
+#df_e_test = pd.read_csv(path_output + modeltype + '_test-errors_singlespecies.csv')
+#df_pr_test = pd.read_csv(path_output + modeltype + '_predictions_singlespecies.csv')
 
 df_e_test = pd.DataFrame()
 df_pr_test = pd.DataFrame()
