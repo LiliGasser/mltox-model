@@ -89,3 +89,9 @@ trainvalid,0.50042,0.35437,0.87912,0.93833,trainvalid,chemprop,none,none,exp-dro
 test,0.82723,0.63011,0.7609,0.87887,test,chemprop,none,none,exp-dropfirst,s-F2F-2,ToxPrint,mass,occurrence,50,0.3,1,3,3,0.5
 trainvalid,0.21093,0.12589,0.98335,0.99166,trainvalid,chemprop,none,none,exp-dropfirst,s-F2F-2,mol2vec,molar,totallyrandom,100,0.1,0,12,5,0.5
 test,0.46507,0.2314,0.91864,0.95857,test,chemprop,none,none,exp-dropfirst,s-F2F-2,mol2vec,molar,totallyrandom,100,0.1,0,12,5,0.5
+trainvalid,0.16863,0.0927,0.98863,0.9943,trainvalid,chemprop,none,none,exp-dropfirst,s-F2F-2,mol2vec,molar,occurrence,100,0.1,0,12,3,1.0
+test,0.82546,0.63294,0.80884,0.90508,test,chemprop,none,none,exp-dropfirst,s-F2F-2,mol2vec,molar,occurrence,100,0.1,0,12,3,1.0
+trainvalid,0.19942,0.114,0.9819,0.99092,trainvalid,chemprop,none,none,exp-dropfirst,s-F2F-2,mol2vec,mass,totallyrandom,100,0.2,0,6,5,1.0
+test,0.44848,0.22287,0.90862,0.95332,test,chemprop,none,none,exp-dropfirst,s-F2F-2,mol2vec,mass,totallyrandom,100,0.2,0,6,5,1.0
+trainvalid,0.4178,0.29318,0.91574,0.95851,trainvalid,chemprop,none,none,exp-dropfirst,s-F2F-2,mol2vec,mass,occurrence,100,0.1,1,3,3,1.0
+test,0.83619,0.66041,0.7557,0.87027,test,chemprop,none,none,exp-dropfirst,s-F2F-2,mol2vec,mass,occurrence,100,0.1,1,3,3,1.0
