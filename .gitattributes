@@ -76,3 +76,5 @@ output/regression/gp_predictions_top3features.csv filter=lfs diff=lfs merge=lfs 
 output/regression/gp_trainvalid-coefficients_top3features.csv filter=lfs diff=lfs merge=lfs -text
 output/regression/lasso_predictions_top3features.csv filter=lfs diff=lfs merge=lfs -text
 output/regression/lasso_trainvalid-coefficients_top3features.csv filter=lfs diff=lfs merge=lfs -text
+output/regression/lasso_predictions_singlespecies.csv filter=lfs diff=lfs merge=lfs -text
+output/regression/rf_predictions_singlespecies.csv filter=lfs diff=lfs merge=lfs -text
