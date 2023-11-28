@@ -664,7 +664,7 @@ list_cols_models = ['true', 'LASSO', 'RF', 'XGBoost', 'GP']
 list_colors_models = ['black'] + list_colors[:4]
 
 df_ssd_gb['chemical'] = df_ssd_gb['chem_name'] + ' (' + df_ssd_gb['test_cas'] + ')'
-list_chemicals = list(df_ssd_gb['chemical'].unique())[:10]
+list_chemicals = list(df_ssd_gb['chemical'].unique())
 
 for chemical in list_chemicals:
     #chemical = 'Potassium cyanide (151-50-8)'
@@ -697,8 +697,11 @@ for chemical in list_chemicals:
         + coord_flip()
         + theme_classic()
         + theme(legend_position=(0.9, 0.3), legend_direction='vertical')
+        + theme(plot_title=element_text(size=13, color='black'))
         + theme(axis_text=element_text(size=12, color='black'))
         + theme(axis_title=element_text(size=13, color='black'))
+        + theme(legend_title=element_text(size=13, color='black'))
+        + theme(legend_text=element_text(size=12, color='black'))
         + theme(figure_size=(8, 6))
         + labs(title=chemical,
                 x='potentially affected fraction', 
