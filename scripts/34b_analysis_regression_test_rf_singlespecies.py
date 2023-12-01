@@ -75,8 +75,8 @@ param_grid = [
 ]
 
 # set for what to calculate feature importances
-list_groupsplit_fi = [] #['occurrence']
-list_conctype_fi = [] #['molar']
+list_groupsplit_fi = ['occurrence']
+list_conctype_fi = ['molar']
 
 lengthscales = -1  # initialize for some functions but it is not actually needed
 
@@ -272,7 +272,7 @@ for i, param in enumerate(ParameterGrid(param_grid)):
         print(conctype, groupsplit)
 
         # impurity based feature importances
-        filename_ending = '_'.join((modeltype, 'featimp-impurity', chem_fp, groupsplit, conctype)) + '.csv'
+        filename_ending = '_'.join((challenge, modeltype, 'featimp-impurity', chem_fp, groupsplit, conctype)) + '.csv'
         filename_fi_impurity = path_pi + filename_ending
         df_fi = pd.DataFrame([a.feature_importances_ for a in model.estimators_],
                                 columns=df_features.columns)
@@ -288,7 +288,7 @@ for i, param in enumerate(ParameterGrid(param_grid)):
             n_jobs=4
         )
         # save permutation importance results
-        filename_ending = '_'.join((modeltype, 'permimp-trainvalid', chem_fp, groupsplit, conctype)) + '.p'
+        filename_ending = '_'.join((challenge, modeltype, 'permimp-trainvalid', chem_fp, groupsplit, conctype)) + '.p'
         filename_pi_tv = path_pi + filename_ending
         pickle.dump(pi_result_tv, open(filename_pi_tv, 'wb'))
         #pi_result_tv_loaded = pickle.load(open(filename_pi_tv, 'rb'))
@@ -303,7 +303,7 @@ for i, param in enumerate(ParameterGrid(param_grid)):
             random_state=123, 
             n_jobs=4
         )
-        filename_ending = '_'.join((modeltype, 'permimp-test', chem_fp, groupsplit, conctype)) + '.p'
+        filename_ending = '_'.join((challenge, modeltype, 'permimp-test', chem_fp, groupsplit, conctype)) + '.p'
         filename_pi_test = path_pi + filename_ending
         pickle.dump(pi_result_test, open(filename_pi_test, 'wb'))
         #pi_result_test_loaded = pickle.load(open(filename_pi_test, 'rb'))
@@ -315,26 +315,26 @@ for i, param in enumerate(ParameterGrid(param_grid)):
         # Calculates the SHAP values - It takes some time
         shap_values = explainer(df_trainvalid, max_evals=1500)
         # Save Explainer 
-        filename_ending = '_'.join((modeltype, 'explainer', chem_fp, groupsplit, conctype)) + '.sav'
+        filename_ending = '_'.join((challenge, modeltype, 'explainer', chem_fp, groupsplit, conctype)) + '.sav'
         filename_expl = path_shap + filename_ending
         pickle.dump(explainer, open(filename_expl, 'wb'))
         #load_explainer = pickle.load(open(filename_expl, 'rb'))
         #print(load_explainer)
         # Save shap values
-        filename_ending = '_'.join((modeltype, 'shapvalues', chem_fp, groupsplit, conctype)) + '.sav'
+        filename_ending = '_'.join((challenge, modeltype, 'shapvalues', chem_fp, groupsplit, conctype)) + '.sav'
         filename_sv = path_shap + filename_ending
         pickle.dump(shap_values, open(filename_sv, 'wb'))
         #load_shap_values = pickle.load(open(filename_sv, 'rb'))
         #print(load_shap_values)
 
         # store features data frame
-        filename_ending = '_'.join((modeltype, 'data', chem_fp, groupsplit, conctype)) + '.csv'
+        filename_ending = '_'.join((challenge, modeltype, 'data', chem_fp, groupsplit, conctype)) + '.csv'
         filename_data = path_features + filename_ending
         df_features2 = pd.concat((df_eco[list_cols_preds], df_features), axis=1)
         df_features2.to_csv(filename_data, index=False)
 
         # store model
-        filename_ending = '_'.join((modeltype, 'model', chem_fp, groupsplit, conctype)) + '.joblib'
+        filename_ending = '_'.join((challenge, modeltype, 'model', chem_fp, groupsplit, conctype)) + '.joblib'
         filename_model = path_features + filename_ending
         dump(model, filename_model) 
         # model = load(filename_model) 
