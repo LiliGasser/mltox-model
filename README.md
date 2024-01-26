@@ -1,13 +1,13 @@
 # Modeling the ADORE 't-F2F' challenge
 
-After generating the ADORE dataset, we first tackled the modeling of the challenge on the taxonomic group of fish 't-F2F' to determine the potential and limitations of applying machine learning models to the predictions of ecotoxicological outcomes.
+With the ADORE dataset, we first tackled the challenge on the taxonomic group of fish 't-F2F' to determine the potential and limitations of applying machine learning models to ecotoxicology.
 
 
 ## A. Project description
 
 The MLTox project ([MLTox: Enhancing Toxicological Testing through Machine Learning](https://www.datascience.ch/projects/mltox)) is a collaborative project between the Swiss Data Science Center and the environmental toxicology (UTOX) department and the department of systems analysis, integrated assessment and modeling (SIAM) at eawag.
 
-As a first step, we compiled the [ADORE benchmark dataset](TODO), which contains several challenges of varying complexity. The 't-F2F' challenge was selected to be modeled first. It contains 26k entries on 140 fish species and 1,905 chemicals. We modeled this data using LASSO, random forest, XGBoost, and GP regression.
+As a first step, we compiled the [ADORE benchmark dataset](https://www.datascience.ch/projects/adore), which contains several challenges of varying complexity. The 't-F2F' challenge was selected to be modeled first. It contains 26k entries on 140 fish species and 1,905 chemicals. We modeled this data using LASSO, random forest, XGBoost, and GP regression.
 
 We have summarized our work in the paper **Machine learning-based prediction of fish acute mortality: Implementation,  interpretation, and regulatory relevance**. This repository contains all the code produce the results. 
 
