@@ -39,9 +39,10 @@ param_grid = [
 
     {
      # data
-     'challenge': ['s-F2F-3', 's-C2C'],
+     'challenge': ['s-A2A'],
      # features
-     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred', 'none'], 
+     'chem_fp': ['Mordred', 'none'], 
+     #'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred', 'none'], 
      'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
      'tax_pdm': ['none'],                       #['none', 'pdm', 'pdm-squared'],
      'tax_prop': ['none'],                      #['none', 'taxprop-migrate2', 'taxprop-migrate5'],
@@ -141,7 +142,10 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     df_eco, df_pdm, df_enc = mod.get_encoding_for_taxonomic_pdm(df_eco, df_pdm, col_tax='tax_gs')
 
     # encode taxonomic Add my Pet features 
-    df_tax_prop_all = mod.get_encoding_for_taxonomic_addmypet(df_eco)
+    if challenge != 's-A2A':
+        df_tax_prop_all = mod.get_encoding_for_taxonomic_addmypet(df_eco)
+    else:
+        df_tax_prop_all = pd.DataFrame()
 
     # print summary
     print("# entries:", df_eco.shape[0])

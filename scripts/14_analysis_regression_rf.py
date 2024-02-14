@@ -39,8 +39,9 @@ param_grid = [
 
     {
      # data
-     'challenge': ['s-F2F-3', 's-C2C', 's-A2A'],
+     'challenge': ['s-A2A'],
      # features
+#     'chem_fp': ['Mordred', 'none'], 
      'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred', 'none'], 
      'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
      'tax_pdm': ['none'],                       #['none', 'pdm', 'pdm-squared'],
@@ -55,15 +56,15 @@ param_grid = [
 
 # TODO back to proper grid
 #hyperparam_grid = [
-#    {
-#    # model hyperparameters     
-#    'n_estimators': [25, 75],
-#    'max_depth': [200], 
-#    'min_samples_split': [2],
-#    'min_samples_leaf': [1],
-#    'max_samples': [1.0],  
-#    'max_features': ['sqrt'],
-#    }
+    #{
+    ## model hyperparameters     
+    #'n_estimators': [25, 75],
+    #'max_depth': [200], 
+    #'min_samples_split': [2],
+    #'min_samples_leaf': [1],
+    #'max_samples': [1.0],  
+    #'max_features': ['sqrt'],
+    #}
 #]
 hyperparam_grid = [
     {
@@ -141,7 +142,10 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     df_eco, df_pdm, df_enc = mod.get_encoding_for_taxonomic_pdm(df_eco, df_pdm, col_tax='tax_gs')
 
     # encode taxonomic Add my Pet features 
-    df_tax_prop_all = mod.get_encoding_for_taxonomic_addmypet(df_eco)
+    if challenge != 's-A2A':
+        df_tax_prop_all = mod.get_encoding_for_taxonomic_addmypet(df_eco)
+    else:
+        df_tax_prop_all = pd.DataFrame()
 
     # print summary
     print("# entries:", df_eco.shape[0])
