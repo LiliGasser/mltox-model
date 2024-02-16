@@ -51,11 +51,11 @@ df_cv = df_cv[df_cv['set'] == 'valid'].copy()
 # %%
 
 # load test output
-#df_e_test = pd.read_csv(path_output + modeltype + '_test-errors_singlespecies.csv')
-#df_pr_test = pd.read_csv(path_output + modeltype + '_predictions_singlespecies.csv')
+df_e_test = pd.read_csv(path_output + modeltype + '_test-errors_singlespecies.csv')
+df_pr_test = pd.read_csv(path_output + modeltype + '_predictions_singlespecies.csv')
 
-df_e_test = pd.DataFrame()
-df_pr_test = pd.DataFrame()
+#df_e_test = pd.DataFrame()
+#df_pr_test = pd.DataFrame()
 
 # %%
 
@@ -64,7 +64,7 @@ df_pr_test = pd.DataFrame()
 param_grid = [
     {
      # data
-     'challenge': ['s-F2F-1', 's-F2F-2', 's-F2F-3', 's-C2C'],
+     'challenge': ['s-F2F-1', 's-F2F-2', 's-F2F-3', 's-C2C', 's-A2A'],
      # features
      'chem_fp': ['none', 'MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred'], 
      # splits
@@ -75,8 +75,8 @@ param_grid = [
 ]
 
 # set for what to calculate feature importances
-list_groupsplit_fi = ['occurrence']
-list_conctype_fi = ['molar']
+list_groupsplit_fi = []
+list_conctype_fi = []
 
 lengthscales = -1  # initialize for some functions but it is not actually needed
 

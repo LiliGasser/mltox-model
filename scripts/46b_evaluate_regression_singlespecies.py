@@ -63,7 +63,6 @@ df_lasso
 # %%
 
 # load RF
-# TODO Mordred, none missing for s-F2F-2, s-C2C --> 384 entries without
 # 5 challenges x 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 560 entries
 df_rf = compile_errors(modeltype='rf')
 df_rf
@@ -71,7 +70,6 @@ df_rf
 # %%
 
 # load XGBoost
-# TODO many entries still missing
 # 5 challenges x 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 560 entries
 df_xgboost = compile_errors(modeltype='xgboost')
 df_xgboost
@@ -219,9 +217,10 @@ do_store_images = False
 
 # TODO for the different challenges
 challenge = 's-F2F-1'
-#challenge = 's-F2F-2'
+challenge = 's-F2F-2'
 #challenge = 's-F2F-3'
 #challenge = 's-C2C'
+challenge = 's-A2A'
 df_errors = df_errors_all[df_errors_all['challenge'] == challenge].copy()
 
 # TODO run for RMSE, MAE and R2
