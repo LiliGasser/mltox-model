@@ -39,10 +39,10 @@ param_grid = [
 
     {
      # data
-     'challenge': ['s-A2A'],
+     'challenge': ['s-F2F-2'],
      # features
-#     'chem_fp': ['Mordred', 'none'], 
-     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred', 'none'], 
+     'chem_fp': ['Mordred', 'none'], 
+#     'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred', 'none'], 
      'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
      'tax_pdm': ['none'],                       #['none', 'pdm', 'pdm-squared'],
      'tax_prop': ['none'],                      #['none', 'taxprop-migrate2', 'taxprop-migrate5'],

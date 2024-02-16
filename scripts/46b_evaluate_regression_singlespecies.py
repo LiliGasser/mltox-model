@@ -56,8 +56,7 @@ def compile_errors(modeltype):
 # %%
 
 # load LASSO: 
-# TODO Mordred, none missing for s-F2F-2, s-C2C --> 384 entries without
-# 4 challenges x 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 448 entries
+# 5 challenges x 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 560 entries
 df_lasso = compile_errors(modeltype='lasso')
 df_lasso
 
@@ -65,7 +64,7 @@ df_lasso
 
 # load RF
 # TODO Mordred, none missing for s-F2F-2, s-C2C --> 384 entries without
-# 4 challenges x 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 448 entries
+# 5 challenges x 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 560 entries
 df_rf = compile_errors(modeltype='rf')
 df_rf
 
@@ -73,7 +72,7 @@ df_rf
 
 # load XGBoost
 # TODO many entries still missing
-# 4 challenges x 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 448 entries
+# 5 challenges x 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 560 entries
 df_xgboost = compile_errors(modeltype='xgboost')
 df_xgboost
 
@@ -81,7 +80,7 @@ df_xgboost
 
 # load GP
 # TODO Mordred, none missing for s-F2F-2, s-C2C --> 384 entries without
-# 4 challenges x 7 fps x 2 groupsplits x 4 sets x 1 tax_pdm x 2 concentrations = 448 entries
+# 5 challenges x 7 fps x 2 groupsplits x 4 sets x 1 tax_pdm x 2 concentrations = 560 entries
 df_gp = compile_errors(modeltype='gp')
 df_gp
 
@@ -106,7 +105,7 @@ df_errors = df_errors[df_errors['groupsplit'].isin(list_cols)].copy()
 # the fingerprint 'none' corresponds to the top 3 features models
 list_cols_fps = ['MACCS', 'PubChem', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred', 'none']
 df_errors = utils._transform_to_categorical(df_errors, 'groupsplit', ['totallyrandom', 'occurrence'])
-df_errors = utils._transform_to_categorical(df_errors, 'challenge', ['s-F2F-1', 's-F2F-2', 's-F2F-3', 's-C2C'])
+df_errors = utils._transform_to_categorical(df_errors, 'challenge', ['s-F2F-1', 's-F2F-2', 's-F2F-3', 's-C2C', 's-A2A'])
 df_errors = utils._transform_to_categorical(df_errors, 'chem_fp', list_cols_fps)
 df_errors = utils._transform_to_categorical(df_errors, 'model', ['LASSO', 'RF', 'XGBoost', 'GP'])
 df_errors = utils._transform_to_categorical(df_errors, 'set', ['train', 'valid', 'trainvalid', 'test'])
@@ -123,9 +122,9 @@ df_lasso = utils._transform_to_categorical(df_lasso, 'groupsplit', ['totallyrand
 df_lasso = utils._transform_to_categorical(df_lasso, 'chem_fp', list_cols_fps)
 
 list_cols_hp = ['alpha']
-list_cols = ['conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
+list_cols = ['challenge', 'conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
 list_cols += list_cols_hp
-list_cols_sort = ['conctype', 'groupsplit', 'chem_fp']
+list_cols_sort = ['challenge', 'conctype', 'groupsplit', 'chem_fp']
 df_l = df_lasso[df_lasso['set'] == 'train'][list_cols].sort_values(list_cols_sort).copy()
 print(df_l.to_latex(index=False))
 
@@ -138,9 +137,9 @@ df_rf = utils._transform_to_categorical(df_rf, 'chem_fp', list_cols_fps)
 
 # 'max_features', 'min_samples_leaf', 
 list_cols_hp = ['n_estimators', 'max_depth', 'max_samples', 'min_samples_split', 'max_features']
-list_cols = ['conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
+list_cols = ['challenge', 'conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
 list_cols += list_cols_hp
-list_cols_sort = ['conctype', 'groupsplit', 'chem_fp']
+list_cols_sort = ['challenge', 'conctype', 'groupsplit', 'chem_fp']
 df_l = df_rf[df_rf['set'] == 'train'][list_cols].sort_values(list_cols_sort).copy()
 print(df_l.to_latex(index=False))
 
@@ -152,9 +151,9 @@ df_xgboost = utils._transform_to_categorical(df_xgboost, 'groupsplit', ['totally
 df_xgboost = utils._transform_to_categorical(df_xgboost, 'chem_fp', list_cols_fps)
 
 list_cols_hp = ['n_estimators', 'eta', 'gamma', 'max_depth', 'min_child_weight', 'subsample']
-list_cols = ['conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
+list_cols = ['challenge', 'conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
 list_cols += list_cols_hp
-list_cols_sort = ['conctype', 'groupsplit', 'chem_fp']
+list_cols_sort = ['challenge', 'conctype', 'groupsplit', 'chem_fp']
 df_l = df_xgboost[df_xgboost['set'] == 'train'][list_cols].sort_values(list_cols_sort).copy()
 print(df_l.to_latex(index=False))
 
@@ -166,9 +165,9 @@ df_gp = utils._transform_to_categorical(df_gp, 'groupsplit', ['totallyrandom', '
 df_gp = utils._transform_to_categorical(df_gp, 'chem_fp', list_cols_fps)
 
 list_cols_hp = ['n_inducing']
-list_cols = ['conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
+list_cols = ['challenge', 'conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
 list_cols += list_cols_hp
-list_cols_sort = ['conctype', 'groupsplit', 'chem_fp']
+list_cols_sort = ['challenge', 'conctype', 'groupsplit', 'chem_fp']
 df_l = df_gp[df_gp['set'] == 'train'][list_cols].sort_values(list_cols_sort).copy()
 print(df_l.to_latex(index=False))
 
@@ -211,7 +210,7 @@ def _calculate_metric_stuff(df_errors, metric):
     return metric_max, metric_step, str_metric
 
 # store images flag
-do_store_images = True
+do_store_images = False
 
 # %%
 

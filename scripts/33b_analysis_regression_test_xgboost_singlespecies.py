@@ -67,7 +67,7 @@ df_pr_test = pd.read_csv(path_output + modeltype + '_predictions_singlespecies.c
 param_grid = [
     {
      # data
-     'challenge': ['s-F2F-1', 's-F2F-2', 's-F2F-3', 's-C2C'],
+     'challenge': ['s-F2F-1', 's-F2F-2', 's-F2F-3', 's-C2C', 's-A2A'],
      # features
      'chem_fp': ['none', 'MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred'], 
      # splits
