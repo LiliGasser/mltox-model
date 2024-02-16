@@ -75,7 +75,7 @@ df_preds = utils.read_result_files(path_output_dir, file_type='preds')
 
 # categorical variables for fingerprints
 col = 'challenge'
-list_categories = ['s-F2F-1', 's-F2F-2', 's-F2F-3', 's-C2C'] #, 's-A2A']
+list_categories = ['s-F2F-1', 's-F2F-2', 's-F2F-3', 's-C2C', 's-A2A']
 df_errors = utils._transform_to_categorical(df_errors, col, list_categories)
 df_params = utils._transform_to_categorical(df_params, col, list_categories)
 df_preds = utils._transform_to_categorical(df_preds, col, list_categories)

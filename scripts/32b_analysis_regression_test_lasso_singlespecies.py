@@ -43,13 +43,13 @@ df_cv = df_cv[df_cv['set'] == 'valid'].copy()
 # %%
 
 # load test output
-#df_e_test = pd.read_csv(path_output + modeltype + '_test-errors.csv')
-#df_pa_test = pd.read_csv(path_output + modeltype + '_trainvalid-coefficients.csv')
-#df_pr_test = pd.read_csv(path_output + modeltype + '_predictions.csv')
+df_e_test = pd.read_csv(path_output + modeltype + '_test-errors_singlespecies.csv')
+df_pa_test = pd.read_csv(path_output + modeltype + '_trainvalid-coefficients_singlespecies.csv')
+df_pr_test = pd.read_csv(path_output + modeltype + '_predictions_singlespecies.csv')
 
-df_e_test = pd.DataFrame()
-df_pa_test = pd.DataFrame()
-df_pr_test = pd.DataFrame()
+#df_e_test = pd.DataFrame()
+#df_pa_test = pd.DataFrame()
+#df_pr_test = pd.DataFrame()
 
 # %%
 
@@ -58,7 +58,7 @@ df_pr_test = pd.DataFrame()
 param_grid = [
     {
      # data
-     'challenge': ['s-F2F-1', 's-F2F-2', 's-F2F-3', 's-C2C'],
+     'challenge': ['s-F2F-1', 's-F2F-2', 's-F2F-3', 's-C2C', 's-A2A'],
      # features
      'chem_fp': ['none', 'MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred'], 
      # splits
@@ -152,7 +152,10 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     df_eco, df_pdm, df_enc = mod.get_encoding_for_taxonomic_pdm(df_eco, df_pdm, col_tax='tax_gs')
 
     # encode taxonomic Add my Pet features 
-    df_tax_prop_all = mod.get_encoding_for_taxonomic_addmypet(df_eco)
+    if challenge != 's-A2A':
+        df_tax_prop_all = mod.get_encoding_for_taxonomic_addmypet(df_eco)
+    else:
+        df_tax_prop_all = pd.DataFrame()
 
     # print summary
     print("# entries:", df_eco.shape[0])
