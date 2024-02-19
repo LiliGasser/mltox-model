@@ -208,7 +208,7 @@ def _calculate_metric_stuff(df_errors, metric):
     return metric_max, metric_step, str_metric
 
 # store images flag
-do_store_images = False
+do_store_images = True
 
 # %%
 
@@ -218,8 +218,8 @@ do_store_images = False
 # TODO for the different challenges
 challenge = 's-F2F-1'
 challenge = 's-F2F-2'
-#challenge = 's-F2F-3'
-#challenge = 's-C2C'
+challenge = 's-F2F-3'
+challenge = 's-C2C'
 challenge = 's-A2A'
 df_errors = df_errors_all[df_errors_all['challenge'] == challenge].copy()
 

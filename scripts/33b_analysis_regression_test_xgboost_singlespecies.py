@@ -78,8 +78,11 @@ param_grid = [
 ]
 
 # set for what to calculate feature importances
-list_groupsplit_fi = [] #['occurrence']
-list_conctype_fi = [] #['molar']
+list_groupsplit_fi = ['occurrence']
+list_conctype_fi = ['molar']
+
+# remove those entries from df_e_test
+df_e_test = df_e_test[(~df_e_test['groupsplit'].isin(list_groupsplit_fi)) | (~df_e_test['conctype'].isin(list_conctype_fi))].copy()
 
 lengthscales = -1  # initialize for some functions but it is not actually needed
 
