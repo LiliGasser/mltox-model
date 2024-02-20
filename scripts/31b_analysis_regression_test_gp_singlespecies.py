@@ -127,7 +127,8 @@ for i, param in enumerate(ParameterGrid(param_grid)):
 
     # check whether this test run is already done
     if len(df_e_test) > 0:
-        df_tmp = df_e_test[(df_e_test['chem_fp'] == chem_fp)
+        df_tmp = df_e_test[(df_e_test['challenge'] == challenge)
+                           & (df_e_test['chem_fp'] == chem_fp)
                            & (df_e_test['conctype'] == conctype)
                            & (df_e_test['groupsplit'] == groupsplit)
                            & (df_e_test['tax_pdm'] == tax_pdm)]
