@@ -24,8 +24,8 @@ from plotnine import *
 import utils
 import evaluation as eval
 
-#%reload_ext autoreload
-#%autoreload 2
+%reload_ext autoreload
+%autoreload 2
 
 # %%
 
@@ -58,6 +58,7 @@ challenge = 's-F2F-1'
 challenge = 's-F2F-2'
 challenge = 's-F2F-3'
 challenge = 's-C2C'
+challenge = 's-A2A'
 
 # load data
 df_eco = pd.read_csv(path_data + 'processed/' + challenge + '_mortality.csv', low_memory=False)
@@ -86,7 +87,7 @@ df_p_xgboost_all = utils.read_result_files(path_output_dir, file_type='preds')
 
 # set
 modeltype = 'rf' #'xgboost'
-chem_fp = 'ToxPrint' #'MACCS'
+chem_fp = 'MACCS'# 'Morgan'
 groupsplit = 'occurrence'
 conctype = 'molar'
 
@@ -111,250 +112,248 @@ df_p = df_p[df_p['chem_fp'] == chem_fp]
 
 # %%
 
-# no feature importances was calculated for single species yet
-if 0:
-    # load features
-    filename_ending = '_'.join((modeltype, 'data', chem_fp, groupsplit, conctype)) + '.csv'
-    filename_features = path_features + filename_ending
-    df_data = pd.read_csv(filename_features)
-    list_cols = ['test_id', 'result_id', 'test_cas', 'chem_name', 'tax_name', 'tax_gs']
-    df_features = df_data[[c for c in df_data.columns if c not in list_cols]]
+# load features
+filename_ending = '_'.join((modeltype, 'data', chem_fp, groupsplit, conctype)) + '.csv'
+filename_features = path_features + filename_ending
+df_data = pd.read_csv(filename_features)
+list_cols = ['test_id', 'result_id', 'test_cas', 'chem_name', 'tax_name', 'tax_gs']
+df_features = df_data[[c for c in df_data.columns if c not in list_cols]]
 
-    # load permutation importance results
-    filename_ending = '_'.join((modeltype, 'permimp-trainvalid', chem_fp, groupsplit, conctype)) + '.p'
-    filename_pi_tv = path_pi + filename_ending
-    pi_result_tv = pickle.load(open(filename_pi_tv, 'rb'))
-    #print(pi_result_tv)
-    filename_ending = '_'.join((modeltype, 'permimp-test', chem_fp, groupsplit, conctype)) + '.p'
-    filename_pi_test = path_pi + filename_ending
-    pi_result_test = pickle.load(open(filename_pi_test, 'rb'))
-    #print(pi_result_test)
+# load permutation importance results
+filename_ending = '_'.join((modeltype, 'permimp-trainvalid', chem_fp, groupsplit, conctype)) + '.p'
+filename_pi_tv = path_pi + filename_ending
+pi_result_tv = pickle.load(open(filename_pi_tv, 'rb'))
+#print(pi_result_tv)
+filename_ending = '_'.join((modeltype, 'permimp-test', chem_fp, groupsplit, conctype)) + '.p'
+filename_pi_test = path_pi + filename_ending
+pi_result_test = pickle.load(open(filename_pi_test, 'rb'))
+#print(pi_result_test)
 
-    # %%
+# %%
 
-    # add split column to df_data
-    col_split = '_'.join(('split', groupsplit))
-    df_data = pd.merge(df_data,
-                       df_eco[['result_id', col_split]],
-                       left_on=['result_id'],
-                       right_on=['result_id'],
-                       how='left')
+# add split column to df_data
+col_split = '_'.join(('split', groupsplit))
+df_data = pd.merge(df_data,
+                    df_eco[['result_id', col_split]],
+                    left_on=['result_id'],
+                    right_on=['result_id'],
+                    how='left')
 
-    # apply train test split
-    trainvalid_idx = df_data[df_data[col_split] != 'test'].index
-    test_idx = df_data[df_data[col_split] == 'test'].index
-    df_data_trainvalid = df_data.iloc[trainvalid_idx, :].reset_index(drop=True)
-    df_data_test = df_data.iloc[test_idx, :].reset_index(drop=True)
+# apply train test split
+trainvalid_idx = df_data[df_data[col_split] != 'test'].index
+test_idx = df_data[df_data[col_split] == 'test'].index
+df_data_trainvalid = df_data.iloc[trainvalid_idx, :].reset_index(drop=True)
+df_data_test = df_data.iloc[test_idx, :].reset_index(drop=True)
 
-    #%%
+#%%
 
-    # sort by test importances
-    idx_sorted_importances = pi_result_test['importances_mean'].argsort()[::-1][:max_display][::-1]
+# sort by test importances
+idx_sorted_importances = pi_result_test['importances_mean'].argsort()[::-1][:max_display][::-1]
 
-    # get long dataframe for trainvalid
-    df_pi_tv = pd.DataFrame(
-        pi_result_tv['importances'][idx_sorted_importances].transpose(),
-        columns=df_features.columns[idx_sorted_importances])
-    df_pi_tv_long = pd.melt(df_pi_tv, 
-                            id_vars=[], 
-                            value_vars=df_pi_tv.columns,
-                            var_name='feature',
-                            value_name='importance')
-    df_pi_tv_long['set'] = 'trainvalid'
+# get long dataframe for trainvalid
+df_pi_tv = pd.DataFrame(
+    pi_result_tv['importances'][idx_sorted_importances].transpose(),
+    columns=df_features.columns[idx_sorted_importances])
+df_pi_tv_long = pd.melt(df_pi_tv, 
+                        id_vars=[], 
+                        value_vars=df_pi_tv.columns,
+                        var_name='feature',
+                        value_name='importance')
+df_pi_tv_long['set'] = 'trainvalid'
 
-    # get long dataframe for test
-    df_pi_test = pd.DataFrame(
-        pi_result_test['importances'][idx_sorted_importances].transpose(),
-        columns=df_features.columns[idx_sorted_importances])
-    df_pi_test_long = pd.melt(df_pi_test, 
-                            id_vars=[], 
-                            value_vars=df_pi_test.columns,
-                            var_name='feature',
-                            value_name='importance')
-    df_pi_test_long['set'] = 'test'
+# get long dataframe for test
+df_pi_test = pd.DataFrame(
+    pi_result_test['importances'][idx_sorted_importances].transpose(),
+    columns=df_features.columns[idx_sorted_importances])
+df_pi_test_long = pd.melt(df_pi_test, 
+                        id_vars=[], 
+                        value_vars=df_pi_test.columns,
+                        var_name='feature',
+                        value_name='importance')
+df_pi_test_long['set'] = 'test'
 
-    # concatenate trainvalid and test
-    df_pi_long = pd.concat((df_pi_tv_long, df_pi_test_long))
+# concatenate trainvalid and test
+df_pi_long = pd.concat((df_pi_tv_long, df_pi_test_long))
 
-    # add bits explanation
-    if chem_fp in ['MACCS', 'pcp', 'ToxPrint']:
-        df_bits = dict_bits[chem_fp]
-        df_pi_long['bit'] = df_pi_long['feature'].apply(lambda x: int(x[-3:]) if chem_fp in x else -1)
-        df_pi_long = pd.merge(df_pi_long,
-                              df_bits,
-                              left_on=['bit'],
-                              right_on=['bit'],
-                              how='left')
-        df_pi_long['feature2'] = df_pi_long['feature'].astype('str') + ': ' + df_pi_long['description'].astype('str')
-        df_pi_long['feature2'] = df_pi_long['feature2'].str.replace(': nan', '')
-    else:
-        df_pi_long['feature2'] = df_pi_long['feature']
+# add bits explanation
+if chem_fp in ['MACCS', 'pcp', 'ToxPrint']:
+    df_bits = dict_bits[chem_fp]
+    df_pi_long['bit'] = df_pi_long['feature'].apply(lambda x: int(x[-3:]) if chem_fp in x else -1)
+    df_pi_long = pd.merge(df_pi_long,
+                            df_bits,
+                            left_on=['bit'],
+                            right_on=['bit'],
+                            how='left')
+    df_pi_long['feature2'] = df_pi_long['feature'].astype('str') + ': ' + df_pi_long['description'].astype('str')
+    df_pi_long['feature2'] = df_pi_long['feature2'].str.replace(': nan', '')
+else:
+    df_pi_long['feature2'] = df_pi_long['feature']
 
-    #df_pi_long
+#df_pi_long
 
-    # %%
+# %%
 
-    # permutation feature importances plot
-    df_pi_long['feature2'] = pd.Categorical(df_pi_long['feature2'],
-                                            df_pi_long['feature2'].unique(),
-                                            ordered=True)
-    df_plot = df_pi_long[df_pi_long['set'] == 'test'].copy()
-    g = (ggplot(data=df_plot, mapping=aes(y='importance', x='feature2'))
-        + geom_boxplot(outlier_alpha=0)
-        + geom_jitter(color='#444', shape='.', width=0.1, height=0)
-        + geom_vline(xintercept=0, linetype='--')
-        + labs(y='decrease in accuracy score', x='', title='')
-        + coord_flip()
-        + theme_classic()
-        + theme(panel_grid_major_y=element_line(color='#ccc', linetype='dotted'))
-        + theme(axis_text=element_text(size=12, color='black'))
-        + theme(axis_title=element_text(size=13, color='black'))
-        + theme(figure_size=(8, 6))
-     )
-    #g.save(path_figures + '53-54_Permimp_' + title_long + '.pdf')
-    g
+# permutation feature importances plot
+df_pi_long['feature2'] = pd.Categorical(df_pi_long['feature2'],
+                                        df_pi_long['feature2'].unique(),
+                                        ordered=True)
+df_plot = df_pi_long[df_pi_long['set'] == 'test'].copy()
+g = (ggplot(data=df_plot, mapping=aes(y='importance', x='feature2'))
+    + geom_boxplot(outlier_alpha=0)
+    + geom_jitter(color='#444', shape='.', width=0.1, height=0)
+    + geom_vline(xintercept=0, linetype='--')
+    + labs(y='decrease in accuracy score', x='', title='')
+    + coord_flip()
+    + theme_classic()
+    + theme(panel_grid_major_y=element_line(color='#ccc', linetype='dotted'))
+    + theme(axis_text=element_text(size=12, color='black'))
+    + theme(axis_title=element_text(size=13, color='black'))
+    + theme(figure_size=(8, 6))
+    )
+#g.save(path_figures + '53-54b_Permimp_' + title_verylong + '.pdf')
+g
 
 # %%
 
 # %%
 
-# no SHAP values were calculated for single species yet
+# load explainer and SHAP values
+filename_ending = '_'.join((modeltype, 'explainer', chem_fp, groupsplit, conctype)) + '.sav'
+filename_expl = path_shap + filename_ending
+#explainer = pickle.load(open(filename_expl, 'rb'))
+#print(explainer)
+
+filename_ending = '_'.join((modeltype, 'shapvalues', chem_fp, groupsplit, conctype)) + '.sav'
+filename_sv = path_shap + filename_ending
+shap_values = pickle.load(open(filename_sv, 'rb'))
+#print(shap_values)
+
+# rename feature names
+if chem_fp in ['MACCS', 'pcp', 'ToxPrint']:
+    list_featnames = shap_values.feature_names
+    list_featnames2 = [': '.join((fn, df_bits.loc[df_bits['bit'] == int(fn[-3:]), 'description'].iloc[0])) if chem_fp in fn else fn for fn in list_featnames]
+    shap_values.feature_names = list_featnames2
+
+# %%
+
+# Calculate weighted SHAP values
+
+# get original shap values as dataframe and add identifier columns
+list_features = shap_values.feature_names
+df_shap = pd.DataFrame(shap_values.values,
+                        columns=list_features)
+list_cols = ['test_cas', 'chem_name', 'tax_name', 'tax_gs', 'split_occurrence']
+df_shap2 = pd.concat((df_data_trainvalid[list_cols], df_shap), axis=1)
+
+# calculate SHAPs weighted by chemical 
+list_cols_gb = ['test_cas', 'chem_name']
+df_shap_gb_chem = df_shap2.groupby(list_cols_gb)[list_features].mean()
+shap_values_chem = copy(shap_values)
+shap_values_chem.values = df_shap_gb_chem.to_numpy()
+
+# calculate SHAPs weighted by taxon
+list_cols_gb = ['tax_gs', 'tax_name']
+df_shap_gb_tax = df_shap2.groupby(list_cols_gb)[list_features].mean()
+shap_values_tax = copy(shap_values)
+shap_values_tax.values = df_shap_gb_tax.to_numpy()
+
+# calculate SHAPs weighted by chemical and taxon
+list_cols_gb = ['test_cas', 'chem_name', 'tax_gs', 'tax_name']
+df_shap_gb_chemtax = df_shap2.groupby(list_cols_gb)[list_features].mean()
+shap_values_chemtax = copy(shap_values)
+shap_values_chemtax.values = df_shap_gb_chemtax.to_numpy()
+
+# %%
+
+# Plotting remarks
+
+# The default colormap should not be used as it is not colorblind safe.
+
+# Change default SHAP colors based on this article 
+# https://towardsdatascience.com/how-to-easily-customize-shap-plots-in-python-fdff9c0483f2
+# Default SHAP colors
+default_pos_color = "#ff0051"
+default_neg_color = "#008bfb"
+
+# Custom colors
+positive_color = "#666"  #"#ca0020"
+negative_color = "#92c5de"
+
+# %%
+
+# Plots for entire test set
+
+# bar plot (averaged (=global)): micro-average
+shap.plots.bar(shap_values,
+                max_display=max_display+1,
+                show=False)
+
+# change the bar and text colors
+for fc in plt.gcf().get_children():
+    # Ignore last Rectangle
+    for fcc in fc.get_children()[:-1]:
+        if (isinstance(fcc, matplotlib.patches.Rectangle)):
+            if (matplotlib.colors.to_hex(fcc.get_facecolor()) == default_pos_color):
+                fcc.set_color(positive_color)
+            elif (matplotlib.colors.to_hex(fcc.get_facecolor()) == default_neg_color):
+                fcc.set_color(negative_color)
+        elif (isinstance(fcc, plt.Text)):
+            if (matplotlib.colors.to_hex(fcc.get_color()) == default_pos_color):
+                fcc.set_color(positive_color)
+            elif (matplotlib.colors.to_hex(fcc.get_color()) == default_neg_color):
+                fcc.set_color(negative_color)
+
+#plt.title('micro-average')
+plt.xlabel('mean absolute SHAP value')
+plt.gcf().set_size_inches(8,6)
+plt.tight_layout()
+#plt.savefig(path_figures + '53-54b_SHAPglobal_' + title_verylong + '.pdf',
+            #bbox_inches='tight')
+plt.show()
+
+# %%
+
+# ! macro-averages not calculated for single-species
 if 0:
-    # load explainer and SHAP values
-    filename_ending = '_'.join((modeltype, 'explainer', chem_fp, groupsplit, conctype)) + '.sav'
-    filename_expl = path_shap + filename_ending
-    #explainer = pickle.load(open(filename_expl, 'rb'))
-    #print(explainer)
-
-    filename_ending = '_'.join((modeltype, 'shapvalues', chem_fp, groupsplit, conctype)) + '.sav'
-    filename_sv = path_shap + filename_ending
-    shap_values = pickle.load(open(filename_sv, 'rb'))
-    #print(shap_values)
-
-    # rename feature names
-    if chem_fp in ['MACCS', 'pcp', 'ToxPrint']:
-        list_featnames = shap_values.feature_names
-        list_featnames2 = [': '.join((fn, df_bits.loc[df_bits['bit'] == int(fn[-3:]), 'description'].iloc[0])) if chem_fp in fn else fn for fn in list_featnames]
-        shap_values.feature_names = list_featnames2
-
-    # %%
-
-    # Calculate weighted SHAP values
-
-    # get original shap values as dataframe and add identifier columns
-    list_features = shap_values.feature_names
-    df_shap = pd.DataFrame(shap_values.values,
-                           columns=list_features)
-    list_cols = ['test_cas', 'chem_name', 'tax_name', 'tax_gs', 'split_occurrence']
-    df_shap2 = pd.concat((df_data_trainvalid[list_cols], df_shap), axis=1)
-
-    # calculate SHAPs weighted by chemical 
-    list_cols_gb = ['test_cas', 'chem_name']
-    df_shap_gb_chem = df_shap2.groupby(list_cols_gb)[list_features].mean()
-    shap_values_chem = copy(shap_values)
-    shap_values_chem.values = df_shap_gb_chem.to_numpy()
-
-    # calculate SHAPs weighted by taxon
-    list_cols_gb = ['tax_gs', 'tax_name']
-    df_shap_gb_tax = df_shap2.groupby(list_cols_gb)[list_features].mean()
-    shap_values_tax = copy(shap_values)
-    shap_values_tax.values = df_shap_gb_tax.to_numpy()
-
-    # calculate SHAPs weighted by chemical and taxon
-    list_cols_gb = ['test_cas', 'chem_name', 'tax_gs', 'tax_name']
-    df_shap_gb_chemtax = df_shap2.groupby(list_cols_gb)[list_features].mean()
-    shap_values_chemtax = copy(shap_values)
-    shap_values_chemtax.values = df_shap_gb_chemtax.to_numpy()
-
-    # %%
-
-    # Plotting remarks
-
-    # The default colormap should not be used as it is not colorblind safe.
-
-    # Change default SHAP colors based on this article 
-    # https://towardsdatascience.com/how-to-easily-customize-shap-plots-in-python-fdff9c0483f2
-    # Default SHAP colors
-    default_pos_color = "#ff0051"
-    default_neg_color = "#008bfb"
-
-    # Custom colors
-    positive_color = "#666"  #"#ca0020"
-    negative_color = "#92c5de"
-
-    # %%
-
-    # Plots for entire test set
-
-    # bar plot (averaged (=global)): micro-average
-    shap.plots.bar(shap_values,
-                   max_display=max_display+1,
-                   show=False)
-
-    # change the bar and text colors
-    for fc in plt.gcf().get_children():
-        # Ignore last Rectangle
-        for fcc in fc.get_children()[:-1]:
-            if (isinstance(fcc, matplotlib.patches.Rectangle)):
-                if (matplotlib.colors.to_hex(fcc.get_facecolor()) == default_pos_color):
-                    fcc.set_color(positive_color)
-                elif (matplotlib.colors.to_hex(fcc.get_facecolor()) == default_neg_color):
-                    fcc.set_color(negative_color)
-            elif (isinstance(fcc, plt.Text)):
-                if (matplotlib.colors.to_hex(fcc.get_color()) == default_pos_color):
-                    fcc.set_color(positive_color)
-                elif (matplotlib.colors.to_hex(fcc.get_color()) == default_neg_color):
-                    fcc.set_color(negative_color)
-
-    #plt.title('micro-average')
-    plt.xlabel('mean absolute SHAP value')
-    plt.gcf().set_size_inches(8,6)
-    plt.tight_layout()
-    plt.savefig(path_figures + '53-54_SHAPglobal_' + title_long + '.pdf',
-                bbox_inches='tight')
-    plt.show()
-
-    # %%
-
     # bar plot (averaged (=global)): macro-average
     shap.plots.bar(shap_values_chemtax,
-                   max_display=max_display+1,
-                   show=False)
+                    max_display=max_display+1,
+                    show=False)
     plt.title('macro-average')
     plt.tight_layout()
     plt.show()
 
     # bar plot (averaged (=global)): chemical macro-average
     shap.plots.bar(shap_values_chem,
-                   max_display=max_display+1,
-                   show=False)
+                    max_display=max_display+1,
+                    show=False)
     plt.title('chemical macro-average')
     plt.tight_layout()
     plt.show()
 
     # bar plot (averaged (=global)): taxon macro-average
     shap.plots.bar(shap_values_tax,
-                   max_display=max_display+1,
-                   show=False)
+                    max_display=max_display+1,
+                    show=False)
     plt.title('taxon macro-average')
     plt.tight_layout()
     plt.show()
 
 
-    # %%
+# %%
 
-    # beeswarm option 1
-    shap.summary_plot(shap_values, 
-                      max_display=max_display, 
-                      cmap='cividis', 
-                      alpha=0.4,
-                      show=False,
-                      )
-    plt.gcf().set_size_inches(8,6)
-    plt.tight_layout()
-    plt.savefig(path_figures + '53-54_SHAPlocal_' + title_long + '.pdf',
-                bbox_inches='tight')
-    plt.show()
+# beeswarm option 1
+shap.summary_plot(shap_values, 
+                    max_display=max_display, 
+                    cmap='cividis', 
+                    alpha=0.4,
+                    show=False,
+                    )
+plt.gcf().set_size_inches(8,6)
+plt.tight_layout()
+#plt.savefig(path_figures + '53-54b_SHAPlocal_' + title_verylong + '.pdf',
+            #bbox_inches='tight')
+plt.show()
 
 # %%
 
@@ -422,7 +421,10 @@ df_eco_p['conc_gp_pred_median'] = df_eco_p.groupby(list_cols_gb)['gp_pred'].tran
 df_eco_p['label'] = df_eco_p['chem_name'] + ' (' + df_eco_p['test_cas'] + ')' + ', ' + df_eco_p['tax_gs'] + '\n' + df_eco_p['result_obs_duration_mean'].astype('str') + ' hours, ' + df_eco_p['test_media_type'] + ', ' + df_eco_p['test_exposure_type'] + ', ' + df_eco_p['result_conc1_type'] + ', n=' + df_eco_p['count'].astype('str')
 df_eco_p = df_eco_p.sort_values('conc_true_median')
 
-df_plot = df_eco_p[df_eco_p['count'] >= 15].copy()
+if challenge == 's-A2A':
+    df_plot = df_eco_p[df_eco_p['count'] >= 2].copy()
+else:
+    df_plot = df_eco_p[df_eco_p['count'] >= 15].copy()
 df_plot['label'] = pd.Categorical(df_plot['label'],
                                   categories=df_plot['label'].unique()[::-1],
                                   ordered=True)
@@ -463,9 +465,9 @@ g = (ggplot(data=df_plot, mapping=aes(x='label', y='true'))
     + coord_flip()
     + theme_minimal()
     + labs(x='', y='log10(molar concentration)', fill='model')
-    + theme(figure_size=(10, 10))
+    + theme(figure_size=(10, 12))
  )
-g.save(path_figures + '53-54b_boxplots_' + title_verylong + '.pdf')
+#g.save(path_figures + '53-54b_boxplots_' + title_verylong + '.pdf')
 g
 
 # %%
@@ -491,7 +493,10 @@ df_eco_p['conc_gp_pred_median'] = df_eco_p.groupby(list_cols_gb)['gp_pred'].tran
 df_eco_p['label'] = df_eco_p['chem_name'] + ' (' + df_eco_p['test_cas'] + ') n=' + df_eco_p['count'].astype('str')
 df_eco_p = df_eco_p.sort_values('conc_true_median')
 
-df_plot = df_eco_p[df_eco_p['count'] >= 20].copy()
+if challenge == 's-A2A':
+    df_plot = df_eco_p[df_eco_p['count'] >= 3].copy()
+else:
+    df_plot = df_eco_p[df_eco_p['count'] >= 20].copy()
 df_plot['label'] = pd.Categorical(df_plot['label'],
                                   categories=df_plot['label'].unique()[::-1],
                                   ordered=True)
@@ -534,13 +539,13 @@ g = (ggplot(data=df_plot, mapping=aes(x='label', y='true'))
     + labs(x='', y='log10(molar concentration)', fill='model')
     + theme(figure_size=(10, 12))
  )
-g.save(path_figures + '53-54b_boxplots-by-chemical_' + title_verylong + '.pdf')
+#g.save(path_figures + '53-54b_boxplots-by-chemical_' + title_verylong + '.pdf')
 g
 
 # %%
 # %%
 
-# TODO check if still needed for single species
+# TODO check if still needed for single species (there is some bug...)
 # function to summarize feature importance by variable type (tax, exp, chem)
 def get_abs_mean_shap(shap_values, df_data_trainvalid, list_idx, chem_name):
 

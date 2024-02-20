@@ -31,16 +31,16 @@ def filter_and_merge_predictions(df_p_gp_all,
                                     & (df_p_xgboost_all['groupsplit'] == groupsplit)].copy()
 
     # rename concentration columns
-    df_p_gp = df_p_gp.rename(columns={col_conc: 'true',
-                                      'conc_pred': 'gp_pred',
+    df_p_lasso = df_p_lasso.rename(columns={col_conc: 'true',
+                                      'conc_pred': 'lasso_pred',
                                       })
-    df_p_lasso = df_p_lasso.rename(columns={'conc_pred': 'lasso_pred'})
+    df_p_gp = df_p_gp.rename(columns={'conc_pred': 'gp_pred'})
     df_p_rf = df_p_rf.rename(columns={'conc_pred': 'rf_pred'})
     df_p_xgboost = df_p_xgboost.rename(columns={'conc_pred': 'xgboost_pred'})
 
-    # add other predictions to GP table
-    df_p = pd.merge(df_p_gp, 
-                    df_p_lasso[['chem_fp', 'result_id', 'lasso_pred']],
+    # add other predictions to LASSO table
+    df_p = pd.merge(df_p_lasso, 
+                    df_p_gp[['chem_fp', 'result_id', 'gp_pred']],
                     left_on=['chem_fp', 'result_id'],
                     right_on=['chem_fp', 'result_id'],
                     how='left')

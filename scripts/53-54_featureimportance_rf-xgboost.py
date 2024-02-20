@@ -500,20 +500,20 @@ df_plot_long = utils._transform_to_categorical(df_plot_long, 'type', ['LASSO', '
 # plot
 (ggplot(data=df_plot, mapping=aes(x='label', y='true'))
     + geom_boxplot(outlier_alpha=0)
-    + geom_jitter(mapping=aes(color='result_obs_duration_mean'), 
-                  #fill='grey',
-                  fill='none',
+    + geom_jitter(#mapping=aes(color='result_obs_duration_mean'), 
+                  #fill='none',
+                  fill='grey',
                   alpha=0.8,
                   #color='none', 
                   size=0.8, 
                   height=0, 
                   width=0.2)
-    #+ geom_jitter(data=df_plot_long,
-                 #mapping=aes(y='pred', fill='type'), 
-                 #color='none',
-                 #size=0.8,
-                 #height=0, 
-                 #width=0.1)
+    + geom_jitter(data=df_plot_long,
+                 mapping=aes(y='pred', fill='type'), 
+                 color='none',
+                 size=0.8,
+                 height=0, 
+                 width=0.1)
     + scale_fill_manual(values=list_colors)
     + scale_color_cmap('cividis_r')
     + coord_flip()
@@ -757,7 +757,7 @@ list_colors = ['#e26449', '#f19a6e', '#628291', '#f5c100']  #, '#b8ce2d']
 
 # %%
 
-# get chemicals from last plot
+# get chemicals from last plot (-> run lines 422ff. again)
 list_chem_names = ['all'] + list(df_plot_long.dropna(subset=['pred'])['chem_name'].unique())
 
 # initialize
