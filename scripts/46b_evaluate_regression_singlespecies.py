@@ -77,7 +77,7 @@ df_xgboost
 # %%
 
 # load GP
-# TODO Mordred, none missing for s-F2F-2, s-C2C --> 384 entries without
+# TODO s-A2A missing --> 448 entries
 # 5 challenges x 7 fps x 2 groupsplits x 4 sets x 1 tax_pdm x 2 concentrations = 560 entries
 df_gp = compile_errors(modeltype='gp')
 df_gp
@@ -217,10 +217,10 @@ do_store_images = True
 
 # TODO for the different challenges
 challenge = 's-F2F-1'
-challenge = 's-F2F-2'
-challenge = 's-F2F-3'
-challenge = 's-C2C'
-challenge = 's-A2A'
+#challenge = 's-F2F-2'
+#challenge = 's-F2F-3'
+#challenge = 's-C2C'
+#challenge = 's-A2A'
 df_errors = df_errors_all[df_errors_all['challenge'] == challenge].copy()
 
 # TODO run for RMSE, MAE and R2
