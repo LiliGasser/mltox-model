@@ -49,7 +49,7 @@ path_figures = path_output + 'figures/'
 modeltype = 'gp'
 df_cv = pd.read_csv(path_output + modeltype + '_CV-errors.csv')
 
-# only one entry per chem_fp x groupsplit combination
+# only one entry per challenge x chem_fp x groupsplit x conctype combination
 df_cv = df_cv[df_cv['set'] == 'valid'].copy()
 
 # %% 
@@ -59,12 +59,19 @@ df_e_test = pd.read_csv(path_output + modeltype + '_test-errors.csv')
 df_pa_test = pd.read_csv(path_output + modeltype + '_trainvalid-coefficients.csv')
 df_pr_test = pd.read_csv(path_output + modeltype + '_predictions.csv')
 
+# TODO remove after run
+df_e_test['challenge'] = 't-F2F'
+df_pa_test['challenge'] = 't-F2F'
+df_pr_test['challenge'] = 't-F2F'
+
 # %%
 
 # parameter grids
 
 param_grid = [
     {
+     # data
+     'challenge': ['t-F2F', 't-C2C', 't-A2A'],
      # features
      'chem_fp': ['none', 'MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred'], 
      # splits
@@ -113,6 +120,7 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     print("-------------------------------")
 
     # get settings
+    challenge = param['challenge']
     chem_fp = param['chem_fp']
     groupsplit = param['groupsplit']
     tax_pdm = param['tax_pdm']
@@ -120,7 +128,8 @@ for i, param in enumerate(ParameterGrid(param_grid)):
 
     # check whether this test run is already done
     if len(df_e_test) > 0:
-        df_tmp = df_e_test[(df_e_test['chem_fp'] == chem_fp)
+        df_tmp = df_e_test[(df_e_test['challenge'] == challenge)
+                           & (df_e_test['chem_fp'] == chem_fp)
                            & (df_e_test['conctype'] == conctype)
                            & (df_e_test['groupsplit'] == groupsplit)
                            & (df_e_test['tax_pdm'] == tax_pdm)]
@@ -128,7 +137,8 @@ for i, param in enumerate(ParameterGrid(param_grid)):
             continue
 
     # get other parameters
-    df_e_sel = df_cv[(df_cv['chem_fp'] == chem_fp)
+    df_e_sel = df_cv[(df_cv['challenge'] == challenge)
+                     & (df_cv['chem_fp'] == chem_fp)
                      & (df_cv['groupsplit'] == groupsplit)
                      & (df_cv['tax_pdm'] == tax_pdm)
                      & (df_cv['conctype'] == conctype)]
@@ -149,8 +159,8 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     elif conctype == 'molar':
         col_conc = 'result_conc1_mean_mol_log'
 
-    # load fish data
-    df_eco = pd.read_csv(path_data + 'processed/t-F2F_mortality.csv', low_memory=False)
+    # load data
+    df_eco = pd.read_csv(path_data + 'processed/' + challenge + '_mortality.csv', low_memory=False)
 
     # load phylogenetic distance matrix
     tax_group = 'FCA'
@@ -173,7 +183,11 @@ for i, param in enumerate(ParameterGrid(param_grid)):
     df_eco, df_pdm, df_enc = mod.get_encoding_for_taxonomic_pdm(df_eco, df_pdm, col_tax='tax_gs')
 
     # encode taxonomic Add my Pet features 
-    df_tax_prop_all = mod.get_encoding_for_taxonomic_addmypet(df_eco)
+    if challenge not in ['s-A2A', 't-A2A']:
+        df_tax_prop_all = mod.get_encoding_for_taxonomic_addmypet(df_eco)
+    else:
+        df_tax_prop_all = pd.DataFrame()
+        tax_prop = 'none'
 
     # print summary
     print("# entries:", df_eco.shape[0])

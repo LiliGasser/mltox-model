@@ -29,6 +29,7 @@ path_figures = path_output + 'figures/'
 # %%
 
 # GP: Fish data, updated ADORE, 2023-09-15
+# in March 2024: Crustaceans and algae
 
 # data pre-processing from ECOTOX 2022-09-15
 # groupsplit: totallyrandom, occurrence
@@ -36,6 +37,8 @@ path_figures = path_output + 'figures/'
 
 #param_grid = [
     #{
+     ## data
+     #'challenge': ['t-F2F', 't-C2C', 't-A2A'],
      ## features
      #'chem_fp': ['MACCS', 'mol2vec', 'pcp', 'Morgan', 'ToxPrint'],
      #'chem_prop': ['chemprop'],                  #['none', 'chemprop'],
@@ -60,7 +63,17 @@ path_output_dir = path_vmoutput + '2023-09-15_from-updated-adore/'
 df_errors = utils.read_result_files(path_output_dir, file_type='error')
 df_params = utils.read_result_files(path_output_dir, file_type='param')
 
+# update challenge entry for t-F2F
+df_errors['challenge'] = df_errors['challenge'].fillna('t-F2F')
+df_params['challenge'] = df_params['challenge'].fillna('t-F2F')
+
 # %%
+
+# categorical variables for challenge
+col = 'challenge'
+list_categories = ['t-F2F', 't-C2C', 't-A2A']
+df_errors = utils._transform_to_categorical(df_errors, col, list_categories)
+df_params = utils._transform_to_categorical(df_params, col, list_categories)
 
 # categorical variables for fingerprints
 col = 'chem_fp'
@@ -106,7 +119,7 @@ df_oi = df_errors[df_errors['best_hp'] == True].copy()
 # mean errors (train and valid of 5-fold CV)
 df_e_v = df_oi[(df_oi['fold'] == 'mean')].copy()
 
-list_cols = ['chem_fp', 'groupsplit', 'conctype', 'set', 'fold']
+list_cols = ['challenge', 'chem_fp', 'groupsplit', 'conctype', 'set', 'fold']
 list_cols += ['chem_prop', 'tax_pdm', 'tax_prop', 'exp']
 list_cols += ['best_hp', 'idx_hp', 'n_inducing', 'tax_pdm']
 list_cols += ['r2', 'rmse', 'mae', 'pearson']
@@ -120,9 +133,11 @@ df_e_v[list_cols].round(5).to_csv(path_output + 'gp_CV-errors.csv', index=False)
 # %%
 
 # compare mass and molar concentration for tax_pdm none
+challenge = 't-F2F'
 metric = 'rmse'
 tax_pdm = 'none'
-df_plot = df_e_v[df_e_v['tax_pdm'] == tax_pdm].copy()
+df_plot = df_e_v[(df_e_v['tax_pdm'] == tax_pdm)
+                 & (df_e_v['challenge'] == challenge)].copy()
 (ggplot(data=df_plot, mapping=aes(x='set', 
                                   y=metric, 
                                   fill='conctype'))
@@ -137,7 +152,8 @@ df_plot = df_e_v[df_e_v['tax_pdm'] == tax_pdm].copy()
 
 # compare tax_pdm: none vs pdm
 metric = 'rmse'
-df_plot = df_e_v[df_e_v['conctype'] == 'molar'].copy()
+df_plot = df_e_v[(df_e_v['conctype'] == 'molar')
+                 & (df_e_v['challenge'] == challenge)].copy()
 df_plot['group'] = df_plot['chem_fp'].astype('str') + '_' + df_plot['set']
 (ggplot(data=df_plot, mapping=aes(x='tax_pdm', 
                                   y=metric, 
@@ -153,6 +169,7 @@ df_plot['group'] = df_plot['chem_fp'].astype('str') + '_' + df_plot['set']
 
 # %%
 
+# TODO update for other challenges!
 # check hyperparemeter settings
 
 # get data frame with best hyperparmeters only and with no pdm!

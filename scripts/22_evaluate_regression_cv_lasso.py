@@ -30,11 +30,13 @@ path_figures = path_output + 'figures/'
 # %%
 
 # load feature counts
+# TODO how for other t-X2X?
 df_fc_orig = pd.read_csv(path_output_add + 'featurecounts.csv')
 
 # %%
 
 # LASSO: Fish data, updated ADORE, 2023-09-15
+# in March 2024: Crustaceans and algae
 
 # data pre-processing from ECOTOX 2022-09-15
 # groupsplit: totallyrandom, occurrence
@@ -43,6 +45,8 @@ df_fc_orig = pd.read_csv(path_output_add + 'featurecounts.csv')
 #param_grid = [
 
     #{
+     ## data
+     #'challenge': ['t-F2F', 't-C2C', 't-A2A'],
      ## features
      #'chem_fp': ['MACCS', 'pcp', 'Morgan', 'mol2vec', 'ToxPrint'], 
      #'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
@@ -69,6 +73,20 @@ df_params = utils.read_result_files(path_output_dir, file_type='param')
 df_preds = utils.read_result_files(path_output_dir, file_type='preds')
 
 # %%
+
+# update challenge entry for t-F2F
+df_errors['challenge'] = df_errors['challenge'].fillna('t-F2F')
+df_params['challenge'] = df_params['challenge'].fillna('t-F2F')
+df_preds['challenge'] = df_preds['challenge'].fillna('t-F2F')
+
+# %%
+
+# categorical variables for challenge
+col = 'challenge'
+list_categories = ['t-F2F', 't-C2C', 't-A2A']
+df_errors = utils._transform_to_categorical(df_errors, col, list_categories)
+df_params = utils._transform_to_categorical(df_params, col, list_categories)
+df_preds = utils._transform_to_categorical(df_preds, col, list_categories)
 
 # categorical variables for fingerprints
 col = 'chem_fp'
@@ -120,7 +138,7 @@ df_oi = df_errors[df_errors['best_hp'] == True].copy()
 # mean errors (train and valid of 5-fold CV)
 df_e_v = df_oi[(df_oi['fold'] == 'mean')]
 
-list_cols = ['chem_fp', 'groupsplit', 'conctype', 'set', 'fold']
+list_cols = ['challenge', 'chem_fp', 'groupsplit', 'conctype', 'set', 'fold']
 list_cols += ['chem_prop', 'tax_pdm', 'tax_prop', 'exp']
 list_cols += ['best_hp', 'idx_hp', 'alpha']
 list_cols += ['r2', 'rmse', 'mae', 'pearson']
@@ -134,8 +152,10 @@ df_e_v[list_cols].round(5).to_csv(path_output + 'lasso_CV-errors.csv', index=Fal
 # %%
 
 # compare mass and molar concentration
+challenge = 't-F2F'
+df_plot = df_e_v[df_e_v['challenge'] == challenge].copy()
 metric = 'rmse'
-(ggplot(data=df_e_v, mapping=aes(x='set', y=metric, fill='conctype'))
+(ggplot(data=df_plot, mapping=aes(x='set', y=metric, fill='conctype'))
     + geom_col(position='dodge')
     + scale_fill_manual(values=['#7fc97f', '#beaed4'])
     + facet_grid("chem_fp ~ groupsplit") 
@@ -148,7 +168,7 @@ metric = 'rmse'
 # calculate the number of selected features
  
 # for training (cross-validation)
-list_cols = ['chem_fp', 'groupsplit', 'conctype', 'fold', 'alpha']
+list_cols = ['challenge', 'chem_fp', 'groupsplit', 'conctype', 'fold', 'alpha']
 df_fc = df_params[df_params['feature'] != 'intercept'].groupby(list_cols)['feature'].count().reset_index()
 df_fc = df_fc.rename(columns={'feature': 'count'})
 df_fc = df_fc[df_fc['count'] > 0].copy()
@@ -157,6 +177,7 @@ df_fc
 # %%
 
 # training: the feature counts behave similarly for all combinations of fps and splits
+# TODO how for each challenge?
 df_plot = df_fc.copy()
 (ggplot(data=df_plot, mapping=aes(x='alpha',
                                  y='count',
@@ -171,6 +192,7 @@ df_plot = df_fc.copy()
 
 # %%
 
+# TODO how for the different challenges?
 # average the feature counts of the 5 cv folds
 list_cols = ['chem_fp', 'groupsplit', 'conctype', 'alpha']
 df_fc_mean = df_fc[df_fc['fold'] != 'trainvalid'].groupby(list_cols)['count'].mean().reset_index()

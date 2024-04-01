@@ -29,12 +29,15 @@ path_figures = path_output + 'figures/'
 # %%
 
 # XGBoost: Fish data, updated ADORE, 2023-09-15
+# in March 2024: Crustaceans and algae
 
 # data pre-processing from ECOTOX 2022-09-15
 # groupsplit: totallyrandom, occurrence
 
 #param_grid = [
     #{
+     ## data
+     #'challenge': ['t-F2F', 't-C2C', 't-A2A'],
      ## features
      #'chem_fp': ['MACCS', 'pcp', 'Morgan', 'mol2vec', 'ToxPrint'], 
      #'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
@@ -62,7 +65,15 @@ path_figures = path_output + 'figures/'
 path_output_dir = path_vmoutput + '2023-09-15_from-updated-adore/'
 df_errors = utils.read_result_files(path_output_dir, file_type='error')
 
+# update challenge entry for t-F2F
+df_errors['challenge'] = df_errors['challenge'].fillna('t-F2F')
+
 # %%
+
+# categorical variables for challenge
+col = 'challenge'
+list_categories = ['t-F2F', 't-C2C', 't-A2A']
+df_errors = utils._transform_to_categorical(df_errors, col, list_categories)
 
 # categorical variables for fingerprints
 col = 'chem_fp'
@@ -107,7 +118,7 @@ df_e_oi = df_errors[(df_errors['best_hp'] == True) &
 # mean errors (train and valid of 5-fold CV)
 df_e_v = df_oi[(df_oi['fold'] == 'mean')].copy()
 
-list_cols = ['chem_fp', 'groupsplit', 'conctype', 'set', 'fold']
+list_cols = ['challenge', 'chem_fp', 'groupsplit', 'conctype', 'set', 'fold']
 list_cols += ['chem_prop', 'tax_pdm', 'tax_prop', 'exp']
 list_cols += ['best_hp', 'idx_hp', 'n_estimators', 'eta', 'gamma', 'max_depth', 'min_child_weight', 'subsample']
 list_cols += ['r2', 'rmse', 'mae', 'pearson']
@@ -121,8 +132,10 @@ df_e_v[df_e_v['best_hp'] == True][list_cols].round(5).to_csv(path_output + 'xgbo
 # %%
 
 # compare mass and molar concentration
+challenge = 't-F2F'
+df_plot = df_e_v[df_e_v['challenge'] == challenge].copy()
 metric = 'rmse'
-(ggplot(data=df_e_v, mapping=aes(x='set', y=metric, fill='conctype'))
+(ggplot(data=df_plot, mapping=aes(x='set', y=metric, fill='conctype'))
     + geom_col(position='dodge')
     + scale_fill_manual(values=['#7fc97f', '#beaed4'])
     + facet_grid("chem_fp ~ groupsplit") 
@@ -132,6 +145,7 @@ metric = 'rmse'
 
 # %%
 
+# TODO update for other challenges!
 # plot metric vs a hyperparameter
 
     #'n_estimators': [50, 100],
