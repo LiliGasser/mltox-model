@@ -1,6 +1,8 @@
 challenge,chem_fp,groupsplit,conctype,set,fold,chem_prop,tax_pdm,tax_prop,exp,best_hp,idx_hp,n_inducing,tax_pdm,r2,rmse,mae,pearson
 t-F2F,none,totallyrandom,molar,train,mean,chemprop,none,taxprop-migrate2,exp-dropfirst,True,1,250,none,0.72848,0.8561,0.63207,0.85369
 t-F2F,none,totallyrandom,molar,valid,mean,chemprop,none,taxprop-migrate2,exp-dropfirst,True,1,250,none,0.71922,0.86986,0.64078,0.84825
+t-C2C,none,totallyrandom,molar,train,mean,chemprop,none,taxprop-migrate2,exp-dropfirst,True,3,1000,none,0.79687,0.90118,0.6315,0.89345
+t-C2C,none,totallyrandom,molar,valid,mean,chemprop,none,taxprop-migrate2,exp-dropfirst,True,3,1000,none,0.73794,1.02224,0.71373,0.8594
 t-F2F,none,totallyrandom,mass,train,mean,chemprop,none,taxprop-migrate2,exp-dropfirst,True,2,500,none,0.73723,0.77674,0.56518,0.85897
 t-F2F,none,totallyrandom,mass,valid,mean,chemprop,none,taxprop-migrate2,exp-dropfirst,True,2,500,none,0.72464,0.79463,0.57679,0.85152
 t-C2C,none,totallyrandom,mass,train,mean,chemprop,none,taxprop-migrate2,exp-dropfirst,True,2,500,none,0.72326,0.98843,0.70141,0.85132
