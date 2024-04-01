@@ -124,6 +124,8 @@ list_cols += ['chem_prop', 'tax_pdm', 'tax_prop', 'exp']
 list_cols += ['best_hp', 'idx_hp', 'n_inducing', 'tax_pdm']
 list_cols += ['r2', 'rmse', 'mae', 'pearson']
 df_e_v[list_cols].round(2)
+# TODO t-C2C 2 entries missing
+# TODO t-A2A missing
 
 # %%
 
