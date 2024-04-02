@@ -51,7 +51,7 @@ param_grid = [
 
     {
      # data
-     'challenge': ['t-C2C', 't-A2A'],
+     'challenge': ['t-A2A'],
      # features
      'chem_fp': ['MACCS', 'pcp', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred', 'none'], 
      'chem_prop': ['chemprop'],                 #['none', 'chemprop'],
