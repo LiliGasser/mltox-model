@@ -66,37 +66,43 @@ def compile_errors(modeltype, load_top3=False):
 # %%
 
 # load LASSO: 
-# 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 112 entries
-# + 1 fps x 2 groupsplits x 4 sets x 2 concentrations = 16 entries (top3 features)
-# total: 128 entries
+# 3 challenges * 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 336 entries
+# + 1 fps x 2 groupsplits x 4 sets x 2 concentrations = 16 entries (top3 features for t-F2F)
+# total: 352 entries
 df_lasso = compile_errors(modeltype='lasso', load_top3=True)
+df_lasso['challenge'] = df_lasso['challenge'].fillna('t-F2F')
 df_lasso
 
 # %%
 
 # load RF
-# 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 112 entries
-# + 1 fps x 2 groupsplits x 4 sets x 2 concentrations = 16 entries (top3 features)
-# total: 128 entries
+# 3 challenges * 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 336 entries
+# + 1 fps x 2 groupsplits x 4 sets x 2 concentrations = 16 entries (top3 features for t-F2F)
+# total: 352 entries
 df_rf = compile_errors(modeltype='rf', load_top3=True)
+df_rf['challenge'] = df_rf['challenge'].fillna('t-F2F')
 df_rf
 
 # %%
 
 # load XGBoost
-# 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 112 entries
-# + 1 fps x 2 groupsplits x 4 sets x 2 concentrations = 16 entries (top3 features)
-# total: 128 entries
+# 3 challenges * 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 336 entries
+# + 1 fps x 2 groupsplits x 4 sets x 2 concentrations = 16 entries (top3 features for t-F2F)
+# total: 352 entries
 df_xgboost = compile_errors(modeltype='xgboost', load_top3=True)
+df_xgboost['challenge'] = df_xgboost['challenge'].fillna('t-F2F')
 df_xgboost
 
 # %%
 
 # load GP
-# 7 fps x 2 groupsplits x 4 sets x 2 tax_pdm x 2 concentrations = 224 entries
-# + 1 fps x 2 groupsplits x 4 sets x 2 concentrations = 16 entries (top3 features)
-# total: 240 entries
+# with more challanges, tax_pdm is not included anymore
+# 3 challenges * 7 fps x 2 groupsplits x 4 sets x 2 concentrations = 336 entries
+# + 1 fps x 2 groupsplits x 4 sets x 2 concentrations = 16 entries (top3 features for t-F2F)
+# total: 352 entries
 df_gp = compile_errors(modeltype='gp', load_top3=True)
+df_gp['challenge'] = df_gp['challenge'].fillna('t-F2F')
+df_gp = df_gp.drop(columns=['tax_pdm.1'])
 df_gp
 
 # %%
@@ -108,25 +114,27 @@ df_gp = df_gp[df_gp['tax_pdm'] == 'none'].copy()
 # %%
 
 # concatenate all error files
-df_errors = pd.concat([df_lasso, df_rf, df_xgboost, df_gp], axis=0)
-df_errors
+df_errors_all = pd.concat([df_lasso, df_rf, df_xgboost, df_gp], axis=0)
+df_errors_all
 
 # %%
 
 # only two group splits
 list_cols = ['totallyrandom', 'occurrence']
-df_errors = df_errors[df_errors['groupsplit'].isin(list_cols)].copy()
+df_errors_all = df_errors_all[df_errors_all['groupsplit'].isin(list_cols)].copy()
 df_gp_all = df_gp_all[df_gp_all['groupsplit'].isin(list_cols)].copy()
 
 # categorical variables
 # the fingerprint 'none' corresponds to the top 3 features models
 list_cols_fps = ['MACCS', 'PubChem', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred', 'none']
 list_cols_fps_none = list_cols_fps + ['top 3']
-df_errors = utils._transform_to_categorical(df_errors, 'groupsplit', ['totallyrandom', 'occurrence'])
-df_errors = utils._transform_to_categorical(df_errors, 'chem_fp', list_cols_fps_none)
-df_errors = utils._transform_to_categorical(df_errors, 'model', ['LASSO', 'RF', 'XGBoost', 'GP'])
-df_errors = utils._transform_to_categorical(df_errors, 'set', ['train', 'valid', 'trainvalid', 'test'])
-df_errors = utils._transform_to_categorical(df_errors, 'conctype', ['molar', 'mass'])
+df_errors_all = utils._transform_to_categorical(df_errors_all, 'challenge', ['t-F2F', 't-C2C', 't-A2A'])
+df_errors_all = utils._transform_to_categorical(df_errors_all, 'groupsplit', ['totallyrandom', 'occurrence'])
+df_errors_all = utils._transform_to_categorical(df_errors_all, 'chem_fp', list_cols_fps_none)
+df_errors_all = utils._transform_to_categorical(df_errors_all, 'model', ['LASSO', 'RF', 'XGBoost', 'GP'])
+df_errors_all = utils._transform_to_categorical(df_errors_all, 'set', ['train', 'valid', 'trainvalid', 'test'])
+df_errors_all = utils._transform_to_categorical(df_errors_all, 'conctype', ['molar', 'mass'])
+df_gp_all = utils._transform_to_categorical(df_gp_all, 'challenge', ['t-F2F', 't-C2C', 't-A2A'])
 df_gp_all = utils._transform_to_categorical(df_gp_all, 'groupsplit', ['totallyrandom', 'occurrence'])
 df_gp_all = utils._transform_to_categorical(df_gp_all, 'chem_fp', list_cols_fps)
 df_gp_all = utils._transform_to_categorical(df_gp_all, 'tax_pdm', ['none', 'pdm'])
@@ -136,12 +144,13 @@ df_gp_all = utils._transform_to_categorical(df_gp_all, 'conctype', ['molar', 'ma
 # %%
 
 # best hyperparameters for LASSO
+df_lasso = utils._transform_to_categorical(df_lasso, 'challenge', ['t-F2F', 't-C2C', 't-A2A'])
 df_lasso = utils._transform_to_categorical(df_lasso, 'conctype', ['molar', 'mass'])
 df_lasso = utils._transform_to_categorical(df_lasso, 'groupsplit', ['totallyrandom', 'occurrence'])
 df_lasso = utils._transform_to_categorical(df_lasso, 'chem_fp', list_cols_fps_none)
 
 list_cols_hp = ['alpha']
-list_cols = ['conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
+list_cols = ['challenge', 'conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
 list_cols += list_cols_hp
 list_cols_sort = ['conctype', 'groupsplit', 'chem_fp']
 df_l = df_lasso[df_lasso['set'] == 'train'][list_cols].sort_values(list_cols_sort).copy()
@@ -150,13 +159,14 @@ print(df_l.to_latex(index=False))
 # %%
 
 # best hyperparameters for RF
+df_rf = utils._transform_to_categorical(df_rf, 'challenge', ['t-F2F', 't-C2C', 't-A2A'])
 df_rf = utils._transform_to_categorical(df_rf, 'conctype', ['molar', 'mass'])
 df_rf = utils._transform_to_categorical(df_rf, 'groupsplit', ['totallyrandom', 'occurrence'])
 df_rf = utils._transform_to_categorical(df_rf, 'chem_fp', list_cols_fps_none)
 
 # 'max_features', 'min_samples_leaf', 
 list_cols_hp = ['n_estimators', 'max_depth', 'max_samples', 'min_samples_split', 'max_features']
-list_cols = ['conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
+list_cols = ['challenge', 'conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
 list_cols += list_cols_hp
 list_cols_sort = ['conctype', 'groupsplit', 'chem_fp']
 df_l = df_rf[df_rf['set'] == 'train'][list_cols].sort_values(list_cols_sort).copy()
@@ -165,12 +175,13 @@ print(df_l.to_latex(index=False))
 # %%
 
 # best hyperparameters for XGBoost
+df_xgboost = utils._transform_to_categorical(df_xgboost, 'challenge', ['t-F2F', 't-C2C', 't-A2A'])
 df_xgboost = utils._transform_to_categorical(df_xgboost, 'conctype', ['molar', 'mass'])
 df_xgboost = utils._transform_to_categorical(df_xgboost, 'groupsplit', ['totallyrandom', 'occurrence'])
 df_xgboost = utils._transform_to_categorical(df_xgboost, 'chem_fp', list_cols_fps_none)
 
 list_cols_hp = ['n_estimators', 'eta', 'gamma', 'max_depth', 'min_child_weight', 'subsample']
-list_cols = ['conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
+list_cols = ['challenge', 'conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
 list_cols += list_cols_hp
 list_cols_sort = ['conctype', 'groupsplit', 'chem_fp']
 df_l = df_xgboost[df_xgboost['set'] == 'train'][list_cols].sort_values(list_cols_sort).copy()
@@ -179,12 +190,13 @@ print(df_l.to_latex(index=False))
 # %%
 
 # best hyperparameters for GP
+df_gp = utils._transform_to_categorical(df_gp, 'challenge', ['t-F2F', 't-C2C', 't-A2A'])
 df_gp = utils._transform_to_categorical(df_gp, 'conctype', ['molar', 'mass'])
 df_gp = utils._transform_to_categorical(df_gp, 'groupsplit', ['totallyrandom', 'occurrence'])
 df_gp = utils._transform_to_categorical(df_gp, 'chem_fp', list_cols_fps_none)
 
 list_cols_hp = ['n_inducing']
-list_cols = ['conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
+list_cols = ['challenge', 'conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
 list_cols += list_cols_hp
 list_cols_sort = ['conctype', 'groupsplit', 'chem_fp']
 df_l = df_gp[df_gp['set'] == 'train'][list_cols].sort_values(list_cols_sort).copy()
@@ -241,6 +253,10 @@ do_store_images = True
 metric = 'rmse'
 #metric = 'mae'
 #metric = 'r2'
+
+# TODO run for different challenges
+challenge = 't-F2F'
+df_errors = df_errors_all[df_errors_all['challenge'] == challenge].copy()
 
 # calculate maximum
 metric_max, metric_step, str_metric = _calculate_metric_stuff(df_errors, metric)
@@ -448,13 +464,13 @@ for errortype in list_sets:
                              marker_color=dict_colors_points[errortype],
                              marker_symbol='circle-open',
                              marker_size=7))
-# TODO legend at bottom horizontally aligned
+# TODO legend at bottom horizontally aligned --> remove legendgroup?
 #fig.update_layout(legend_orientation='h', legend_xanchor='center', legend_x=0.5)
 
 fig.update_layout(template='plotly_white')
 
 if do_store_images:
-    fig.write_image(path_figures + '46_all_' + metric + '-vs-models.pdf')
+    fig.write_image(path_figures + '46_all_' + challenge + '_' + metric + '-vs-models.pdf')
 fig.show()
 
 # %%
@@ -467,6 +483,10 @@ fig.show()
 metric = 'rmse'
 #metric = 'mae'
 #metric = 'r2'
+
+# TODO run for different challenges
+challenge = 't-F2F'
+df_errors = df_errors_all[df_errors_all['challenge'] == challenge].copy()
 
 # calculate maximum
 metric_max, metric_step, str_metric = _calculate_metric_stuff(df_errors, metric)
@@ -613,7 +633,7 @@ fig.update_layout(legend_orientation='h', legend_xanchor='center', legend_x=0.5)
 fig.update_layout(template='plotly_white')
 
 if do_store_images:
-    fig.write_image(path_figures + '46_all_' + metric + '-vs-models_validation.pdf')
+    fig.write_image(path_figures + '46_all_' + challenge + '_' + metric + '-vs-models_validation.pdf')
 fig.show()
 
 # %% 
@@ -621,6 +641,10 @@ fig.show()
 
 # overview plot in plotly (only molar occurrence)
 # !!! test error only for occurrence and molar
+
+# TODO run for different challenges
+challenge = 't-F2F'
+df_errors = df_errors_all[df_errors_all['challenge'] == challenge].copy()
 
 # Initialize figure with subplots
 fig = make_subplots(
@@ -755,13 +779,103 @@ for chem_fp in list_cols_fps_none:
 fig.update_layout(template='plotly_white')
 
 if do_store_images:
-    fig.write_image(path_figures + '46_all_rmse-r2-vs-models_test.pdf')
+    fig.write_image(path_figures + '46_all_' + challenge + '_' + 'rmse-r2-vs-models_test.pdf')
 fig.show()
 
 # %%
 # %%
 
+# plot test RMSE for occurrence, molar, all models
+# !!! test error only for occurrence and molar
+
+# TODO run for different challenges
+challenge = 't-F2F'
+df_errors = df_errors_all[df_errors_all['challenge'] == challenge].copy()
+
+# Initialize figure with subplots
+fig = make_subplots(
+    rows=1, 
+    cols=1, 
+    subplot_titles=(challenge + '<br>split by occurrence<br>molar concentration', ),
+)
+
+# Add traces
+# occurrence, molar, RMSE
+metric='rmse'
+metric_max, metric_step, str_metric = _calculate_metric_stuff(df_errors, metric)
+list_tickvals = list(np.arange(0, metric_max, metric_step))
+df_plot = df_errors[(df_errors['groupsplit'] == 'occurrence')
+                    & (df_errors['conctype'] == 'molar')].copy()
+df_plot_bar = df_plot[(df_plot['set'] == 'test')].copy()
+df_plot_dot = df_plot[(df_plot['set'] == 'valid')].copy()
+row = 1
+col = 1
+for i, chem_fp in enumerate(list_cols_fps_none):     # add bars
+    df_pb = df_plot_bar[df_plot_bar['chem_fp'] == chem_fp].copy()
+    fig.add_trace(go.Bar(x=df_pb['model'], 
+                         y=df_pb[metric],
+                         marker_color=df_pb['chem_fp'].map(dict_colors_fps_none),
+                         name=chem_fp,
+                         offsetgroup=i+1,
+                         showlegend=False),
+                  row=row, 
+                  col=col)
+for y in list_tickvals:    # add horizontal lines
+    fig.add_hline(y=y, 
+                  line_width=1.,
+                  line_color='#eee',
+                  row=row,
+                  col=col)
+
+# update axes
+fig.update_xaxes(title_text='', row=row, col=col)
+fig.update_yaxes(title_text=str_metric, row=row, col=col)
+fig.update_yaxes(range=[0, metric_max], tickvals=list_tickvals, row=row, col=col)
+
+
+# update axes
+fig.update_xaxes(title_text='', row=row, col=col)
+fig.update_yaxes(title_text=str_metric, row=row, col=col)
+fig.update_yaxes(range=[0, metric_max], tickvals=list_tickvals, row=row, col=col)
+
+# Grouped bars and scatter
+#fig.update_layout(barmode='group')
+fig.update_layout(scattermode='group')
+
+# Update title and height
+fig.update_layout(height=400, width=600)
+
+# add legend for fingerprints
+for chem_fp in list_cols_fps_none:
+    fig.add_trace(go.Scatter(x=[None],
+                             y=[None],
+                             mode='markers',
+                             name=chem_fp,
+                             marker_color=dict_colors_fps_none[chem_fp],
+                             marker_symbol='square',
+                             marker_size=12))
+fig.update_layout(legend=dict(orientation='h', 
+                              entrywidth=50,
+                              xanchor='center', 
+                              x=0.5,
+                              title_text='molecular<br>representation',
+                              ))
+
+fig.update_layout(template='plotly_white')
+
+if do_store_images:
+    fig.write_image(path_figures + '46_all_' + challenge + '_rmse-vs-models_test.pdf')
+fig.show()
+
+
+
+# %%
+
 # one plot per groupsplit, only test errors, for molar concentration
+# TODO run for different challenges
+challenge = 't-F2F'
+df_errors = df_errors_all[df_errors_all['challenge'] == challenge].copy()
+
 df_plot = df_errors[df_errors['conctype'] == 'molar'].copy()
 df_plot = df_plot.sort_values(['model', 'chem_fp', 'set'], ascending=[True, True, False])
 df_plot_test = df_plot[df_plot['set'] == 'test'].copy()
@@ -796,7 +910,7 @@ for groupsplit in ['totallyrandom', 'occurrence']:
     )
 
     if do_store_images:
-        g.save(path_figures + '46_' + groupsplit + '_' + metric + '-vs-models.pdf', facecolor='white')
+        g.save(path_figures + '46_' + challenge + '_' + groupsplit + '_' + metric + '-vs-models.pdf', facecolor='white')
     print(g)
 
 # %%
@@ -831,7 +945,7 @@ for chem_fp in list_cols_fps:
     )
     
     if do_store_images:
-        g.save(path_figures + '46_' + chem_fp + '_' + metric + '-vs-models.pdf', facecolor='white')
+        g.save(path_figures + '46_' + challenge + '_' + chem_fp + '_' + metric + '-vs-models.pdf', facecolor='white')
     print(g)
 
 # %%
@@ -857,7 +971,7 @@ g = (ggplot(data=df_p, mapping=aes(x='model', y='chem_fp', fill=metric, label=me
 )
 
 if do_store_images:
-    g.save(path_figures + '46_all_heatmap_' + metric + '.pdf', facecolor='white')
+    g.save(path_figures + '46_all_heatmap_' + challenge + '_' + metric + '.pdf', facecolor='white')
 print(g)
 
 # %%
@@ -869,6 +983,10 @@ print(g)
 metric = 'rmse'
 #metric = 'mae'
 #metric = 'r2'
+
+# TODO run for different challenges
+challenge = 't-F2F'
+df_errors = df_errors_all[df_errors_all['challenge'] == challenge].copy()
 
 # calculate maximum
 metric_max, metric_step, str_metric = _calculate_metric_stuff(df_gp_all, metric)
@@ -1027,13 +1145,17 @@ fig.update_layout(legend_orientation='h', legend_xanchor='center', legend_x=0.5)
 fig.update_layout(template='plotly_white')
 
 if do_store_images:
-    fig.write_image(path_figures + '46_GP_' + metric + '-vs-taxpdm_validation.pdf')
+    fig.write_image(path_figures + '46_GP_' + challenge + '_' + metric + '-vs-taxpdm_validation.pdf')
 fig.show()
 
 # %%
 
 # compare GP runs in plotly (only molar occurrence)
 # !!! test error only for occurrence and molar
+
+# TODO run for different challenges
+challenge = 't-F2F'
+df_errors = df_errors_all[df_errors_all['challenge'] == challenge].copy()
 
 # Initialize figure with subplots
 fig = make_subplots(
@@ -1171,7 +1293,7 @@ fig.update_layout(legend_orientation='h', legend_xanchor='center', legend_x=0.5)
 fig.update_layout(template='plotly_white')
 
 if do_store_images:
-    fig.write_image(path_figures + '46_GP_rmse-r2-vs-taxpdm_test.pdf')
+    fig.write_image(path_figures + '46_GP_' + challenge + '_' + 'rmse-r2-vs-taxpdm_test.pdf')
 fig.show()
 
 # %%
