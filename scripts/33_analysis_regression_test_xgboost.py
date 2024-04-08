@@ -25,7 +25,7 @@ from joblib import dump, load
 import shap
 
 from plotnine import *
-
+# %%
 import utils
 import modeling as mod
 
@@ -57,9 +57,11 @@ df_cv = df_cv[df_cv['set'] == 'valid'].copy()
 df_e_test = pd.read_csv(path_output + modeltype + '_test-errors.csv')
 df_pr_test = pd.read_csv(path_output + modeltype + '_predictions.csv')
 
-# TODO remove after run
-df_e_test['challenge'] = 't-F2F'
-df_pr_test['challenge'] = 't-F2F'
+# rerun t-F2F
+# TODO remove
+df_e_test = df_e_test[df_e_test['challenge'] != 't-F2F'].copy()
+df_pr_test = df_pr_test[df_pr_test['challenge'] != 't-F2F'].copy()
+
 
 # %%
 

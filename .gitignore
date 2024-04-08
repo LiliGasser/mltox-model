@@ -339,7 +339,7 @@ tags
 
 
 # conda env
-conda-env/*
+conda-env*/*
 
 
 # vm output
