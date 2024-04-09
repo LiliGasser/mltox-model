@@ -571,7 +571,6 @@ def add_feature_category(df):
 
 # colors
 # https://www.pinterest.ch/pin/2251868550407753/
-# TODO check colorblind safeness
 list_colors = ['#e26449', '#f19a6e', '#628291', '#f5c100']  #, '#b8ce2d']
 
 # %%

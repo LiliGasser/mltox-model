@@ -88,17 +88,15 @@ df_p_xgboost_all['challenge'] = df_p_xgboost_all['challenge'].fillna('t-F2F')
 # %%
 
 # set
-modeltype = 'rf'
-#modeltype = 'xgboost'
+#modeltype = 'rf'
+modeltype = 'xgboost'
 chem_fp = 'MACCS'
 groupsplit = 'occurrence'
-#conctype = 'mass'
 conctype = 'molar'
 
-# TODO adjust for challenges
-title = ' '.join((modeltype, chem_fp))
-title_medium = '_'.join((groupsplit, conctype, chem_fp))
-title_long = '_'.join((groupsplit, conctype, modeltype, chem_fp))
+title = ' '.join((challenge, modeltype, chem_fp))
+title_medium = '_'.join((groupsplit, conctype, challenge, chem_fp))
+title_long = '_'.join((groupsplit, conctype, challenge, modeltype, chem_fp))
 max_display = 10
 
 # %%
@@ -116,10 +114,10 @@ df_p = df_p[df_p['chem_fp'] == chem_fp]
 
 # %%
 
-# TODO fix for challenges!! --> when xgboost is rerun
+# TODO fix for challenges!! --> when rf t-F2F is rerun
 
 # load features
-filename_ending = '_'.join((modeltype, 'data', chem_fp, groupsplit, conctype)) + '.csv'
+filename_ending = '_'.join((modeltype, 'data', challenge, chem_fp, groupsplit, conctype)) + '.csv'
 filename_features = path_features + filename_ending
 df_data = pd.read_csv(filename_features)
 list_cols = ['test_id', 'result_id', 'test_cas', 'chem_name', 'tax_name', 'tax_gs']
@@ -127,11 +125,11 @@ df_features = df_data[[c for c in df_data.columns if c not in list_cols]]
 # %%
 
 # load permutation importance results
-filename_ending = '_'.join((modeltype, 'permimp-trainvalid', chem_fp, groupsplit, conctype)) + '.p'
+filename_ending = '_'.join((modeltype, 'permimp-trainvalid', challenge, chem_fp, groupsplit, conctype)) + '.p'
 filename_pi_tv = path_pi + filename_ending
 pi_result_tv = pickle.load(open(filename_pi_tv, 'rb'))
 #print(pi_result_tv)
-filename_ending = '_'.join((modeltype, 'permimp-test', chem_fp, groupsplit, conctype)) + '.p'
+filename_ending = '_'.join((modeltype, 'permimp-test', challenge, chem_fp, groupsplit, conctype)) + '.p'
 filename_pi_test = path_pi + filename_ending
 pi_result_test = pickle.load(open(filename_pi_test, 'rb'))
 #print(pi_result_test)
@@ -217,7 +215,7 @@ g = (ggplot(data=df_plot, mapping=aes(y='importance', x='feature2'))
     + theme(axis_title=element_text(size=13, color='black'))
     + theme(figure_size=(8, 6))
  )
-#g.save(path_figures + '53-54_Permimp_' + title_long + '.pdf')
+g.save(path_figures + '53-54_Permimp_' + title_long + '.pdf')
 g
 
 # %%
@@ -225,12 +223,12 @@ g
 # %%
 
 # load explainer and SHAP values
-filename_ending = '_'.join((modeltype, 'explainer', chem_fp, groupsplit, conctype)) + '.sav'
+filename_ending = '_'.join((modeltype, 'explainer', challenge, chem_fp, groupsplit, conctype)) + '.sav'
 filename_expl = path_shap + filename_ending
 #explainer = pickle.load(open(filename_expl, 'rb'))
 #print(explainer)
 
-filename_ending = '_'.join((modeltype, 'shapvalues', chem_fp, groupsplit, conctype)) + '.sav'
+filename_ending = '_'.join((modeltype, 'shapvalues', challenge, chem_fp, groupsplit, conctype)) + '.sav'
 filename_sv = path_shap + filename_ending
 shap_values = pickle.load(open(filename_sv, 'rb'))
 #print(shap_values)
@@ -286,16 +284,52 @@ default_neg_color = "#008bfb"
 positive_color = "#666"  #"#ca0020"
 negative_color = "#92c5de"
 
+# colors for feature categories
+# https://www.pinterest.ch/pin/2251868550407753/
+list_colors = ['#e26449', '#f19a6e', '#628291', '#b8ce2d'][::-1]  #, '#f5c100']
+list_fcs = ['chemical', 'mol repr', 'taxonomic', 'experimental'][::-1]
+dict_colors = dict(zip(list_fcs, list_colors))
+
+def get_feature_category(col, chem_fp):
+    ''' helper function to get feature category
+    
+    '''
+
+    if col.startswith('chem'):
+        fc = 'chemical'
+    if chem_fp in col:
+        fc = 'mol repr'
+        #fc = 'molecular representation'
+    if col.startswith('tax'):
+        fc = 'taxonomic'
+    if col.startswith('result'):
+        fc = 'experimental'
+    if col.startswith('test'):
+        fc = 'experimental'
+
+    return fc
+
+# get ordered features and their cateogories
+sv = np.array(shap_values.values)
+sv_mean=np.abs(sv).mean(0)
+order = np.argsort(sv_mean)[::-1]
+list_ordered_cols = list(df_features.columns[order])
+list_ordered_featcats =[get_feature_category(col, chem_fp) for col in list_ordered_cols] 
+
+
 # %%
 
 # Plots for entire test set
 
-# TODO color by feature group
+# TODO legend for feature group
 
 # bar plot (averaged (=global)): micro-average
 shap.plots.bar(shap_values,
                max_display=max_display+1,
                show=False)
+
+# initialize
+i = 0
 
 # change the bar and text colors
 for fc in plt.gcf().get_children():
@@ -303,9 +337,15 @@ for fc in plt.gcf().get_children():
     for fcc in fc.get_children()[:-1]:
         if (isinstance(fcc, matplotlib.patches.Rectangle)):
             if (matplotlib.colors.to_hex(fcc.get_facecolor()) == default_pos_color):
-                fcc.set_color(positive_color)
+                #fcc.set_color(positive_color)
+                if i < max_display:
+                    fcc.set_color(dict_colors[list_ordered_featcats[i]])
+                else:
+                    fcc.set_color(positive_color)
+
             elif (matplotlib.colors.to_hex(fcc.get_facecolor()) == default_neg_color):
                 fcc.set_color(negative_color)
+            i = i + 1
         elif (isinstance(fcc, plt.Text)):
             if (matplotlib.colors.to_hex(fcc.get_color()) == default_pos_color):
                 fcc.set_color(positive_color)
@@ -316,8 +356,8 @@ for fc in plt.gcf().get_children():
 plt.xlabel('mean absolute SHAP value')
 plt.gcf().set_size_inches(8,6)
 plt.tight_layout()
-#plt.savefig(path_figures + '53-54_SHAPglobal_' + title_long + '.pdf',
-            #bbox_inches='tight')
+plt.savefig(path_figures + '53-54_SHAPglobal_' + title_long + '.pdf',
+            bbox_inches='tight')
 plt.show()
 
 # %%
@@ -532,7 +572,7 @@ df_plot_long = utils._transform_to_categorical(df_plot_long, 'type', ['LASSO', '
                  height=0, 
                  width=0.1)
     + scale_fill_manual(values=list_colors)
-    + scale_color_cmap('cividis_r')
+    + scale_color_cmap('cividis')  # TODO why is cividis_r not available anymore?
     + coord_flip()
     + theme_minimal()
     + labs(x='', y='log10(molar concentration)', fill='model')
@@ -726,7 +766,7 @@ for chemical in list_chemicals:
      )
     if chem_name == 'Potassium cyanide':
         g = g + theme(legend_position=(0.2, 0.3), legend_direction='vertical')
-    g.save(path_figures + '53-54_SSD_' + title_medium + '_' + chem_name + '.pdf')
+    #g.save(path_figures + '53-54_SSD_' + title_medium + '_' + chem_name + '.pdf')
     print(g) 
 
 # %%
@@ -769,7 +809,6 @@ def add_feature_category(df):
 
 # colors
 # https://www.pinterest.ch/pin/2251868550407753/
-# TODO check colorblind safeness
 list_colors = ['#e26449', '#f19a6e', '#628291', '#f5c100']  #, '#b8ce2d']
 
 # %%
