@@ -5,6 +5,7 @@ def filter_and_merge_predictions(df_p_gp_all,
                                  df_p_lasso_all,
                                  df_p_rf_all,
                                  df_p_xgboost_all,
+                                 challenge,
                                  groupsplit,
                                  conctype,
                                  tax_pdm):
@@ -17,17 +18,21 @@ def filter_and_merge_predictions(df_p_gp_all,
 
     # get sub data for all models
     df_p_gp = df_p_gp_all[#(df_p_gp_all['chem_fp'] == chem_fp)
-                          (df_p_gp_all['groupsplit'] == groupsplit)
+                          (df_p_gp_all['challenge'] == challenge)
+                          & (df_p_gp_all['groupsplit'] == groupsplit)
                           & (df_p_gp_all['conctype'] == conctype)
                           & (df_p_gp_all['tax_pdm'] == tax_pdm)].copy()
     df_p_lasso = df_p_lasso_all[#(df_p_lasso_all['chem_fp'] == chem_fp)
-                                (df_p_lasso_all['conctype'] == conctype)
+                                (df_p_lasso_all['challenge'] == challenge)
+                                & (df_p_lasso_all['conctype'] == conctype)
                                 & (df_p_lasso_all['groupsplit'] == groupsplit)].copy()
     df_p_rf = df_p_rf_all[#(df_p_rf_all['chem_fp'] == chem_fp)
-                          (df_p_rf_all['conctype'] == conctype)
+                          (df_p_rf_all['challenge'] == challenge)
+                          & (df_p_rf_all['conctype'] == conctype)
                           & (df_p_rf_all['groupsplit'] == groupsplit)].copy()
     df_p_xgboost = df_p_xgboost_all[#(df_p_xgboost_all['chem_fp'] == chem_fp)
-                                    (df_p_xgboost_all['conctype'] == conctype)
+                                    (df_p_xgboost_all['challenge'] == challenge)
+                                    & (df_p_xgboost_all['conctype'] == conctype)
                                     & (df_p_xgboost_all['groupsplit'] == groupsplit)].copy()
 
     # rename concentration columns

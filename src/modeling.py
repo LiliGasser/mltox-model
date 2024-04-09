@@ -6,17 +6,17 @@ import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import scipy.stats as stats
 
-import gpflow
-from gpflow import set_trainable
-from gpflow.config import default_float
-import tensorflow as tf
+#import gpflow
+#from gpflow import set_trainable
+#from gpflow.config import default_float
+#import tensorflow as tf
 
-from gpflow.monitor import (
-    ModelToTensorBoard,
-    Monitor,
-    MonitorTaskGroup,
-    ScalarToTensorBoard,
-)
+#from gpflow.monitor import (
+    #ModelToTensorBoard,
+    #Monitor,
+    #MonitorTaskGroup,
+    #ScalarToTensorBoard,
+#)
 
 import utils
 
@@ -390,42 +390,42 @@ def get_model_weights(model, list_cols):
 # GP
 # ------------------------------
 # code from PhotoSwitch paper 
-from gpflow.utilities import positive
-from gpflow.utilities.ops import broadcasting_elementwise
-class Tanimoto(gpflow.kernels.Kernel):
-    def __init__(self, variance=1.0, active_dims=None):
-        super().__init__(active_dims=active_dims)
-        # We constrain the value of the kernel variance to be positive when it's being optimised
-        self.variance = gpflow.Parameter(variance, transform=positive())
+#from gpflow.utilities import positive
+#from gpflow.utilities.ops import broadcasting_elementwise
+#class Tanimoto(gpflow.kernels.Kernel):
+    #def __init__(self, variance=1.0, active_dims=None):
+        #super().__init__(active_dims=active_dims)
+        ## We constrain the value of the kernel variance to be positive when it's being optimised
+        #self.variance = gpflow.Parameter(variance, transform=positive())
 
-    def K(self, X, X2=None):
-        """
-        Compute the Tanimoto kernel matrix σ² * ((<x, y>) / (||x||^2 + ||y||^2 - <x, y>))
+    #def K(self, X, X2=None):
+        #"""
+        #Compute the Tanimoto kernel matrix σ² * ((<x, y>) / (||x||^2 + ||y||^2 - <x, y>))
 
-        :param X: N x D array
-        :param X2: M x D array. If None, compute the N x N kernel matrix for X.
-        :return: The kernel matrix of dimension N x M
-        """
-        if X2 is None:
-            X2 = X
+        #:param X: N x D array
+        #:param X2: M x D array. If None, compute the N x N kernel matrix for X.
+        #:return: The kernel matrix of dimension N x M
+        #"""
+        #if X2 is None:
+            #X2 = X
 
-        Xs = tf.reduce_sum(tf.square(X), axis=-1)  # Squared L2-norm of X
-        X2s = tf.reduce_sum(tf.square(X2), axis=-1)  # Squared L2-norm of X2
-        outer_product = tf.tensordot(X, X2, [[-1], [-1]])  # outer product of the matrices X and X2
+        #Xs = tf.reduce_sum(tf.square(X), axis=-1)  # Squared L2-norm of X
+        #X2s = tf.reduce_sum(tf.square(X2), axis=-1)  # Squared L2-norm of X2
+        #outer_product = tf.tensordot(X, X2, [[-1], [-1]])  # outer product of the matrices X and X2
 
-        # Analogue of denominator in Tanimoto formula
+        ## Analogue of denominator in Tanimoto formula
 
-        denominator = -outer_product + broadcasting_elementwise(tf.add, Xs, X2s)
+        #denominator = -outer_product + broadcasting_elementwise(tf.add, Xs, X2s)
 
-        return self.variance * outer_product/denominator
+        #return self.variance * outer_product/denominator
 
-    def K_diag(self, X):
-        """
-        Compute the diagonal of the N x N kernel matrix of X
-        :param X: N x D array
-        :return: N x 1 array
-        """
-        return tf.fill(tf.shape(X)[:-1], tf.squeeze(self.variance))
+    #def K_diag(self, X):
+        #"""
+        #Compute the diagonal of the N x N kernel matrix of X
+        #:param X: N x D array
+        #:return: N x 1 array
+        #"""
+        #return tf.fill(tf.shape(X)[:-1], tf.squeeze(self.variance))
 
 def get_kernel(which_kernel, variance, lengthscales, len_feat, len_tot, do_ARD):
 
@@ -461,58 +461,58 @@ def _update_len_tot(len_tot, new_len):
 
     return len_tot
 
-class PairwiseDistance(gpflow.kernels.IsotropicStationary):
-    '''
-    pairwise distance kernel for phylogenetic distances
+#class PairwiseDistance(gpflow.kernels.IsotropicStationary):
+    #'''
+    #pairwise distance kernel for phylogenetic distances
     
-    '''
+    #'''
 
     
-    def __init__(self, variance=1.0, lengthscales=1.0, active_dims=None, t_pdm=None, squared=False):
-        super().__init__(variance=variance, lengthscales=lengthscales, active_dims=active_dims)
-        self.t_pdm = t_pdm
-        self.squared = squared
+    #def __init__(self, variance=1.0, lengthscales=1.0, active_dims=None, t_pdm=None, squared=False):
+        #super().__init__(variance=variance, lengthscales=lengthscales, active_dims=active_dims)
+        #self.t_pdm = t_pdm
+        #self.squared = squared
      
-    def K(self, X, X2=None):
+    #def K(self, X, X2=None):
 
-        pd = self.get_pd_for_samples(X, self.t_pdm, X2)
+        #pd = self.get_pd_for_samples(X, self.t_pdm, X2)
 
-        if self.squared:
-            pd = tf.math.square(pd)
+        #if self.squared:
+            #pd = tf.math.square(pd)
         
-        return self.variance * tf.exp(-0.5 * pd / self.lengthscales)      
+        #return self.variance * tf.exp(-0.5 * pd / self.lengthscales)      
         
-    def get_pd_for_samples(self, X, t_pdm, X2=None):
-        '''
-        X (and X2) contain the unique encoding for each fish which corresponds 
-        to the column and row indices in tf_pdm. 
-        These indices get extracted with meshgrid and properly combined with stack
-        before the subset corresponding to X (and X2) is gathered.
-        '''
+    #def get_pd_for_samples(self, X, t_pdm, X2=None):
+        #'''
+        #X (and X2) contain the unique encoding for each fish which corresponds 
+        #to the column and row indices in tf_pdm. 
+        #These indices get extracted with meshgrid and properly combined with stack
+        #before the subset corresponding to X (and X2) is gathered.
+        #'''
 
-        from gpflow.config import default_int
+        #from gpflow.config import default_int
         
-        if X2 is None:
-            t_indices = tf.stack(tf.meshgrid(X, X), axis=-1)
-            t_indices = tf.cast(t_indices, dtype=default_int())
-            t_pdm_subset = tf.gather_nd(t_pdm,
-                                        indices=t_indices)
+        #if X2 is None:
+            #t_indices = tf.stack(tf.meshgrid(X, X), axis=-1)
+            #t_indices = tf.cast(t_indices, dtype=default_int())
+            #t_pdm_subset = tf.gather_nd(t_pdm,
+                                        #indices=t_indices)
             
-            return t_pdm_subset
+            #return t_pdm_subset
         
-        # cast data types (they need to be the same)
-        if X.dtype != X2.dtype:
-            if X.dtype == 'int64':
-                X2 = tf.cast(X2, dtype=X.dtype)
-            elif X2.dtype == 'int64':
-                X = tf.cast(X, dtype=X2.dtype)
+        ## cast data types (they need to be the same)
+        #if X.dtype != X2.dtype:
+            #if X.dtype == 'int64':
+                #X2 = tf.cast(X2, dtype=X.dtype)
+            #elif X2.dtype == 'int64':
+                #X = tf.cast(X, dtype=X2.dtype)
 
-        t_indices = tf.stack(tf.meshgrid(X, X2), axis=-1)
-        t_indices = tf.cast(t_indices, dtype=default_int())
-        t_pdm_subset = tf.gather_nd(t_pdm,
-                                    indices=t_indices)
+        #t_indices = tf.stack(tf.meshgrid(X, X2), axis=-1)
+        #t_indices = tf.cast(t_indices, dtype=default_int())
+        #t_pdm_subset = tf.gather_nd(t_pdm,
+                                    #indices=t_indices)
 
-        return tf.transpose(t_pdm_subset)
+        #return tf.transpose(t_pdm_subset)
 
 def run_GP(X_train, y_train, 
            kernel, mean_function, noise_variance,

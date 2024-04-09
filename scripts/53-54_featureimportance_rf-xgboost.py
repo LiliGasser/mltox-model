@@ -53,8 +53,13 @@ dict_bits['MACCS'] = df_maccs
 dict_bits['pcp'] = df_pcp
 dict_bits['ToxPrint'] = df_toxprint
 
-# load fish data
-df_eco = pd.read_csv(path_data + 'processed/t-F2F_mortality.csv', low_memory=False)
+# set challenge
+challenge = 't-F2F'
+#challenge = 't-C2C'
+#challenge = 't-A2A'
+
+# load data
+df_eco = pd.read_csv(path_data + 'processed/' + challenge + '_mortality.csv', low_memory=False)
 
 # %%
 
@@ -63,28 +68,34 @@ df_eco = pd.read_csv(path_data + 'processed/t-F2F_mortality.csv', low_memory=Fal
 # sparse GP
 path_output_dir = path_vmoutput_gp + '2023-09-15_from-updated-adore/'
 df_p_gp_all = utils.read_result_files(path_output_dir, file_type='preds')
+df_p_gp_all['challenge'] = df_p_gp_all['challenge'].fillna('t-F2F')
 
 # LASSO
 path_output_dir = path_vmoutput_lasso + '2023-09-15_from-updated-adore/'
 df_p_lasso_all = utils.read_result_files(path_output_dir, file_type='preds')
+df_p_lasso_all['challenge'] = df_p_lasso_all['challenge'].fillna('t-F2F')
 
 # RF
 path_output_dir = path_vmoutput_rf + '2023-09-15_from-updated-adore/'
 df_p_rf_all = utils.read_result_files(path_output_dir, file_type='preds')
+df_p_rf_all['challenge'] = df_p_rf_all['challenge'].fillna('t-F2F')
 
 # XGBoost
 path_output_dir = path_vmoutput_xgboost + '2023-09-15_from-updated-adore/'
 df_p_xgboost_all = utils.read_result_files(path_output_dir, file_type='preds')
+df_p_xgboost_all['challenge'] = df_p_xgboost_all['challenge'].fillna('t-F2F')
 
 # %%
 
 # set
-modeltype = 'xgboost'
+modeltype = 'rf'
+#modeltype = 'xgboost'
 chem_fp = 'MACCS'
 groupsplit = 'occurrence'
 #conctype = 'mass'
 conctype = 'molar'
 
+# TODO adjust for challenges
 title = ' '.join((modeltype, chem_fp))
 title_medium = '_'.join((groupsplit, conctype, chem_fp))
 title_long = '_'.join((groupsplit, conctype, modeltype, chem_fp))
@@ -97,6 +108,7 @@ df_p = eval.filter_and_merge_predictions(df_p_gp_all,
                                          df_p_lasso_all,
                                          df_p_rf_all,
                                          df_p_xgboost_all,
+                                         challenge,
                                          groupsplit,
                                          conctype,
                                          tax_pdm='none')
@@ -104,12 +116,15 @@ df_p = df_p[df_p['chem_fp'] == chem_fp]
 
 # %%
 
+# TODO fix for challenges!! --> when xgboost is rerun
+
 # load features
 filename_ending = '_'.join((modeltype, 'data', chem_fp, groupsplit, conctype)) + '.csv'
 filename_features = path_features + filename_ending
 df_data = pd.read_csv(filename_features)
 list_cols = ['test_id', 'result_id', 'test_cas', 'chem_name', 'tax_name', 'tax_gs']
 df_features = df_data[[c for c in df_data.columns if c not in list_cols]]
+# %%
 
 # load permutation importance results
 filename_ending = '_'.join((modeltype, 'permimp-trainvalid', chem_fp, groupsplit, conctype)) + '.p'
@@ -202,7 +217,7 @@ g = (ggplot(data=df_plot, mapping=aes(y='importance', x='feature2'))
     + theme(axis_title=element_text(size=13, color='black'))
     + theme(figure_size=(8, 6))
  )
-g.save(path_figures + '53-54_Permimp_' + title_long + '.pdf')
+#g.save(path_figures + '53-54_Permimp_' + title_long + '.pdf')
 g
 
 # %%
@@ -275,6 +290,8 @@ negative_color = "#92c5de"
 
 # Plots for entire test set
 
+# TODO color by feature group
+
 # bar plot (averaged (=global)): micro-average
 shap.plots.bar(shap_values,
                max_display=max_display+1,
@@ -299,8 +316,8 @@ for fc in plt.gcf().get_children():
 plt.xlabel('mean absolute SHAP value')
 plt.gcf().set_size_inches(8,6)
 plt.tight_layout()
-plt.savefig(path_figures + '53-54_SHAPglobal_' + title_long + '.pdf',
-            bbox_inches='tight')
+#plt.savefig(path_figures + '53-54_SHAPglobal_' + title_long + '.pdf',
+            #bbox_inches='tight')
 plt.show()
 
 # %%
