@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import root_mean_squared_error, mean_absolute_error, r2_score
 import scipy.stats as stats
 
 #import gpflow
@@ -745,13 +745,9 @@ def get_complete_kernel(len_exp, len_chem_fp, len_chem_prop, len_tax_pdm, len_ta
 
 # calculate evaluation metrics
 # ------------------------------
-def _calculate_mse(df, col_true, col_pred):
-    
-    return mean_squared_error(df[col_true], df[col_pred], squared=True)
-
 def _calculate_rmse(df, col_true, col_pred):
     
-    return mean_squared_error(df[col_true], df[col_pred], squared=False)
+    return root_mean_squared_error(df[col_true], df[col_pred])
 
 def _calculate_mae(df, col_true, col_pred):
     
