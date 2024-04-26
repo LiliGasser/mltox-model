@@ -217,8 +217,8 @@ do_store_images = True
 
 # TODO for the different challenges
 challenge = 's-F2F-1'
-#challenge = 's-F2F-2'
-#challenge = 's-F2F-3'
+challenge = 's-F2F-2'
+challenge = 's-F2F-3'
 #challenge = 's-C2C'
 #challenge = 's-A2A'
 df_errors = df_errors_all[df_errors_all['challenge'] == challenge].copy()
@@ -511,7 +511,7 @@ for chem_fp in list_cols_fps:
                              #marker_color=dict_colors_points[errortype],
                              #marker_symbol='diamond-open',
                              #marker_size=7))
-# TODO legend at bottom horizontally aligned
+# TODO legend at bottom horizontally aligned --> remove legendgroup
 #fig.update_layout(legend_orientation='h', legend_xanchor='center', legend_x=0.5)
 
 fig.update_layout(template='plotly_white')
