@@ -17,11 +17,14 @@ def filter_and_merge_predictions(df_p_gp_all,
         col_conc = 'result_conc1_mean_log'
 
     # get sub data for all models
-    df_p_gp = df_p_gp_all[#(df_p_gp_all['chem_fp'] == chem_fp)
-                          (df_p_gp_all['challenge'] == challenge)
-                          & (df_p_gp_all['groupsplit'] == groupsplit)
-                          & (df_p_gp_all['conctype'] == conctype)
-                          & (df_p_gp_all['tax_pdm'] == tax_pdm)].copy()
+    if len(df_p_gp_all) > 0:
+        df_p_gp = df_p_gp_all[#(df_p_gp_all['chem_fp'] == chem_fp)
+                              (df_p_gp_all['challenge'] == challenge)
+                              & (df_p_gp_all['groupsplit'] == groupsplit)
+                              & (df_p_gp_all['conctype'] == conctype)
+                              & (df_p_gp_all['tax_pdm'] == tax_pdm)].copy()
+    else:
+        df_p_gp = pd.DataFrame()
     df_p_lasso = df_p_lasso_all[#(df_p_lasso_all['chem_fp'] == chem_fp)
                                 (df_p_lasso_all['challenge'] == challenge)
                                 & (df_p_lasso_all['conctype'] == conctype)
@@ -39,16 +42,20 @@ def filter_and_merge_predictions(df_p_gp_all,
     df_p_lasso = df_p_lasso.rename(columns={col_conc: 'true',
                                       'conc_pred': 'lasso_pred',
                                       })
-    df_p_gp = df_p_gp.rename(columns={'conc_pred': 'gp_pred'})
+    if len(df_p_gp) > 0:
+        df_p_gp = df_p_gp.rename(columns={'conc_pred': 'gp_pred'})
     df_p_rf = df_p_rf.rename(columns={'conc_pred': 'rf_pred'})
     df_p_xgboost = df_p_xgboost.rename(columns={'conc_pred': 'xgboost_pred'})
 
     # add other predictions to LASSO table
-    df_p = pd.merge(df_p_lasso, 
-                    df_p_gp[['chem_fp', 'result_id', 'gp_pred']],
-                    left_on=['chem_fp', 'result_id'],
-                    right_on=['chem_fp', 'result_id'],
-                    how='left')
+    if len(df_p_gp) > 0:
+        df_p = pd.merge(df_p_lasso, 
+                        df_p_gp[['chem_fp', 'result_id', 'gp_pred']],
+                        left_on=['chem_fp', 'result_id'],
+                        right_on=['chem_fp', 'result_id'],
+                        how='left')
+    else:
+        df_p = df_p_lasso.copy()
     df_p = pd.merge(df_p, 
                     df_p_rf[['chem_fp', 'result_id', 'rf_pred']],
                     left_on=['chem_fp', 'result_id'],

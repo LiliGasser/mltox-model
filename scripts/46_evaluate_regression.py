@@ -242,7 +242,7 @@ def _calculate_metric_stuff(df_errors, metric):
     return metric_max, metric_step, str_metric
 
 # store images flag
-do_store_images = True
+do_store_images = False
 
 # %%
 
