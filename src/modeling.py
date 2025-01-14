@@ -6,17 +6,10 @@ import pandas as pd
 from sklearn.metrics import root_mean_squared_error, mean_absolute_error, r2_score
 import scipy.stats as stats
 
-#import gpflow
-#from gpflow import set_trainable
-#from gpflow.config import default_float
-#import tensorflow as tf
-
-#from gpflow.monitor import (
-    #ModelToTensorBoard,
-    #Monitor,
-    #MonitorTaskGroup,
-    #ScalarToTensorBoard,
-#)
+import gpflow
+from gpflow import set_trainable
+from gpflow.config import default_float
+import tensorflow as tf
 
 import utils
 
