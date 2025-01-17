@@ -42,8 +42,8 @@ FROM renku/renkulab-py:3.10-0.24.0
 # USER ${NB_USER}
 
 # install the python dependencies
-COPY requirements.txt environment.yml /tmp/
-RUN mamba env update -q -f /tmp/environment.yml && \
+COPY requirements.txt environment-renku.yml /tmp/
+RUN mamba env update -q -f /tmp/environment-renku.yml && \
     /opt/conda/bin/pip install -r /tmp/requirements.txt --no-cache-dir && \
     mamba clean -y --all && \
     mamba env export -n "root" && \
