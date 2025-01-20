@@ -25,7 +25,7 @@ RUN if [ -n "$RENKU_VERSION" ] ; then \
 #             End Renku install section                #
 ########################################################
 
-FROM renku/renkulab-cuda:latest
+FROM renku/renkulab-cuda:12.2-97b49a4
 
 # Uncomment and adapt if code is to be included in the image
 # COPY src /code/src
