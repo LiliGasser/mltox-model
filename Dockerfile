@@ -25,7 +25,7 @@ RUN if [ -n "$RENKU_VERSION" ] ; then \
 #             End Renku install section                #
 ########################################################
 
-FROM renku/renkulab-py:3.10-0.24.0
+FROM renku/renkulab-cuda:3.10-11.5
 
 # Uncomment and adapt if code is to be included in the image
 # COPY src /code/src
