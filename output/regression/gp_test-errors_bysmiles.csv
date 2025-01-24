@@ -1,0 +1,15 @@
+fold,rmse,mae,r2,pearson,set,chem_prop,tax_prop,exp,challenge,chem_fp,conctype,groupsplit,tax_pdm,n_inducing
+trainvalid,0.90345,0.67377,0.69042,0.83102,trainvalid,chemprop,taxprop-migrate2,exp-dropfirst,t-F2F,none,molar,occurrence,none,100
+test,1.19345,0.90795,0.53822,0.73468,test,chemprop,taxprop-migrate2,exp-dropfirst,t-F2F,none,molar,occurrence,none,100
+trainvalid,0.63874,0.4557,0.84526,0.91943,trainvalid,chemprop,taxprop-migrate2,exp-dropfirst,t-F2F,MACCS,molar,occurrence,none,500
+test,0.98346,0.73384,0.68642,0.8322,test,chemprop,taxprop-migrate2,exp-dropfirst,t-F2F,MACCS,molar,occurrence,none,500
+trainvalid,0.58453,0.4086,0.87041,0.93299,trainvalid,chemprop,taxprop-migrate2,exp-dropfirst,t-F2F,pcp,molar,occurrence,none,1000
+test,1.05926,0.77126,0.63622,0.82615,test,chemprop,taxprop-migrate2,exp-dropfirst,t-F2F,pcp,molar,occurrence,none,1000
+trainvalid,0.72658,0.52112,0.79977,0.89438,trainvalid,chemprop,taxprop-migrate2,exp-dropfirst,t-F2F,Morgan,molar,occurrence,none,100
+test,1.04936,0.80618,0.64299,0.80378,test,chemprop,taxprop-migrate2,exp-dropfirst,t-F2F,Morgan,molar,occurrence,none,100
+trainvalid,0.75521,0.54884,0.78368,0.88531,trainvalid,chemprop,taxprop-migrate2,exp-dropfirst,t-F2F,ToxPrint,molar,occurrence,none,100
+test,1.03634,0.80027,0.6518,0.81845,test,chemprop,taxprop-migrate2,exp-dropfirst,t-F2F,ToxPrint,molar,occurrence,none,100
+trainvalid,0.61594,0.43609,0.85611,0.92531,trainvalid,chemprop,taxprop-migrate2,exp-dropfirst,t-F2F,mol2vec,molar,occurrence,none,500
+test,0.97992,0.72219,0.68868,0.83891,test,chemprop,taxprop-migrate2,exp-dropfirst,t-F2F,mol2vec,molar,occurrence,none,500
+trainvalid,0.57308,0.39929,0.87544,0.93568,trainvalid,chemprop,taxprop-migrate2,exp-dropfirst,t-F2F,Mordred,molar,occurrence,none,1000
+test,1.02154,0.75761,0.66167,0.82281,test,chemprop,taxprop-migrate2,exp-dropfirst,t-F2F,Mordred,molar,occurrence,none,1000
