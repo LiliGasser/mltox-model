@@ -2,6 +2,8 @@
 
 With the ADORE dataset, we first tackled the challenge on the taxonomic group of fish 't-F2F' to determine the potential and limitations of applying machine learning models to ecotoxicology.
 
+February 13, 2025: The "split-by-smiles" branch reflects the modeling on the 't-F2F' challenge split by SMILES. No relevant result deviations were found compared to the initial faulty split by CAS number.
+
 
 ## A. Project description
 
