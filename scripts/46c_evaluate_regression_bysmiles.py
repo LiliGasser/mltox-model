@@ -77,22 +77,19 @@ df_xgboost
 # %%
 
 # load GP
-# TODO not yet done
-# 1 challenge x 7 fps x 2 groupsplits x 4 sets x 2 concentrations = ? entries
-#df_gp = compile_errors(modeltype='gp')
-df_gp = pd.DataFrame()
+# 1 challenge x 7 fps x 1 groupsplits x 4 sets x 1 concentrations = ? entries
+df_gp = compile_errors(modeltype='gp')
 df_gp
 
 # %%
 
 # GP: without tax_pdm
-#df_gp = df_gp[df_gp['tax_pdm'] == 'none'].copy()
+df_gp = df_gp[df_gp['tax_pdm'] == 'none'].copy()
 
 # %%
 
 # concatenate all error files
-df_errors = pd.concat([df_lasso, df_rf, df_xgboost], axis=0)
-#df_errors = pd.concat([df_lasso, df_rf, df_xgboost, df_gp], axis=0)
+df_errors = pd.concat([df_lasso, df_rf, df_xgboost, df_gp], axis=0)
 df_errors
 
 # %%
@@ -107,8 +104,7 @@ list_cols_fps = ['MACCS', 'PubChem', 'Morgan', 'ToxPrint', 'mol2vec', 'Mordred',
 df_errors = utils._transform_to_categorical(df_errors, 'groupsplit', ['totallyrandom', 'occurrence'])
 df_errors = utils._transform_to_categorical(df_errors, 'challenge', ['t-F2F'])
 df_errors = utils._transform_to_categorical(df_errors, 'chem_fp', list_cols_fps)
-df_errors = utils._transform_to_categorical(df_errors, 'model', ['LASSO', 'RF', 'XGBoost'])
-#df_errors = utils._transform_to_categorical(df_errors, 'model', ['LASSO', 'RF', 'XGBoost', 'GP'])
+df_errors = utils._transform_to_categorical(df_errors, 'model', ['LASSO', 'RF', 'XGBoost', 'GP'])
 df_errors = utils._transform_to_categorical(df_errors, 'set', ['train', 'valid', 'trainvalid', 'test'])
 df_errors = utils._transform_to_categorical(df_errors, 'conctype', ['molar', 'mass'])
 
@@ -160,19 +156,17 @@ print(df_l.to_latex(index=False))
 
 # %%
 
-# TODO GP run not yet done
-if 0:
-    # best hyperparameters for GP
-    df_gp = utils._transform_to_categorical(df_gp, 'conctype', ['molar', 'mass'])
-    df_gp = utils._transform_to_categorical(df_gp, 'groupsplit', ['totallyrandom', 'occurrence'])
-    df_gp = utils._transform_to_categorical(df_gp, 'chem_fp', list_cols_fps)
+# best hyperparameters for GP
+df_gp = utils._transform_to_categorical(df_gp, 'conctype', ['molar', 'mass'])
+df_gp = utils._transform_to_categorical(df_gp, 'groupsplit', ['totallyrandom', 'occurrence'])
+df_gp = utils._transform_to_categorical(df_gp, 'chem_fp', list_cols_fps)
 
-    list_cols_hp = ['n_inducing']
-    list_cols = ['challenge', 'conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
-    list_cols += list_cols_hp
-    list_cols_sort = ['challenge', 'conctype', 'groupsplit', 'chem_fp']
-    df_l = df_gp[df_gp['set'] == 'train'][list_cols].sort_values(list_cols_sort).copy()
-    print(df_l.to_latex(index=False))
+list_cols_hp = ['n_inducing']
+list_cols = ['challenge', 'conctype', 'groupsplit', 'chem_fp']  #, 'rmse', 'mae', 'r2']
+list_cols += list_cols_hp
+list_cols_sort = ['challenge', 'conctype', 'groupsplit', 'chem_fp']
+df_l = df_gp[df_gp['set'] == 'train'][list_cols].sort_values(list_cols_sort).copy()
+print(df_l.to_latex(index=False))
 
 
 # %%
