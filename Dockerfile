@@ -1,12 +1,12 @@
 ########################################################
 #        Renku install section - do not edit           #
 
-FROM renku/renkulab-py:3.10-0.18.1 as builder
+FROM renku/renkulab-py:3.10-0.24.0 as builder
 
 # RENKU_VERSION determines the version of the renku CLI
 # that will be used in this image. To find the latest version,
 # visit https://pypi.org/project/renku/#history.
-ARG RENKU_VERSION=2.6.2
+ARG RENKU_VERSION=2.9.2
 
 # Install renku from pypi or from github if a dev version
 RUN if [ -n "$RENKU_VERSION" ] ; then \
@@ -25,7 +25,7 @@ RUN if [ -n "$RENKU_VERSION" ] ; then \
 #             End Renku install section                #
 ########################################################
 
-FROM renku/renkulab-py:3.10-0.18.1
+FROM renku/renkulab-py:3.10-0.24.0
 
 # Uncomment and adapt if code is to be included in the image
 # COPY src /code/src
