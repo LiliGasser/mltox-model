@@ -22,7 +22,7 @@ First, the repository needs to be setup.
 This step needs an ssh connection.
 
 ```
-git clone git@gitlab.renkulab.io:mltox/adore.git
+git clone git@github.com:LiliGasser/adore.git 
 cd adore/
 ```
 
